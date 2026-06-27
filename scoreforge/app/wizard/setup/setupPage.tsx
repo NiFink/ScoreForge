@@ -42,7 +42,6 @@ export default function WizardSetup() {
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
   const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
-  const [startPlayerIndex, setStartPlayerIndex] = useState(0);
 
   const rounds = useMemo(() => roundMap[playerCount] || 10, [playerCount]);
 
@@ -67,7 +66,7 @@ export default function WizardSetup() {
         deviceMode,
         writeMode,
         rounds,
-        startPlayerIndex,
+        startPlayerIndex: 0,
         players: cleanPlayers,
       }),
     );
@@ -115,9 +114,6 @@ export default function WizardSetup() {
                   key={count}
                   onClick={() => {
                     setPlayerCount(count);
-                    setStartPlayerIndex((current) =>
-                      Math.min(current, count - 1),
-                    );
                     setPlayers((current) =>
                       Array.from({ length: count }, (_, index) => {
                         return (
@@ -146,25 +142,6 @@ export default function WizardSetup() {
             <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
               <p className="text-[#9fc9d5] text-sm">Runden</p>
               <p className="mt-1 font-black text-4xl">{rounds}</p>
-            </div>
-
-            <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-              <label className="font-bold text-[#f7e7ad] text-sm">
-                Wer fängt an?
-              </label>
-              <select
-                className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full font-bold text-[#fff4c7]"
-                value={startPlayerIndex}
-                onChange={(event) =>
-                  setStartPlayerIndex(Number(event.target.value))
-                }
-              >
-                {players.map((player, index) => (
-                  <option key={player.id} value={index}>
-                    {player.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="space-y-4 mt-5">

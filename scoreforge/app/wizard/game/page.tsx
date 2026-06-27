@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { GameModal } from "./GameModal";
+import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
 import type { ModalPhase, RoundEntry, ScoreTable, Setup } from "./types";
@@ -25,6 +26,8 @@ export default function WizardGame() {
   const [activeRound, setActiveRound] = useState(0);
   const [modalPhase, setModalPhase] = useState<ModalPhase | null>(null);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
+  const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
+  const [isStartPlayerModalOpen, setIsStartPlayerModalOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("scoreforge:wizard:setup");
@@ -38,6 +41,8 @@ export default function WizardGame() {
       const parsed = JSON.parse(stored) as Setup;
       setSetup(parsed);
       setTable(createScoreTable(parsed.rounds, parsed.players));
+      setStartPlayerIndexDraft(parsed.startPlayerIndex ?? 0);
+      setIsStartPlayerModalOpen(true);
     });
   }, [router]);
 
@@ -58,6 +63,9 @@ export default function WizardGame() {
   const roundNumber = activeRound + 1;
   const activePlayer = setup?.players[activePlayerIndex];
   const rankings = setup ? rankPlayers(setup.players, totals) : null;
+  const resolvedStartPlayerIndex = isStartPlayerModalOpen
+    ? startPlayerIndexDraft
+    : (setup?.startPlayerIndex ?? 0);
   const roundTurnOrder = useMemo(() => {
     if (!setup) {
       return [];
@@ -66,9 +74,9 @@ export default function WizardGame() {
     return getRoundTurnOrder(
       activeRound,
       setup.players.length,
-      setup.startPlayerIndex ?? 0,
+      resolvedStartPlayerIndex,
     );
-  }, [activeRound, setup]);
+  }, [activeRound, resolvedStartPlayerIndex, setup]);
   const activeTurnPosition = roundTurnOrder.indexOf(activePlayerIndex);
   const isLastTurnPlayer =
     !!setup && activeTurnPosition === roundTurnOrder.length - 1;
@@ -110,7 +118,7 @@ export default function WizardGame() {
     const roundOrder = getRoundTurnOrder(
       roundIndex,
       setup.players.length,
-      setup.startPlayerIndex ?? 0,
+      resolvedStartPlayerIndex,
     );
     const startPlayerIndex = roundOrder[0] ?? 0;
 
@@ -279,6 +287,21 @@ export default function WizardGame() {
     !!currentRound &&
     isRoundPhaseComplete(currentRound, setup.players, "bid");
 
+  const confirmStartPlayer = () => {
+    if (!setup) {
+      return;
+    }
+
+    const nextSetup = {
+      ...setup,
+      startPlayerIndex: startPlayerIndexDraft,
+    };
+
+    setSetup(nextSetup);
+    localStorage.setItem("scoreforge:wizard:setup", JSON.stringify(nextSetup));
+    setIsStartPlayerModalOpen(false);
+  };
+
   if (!setup) {
     return (
       <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
@@ -352,11 +375,20 @@ export default function WizardGame() {
           players={setup.players}
           table={table}
           totals={totals}
-          startPlayerIndex={setup.startPlayerIndex ?? 0}
+          startPlayerIndex={resolvedStartPlayerIndex}
           onOpenRound={openRound}
           onOpenPlayer={openPlayerInCurrentRound}
         />
       </div>
+
+      {setup && isStartPlayerModalOpen ? (
+        <StartPlayerModal
+          players={setup.players}
+          selectedPlayerIndex={startPlayerIndexDraft}
+          onChange={setStartPlayerIndexDraft}
+          onConfirm={confirmStartPlayer}
+        />
+      ) : null}
 
       {modalPhase && activePlayer && currentRound ? (
         <GameModal
