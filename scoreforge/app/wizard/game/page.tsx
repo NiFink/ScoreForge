@@ -152,6 +152,32 @@ export default function WizardGame() {
       return;
     }
 
+    if (
+      modalPhase === "actual" &&
+      activePlayer &&
+      currentRound &&
+      actualOptions.length === 1
+    ) {
+      const forcedValue = actualOptions[0];
+      const currentActual = currentRound[activePlayer.id]?.actual;
+
+      if (currentActual !== forcedValue) {
+        setTable((current) =>
+          current.map((round, index) =>
+            index === activeRound
+              ? {
+                  ...round,
+                  [activePlayer.id]: {
+                    ...round[activePlayer.id],
+                    actual: forcedValue,
+                  },
+                }
+              : round,
+          ),
+        );
+      }
+    }
+
     if (activeTurnPosition === -1) {
       setActivePlayerIndex(roundTurnOrder[0] ?? 0);
       return;
@@ -228,9 +254,22 @@ export default function WizardGame() {
     setup,
   ]);
 
-  const actualOptions = useMemo(() => {
-    return setup ? getActualRoundOptions(roundNumber) : [];
-  }, [roundNumber, setup]);
+  const actualOptions =
+    setup && currentRound && modalPhase === "actual" && activePlayer
+      ? (() => {
+          const actualTurnPosition = roundTurnOrder.indexOf(activePlayerIndex);
+          const takenSoFar = roundTurnOrder
+            .slice(0, actualTurnPosition)
+            .reduce((sum, playerIndex) => {
+              const playerId = setup.players[playerIndex]?.id;
+              return (
+                sum + (playerId ? (currentRound[playerId]?.actual ?? 0) : 0)
+              );
+            }, 0);
+
+          return getActualRoundOptions(roundNumber, takenSoFar);
+        })()
+      : [];
 
   const actualMinimum = actualOptions[0] ?? 0;
   const actualMaximum = actualOptions[actualOptions.length - 1] ?? 0;

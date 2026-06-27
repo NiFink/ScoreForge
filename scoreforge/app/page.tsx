@@ -11,7 +11,7 @@ const games = [
     enabled: true,
     accent: "from-[#f59e22] to-[#f7e7ad]",
     description:
-      "Vorhersagen, Stiche und Punkte fuer jede Runde schnell eintragen.",
+      "Vorhersagen, Stiche und Punkte für jede Runde schnell eintragen.",
   },
   {
     title: "Dooomlings",
@@ -20,7 +20,7 @@ const games = [
     enabled: false,
     accent: "from-[#2aa6c8] to-[#f59e22]",
     description:
-      "Score-Hilfe fuer Evolution, Eigenschaften und das letzte Zeitalter.",
+      "Score-Hilfe für Evolution, Eigenschaften und das letzte Zeitalter.",
   },
 ];
 
@@ -28,14 +28,14 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-[#101820] text-[#fff4c7]">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-3">
+    <main className="bg-[#101820] min-h-screen text-[#fff4c7]">
+      <section className="flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full max-w-6xl min-h-screen">
+        <header className="flex justify-between items-center gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f59e22]">
+            <p className="font-semibold text-[#f59e22] text-xs uppercase tracking-[0.18em]">
               ScoreForge
             </p>
-            <h1 className="mt-1 text-3xl font-black sm:text-5xl">
+            <h1 className="mt-1 font-black text-3xl sm:text-5xl">
               Spielpunkte ohne Zettelchaos.
             </h1>
           </div>
@@ -45,44 +45,44 @@ export default function Home() {
             width={88}
             height={88}
             priority
-            className="h-16 w-16 rounded-lg border border-[#f59e22]/40 object-cover shadow-[0_0_28px_rgba(245,158,34,0.28)] sm:h-20 sm:w-20"
+            className="shadow-[0_0_28px_rgba(245,158,34,0.28)] border border-[#f59e22]/40 rounded-lg w-16 sm:w-20 h-16 sm:h-20 object-cover"
           />
         </header>
 
-        <div className="mt-7 grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+        <div className="lg:items-end gap-4 grid lg:grid-cols-[1.05fr_0.95fr] mt-7">
           <div>
-            <div className="mb-5 overflow-hidden rounded-lg border border-[#f59e22]/25 bg-[#18262f] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.25)] sm:hidden">
+            <div className="sm:hidden bg-[#18262f] shadow-[0_18px_50px_rgba(0,0,0,0.25)] mb-5 p-2 border border-[#f59e22]/25 rounded-lg overflow-hidden">
               <Image
                 src="/Logo.png"
                 alt=""
                 width={1024}
                 height={1024}
-                className="aspect-[16/10] w-full rounded-md object-cover"
+                className="rounded-md w-full object-cover aspect-[16/10]"
               />
             </div>
-            <p className="max-w-2xl text-base leading-7 text-[#d8d3bd] sm:text-lg">
+            <p className="max-w-2xl text-[#d8d3bd] text-base sm:text-lg leading-7">
               Eine mobile-freundliche Punkte-App fuer Brett- und Kartenspiele.
               Starte eine Runde, lege Spieler mit Farbe an und lass ScoreForge
               Vorhersagen, Stiche und Platzierungen sauber mitrechnen.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-sm text-[#f7e7ad]">
-              <span className="rounded-md border border-[#f59e22]/25 bg-[#f59e22]/10 px-3 py-2">
+            <div className="flex flex-wrap gap-2 mt-5 text-[#f7e7ad] text-sm">
+              <span className="bg-[#f59e22]/10 px-3 py-2 border border-[#f59e22]/25 rounded-md">
                 Mobile zuerst
               </span>
-              <span className="rounded-md border border-[#2aa6c8]/25 bg-[#2aa6c8]/10 px-3 py-2">
+              <span className="bg-[#2aa6c8]/10 px-3 py-2 border border-[#2aa6c8]/25 rounded-md">
                 PC-taugliche Tabellen
               </span>
-              <span className="rounded-md border border-[#f7e7ad]/20 bg-[#f7e7ad]/10 px-3 py-2">
+              <span className="bg-[#f7e7ad]/10 px-3 py-2 border border-[#f7e7ad]/20 rounded-md">
                 Lokale Spielrunde
               </span>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#f59e22]/20 bg-[#14222b]/90 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.22)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9fc9d5]">
+          <div className="bg-[#14222b]/90 shadow-[0_18px_50px_rgba(0,0,0,0.22)] p-4 border border-[#f59e22]/20 rounded-lg">
+            <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
               Schnelle Spieluebersicht
             </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="gap-3 grid sm:grid-cols-2 lg:grid-cols-1 mt-4">
               {games.map((game) => (
                 <button
                   key={game.title}
@@ -102,14 +102,14 @@ export default function Home() {
                   <div
                     className={`mb-4 h-1.5 rounded-full bg-gradient-to-r ${game.accent}`}
                   />
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex justify-between items-start gap-3">
                     <div>
-                      <h2 className="text-xl font-black">{game.title}</h2>
-                      <p className="mt-2 text-sm leading-6 text-[#d8d3bd]">
+                      <h2 className="font-black text-xl">{game.title}</h2>
+                      <p className="mt-2 text-[#d8d3bd] text-sm leading-6">
                         {game.description}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[#f7e7ad] px-2 py-1 text-xs font-bold text-[#101820]">
+                    <span className="bg-[#f7e7ad] px-2 py-1 rounded-md font-bold text-[#101820] text-xs">
                       {game.status}
                     </span>
                   </div>
@@ -122,7 +122,7 @@ export default function Home() {
         <div className="mt-auto pt-8">
           <button
             onClick={() => router.push("/wizard/setup")}
-            className="w-full rounded-lg bg-[#f59e22] px-5 py-4 text-base font-black text-[#101820] shadow-[0_0_28px_rgba(245,158,34,0.24)] transition hover:bg-[#ffb13d] sm:w-auto"
+            className="bg-[#f59e22] hover:bg-[#ffb13d] shadow-[0_0_28px_rgba(245,158,34,0.24)] px-5 py-4 rounded-lg w-full sm:w-auto font-black text-[#101820] text-base transition"
             type="button"
           >
             Wizard starten

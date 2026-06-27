@@ -52,9 +52,9 @@ export function getRoundTurnOrder(
   );
 }
 
-export function getActualRoundOptions(roundNumber: number) {
-  const minimum = Math.max(0, roundNumber - 2);
-  const maximum = roundNumber + 1;
+export function getActualRoundOptions(roundNumber: number, takenSoFar = 0) {
+  const minimum = 0;
+  const maximum = Math.max(0, roundNumber - takenSoFar);
 
   return Array.from(
     { length: maximum - minimum + 1 },

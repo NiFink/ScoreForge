@@ -57,7 +57,7 @@ export function GameModal({
               Startspieler: Spieler {roundStartPlayerIndex + 1}
             </p>
             <h2 className="mt-1 font-black text-2xl">
-              {modalPhase === "bid" ? "Vorhersage" : "Tatsaechliche Stiche"}
+              {modalPhase === "bid" ? "Vorhersage" : "Tatsächliche Stiche"}
             </h2>
           </div>
           <button
@@ -72,7 +72,7 @@ export function GameModal({
         <div className="gap-2 grid grid-cols-2 bg-[#101820] mb-4 p-1 rounded-lg">
           {[
             ["bid", "Vorhergesagt"],
-            ["actual", "Tatsaechlich"],
+            ["actual", "Tatsächlich"],
           ].map(([phase, label]) => (
             <button
               key={phase}
@@ -135,7 +135,7 @@ export function GameModal({
               }}
             >
               <option value="" disabled>
-                Auswaehlen
+                Auswählen
               </option>
               {(modalPhase === "bid" ? allowedBidOptions : actualOptions).map(
                 (value) => (

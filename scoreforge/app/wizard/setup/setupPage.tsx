@@ -83,7 +83,7 @@ export default function WizardSetup() {
           className="mb-5 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
           type="button"
         >
-          Zurueck
+          Zurück
         </button>
 
         <header className="flex items-center gap-4 mb-6">
