@@ -8,7 +8,12 @@ import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
-import type { ModalPhase, RoundEntry, ScoreTable, Setup } from "./types";
+import type {
+  ModalPhase,
+  RoundEntry,
+  ScoreTable,
+  Setup,
+} from "../../types/wizardTypes";
 import {
   createScoreTable,
   getRoundScore,
@@ -17,7 +22,7 @@ import {
   isRoundPhaseComplete,
   isRoundUnlocked,
   rankPlayers,
-} from "./utils";
+} from "../../Utils/wizardUtils";
 
 export default function WizardGame() {
   const router = useRouter();
@@ -311,6 +316,7 @@ export default function WizardGame() {
             alt="ScoreForge Logo"
             width={96}
             height={96}
+            loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
           <p className="text-[#d8d3bd]">Wizard wird geladen...</p>
@@ -337,6 +343,7 @@ export default function WizardGame() {
                 alt="ScoreForge Logo"
                 width={72}
                 height={72}
+                loading="eager"
                 className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
               />
               <div>

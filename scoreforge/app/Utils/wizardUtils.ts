@@ -1,4 +1,9 @@
-import type { Player, RoundData, RoundEntry, ScoreTable } from "./types";
+import type {
+  Player,
+  RoundData,
+  RoundEntry,
+  ScoreTable,
+} from "../types/wizardTypes";
 
 const emptyEntry = (): RoundEntry => ({ bid: null, actual: null });
 

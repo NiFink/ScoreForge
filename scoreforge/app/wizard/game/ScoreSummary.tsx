@@ -1,4 +1,4 @@
-import type { Player } from "./types";
+import type { Player } from "../../types/wizardTypes";
 
 type ScoreSummaryProps = {
   totals: Record<string, number>;
@@ -12,7 +12,7 @@ export function ScoreSummary({
   rankings,
 }: ScoreSummaryProps) {
   return (
-    <section className="grid grid-cols-3 gap-2 mb-4 pb-1">
+    <section className="gap-2 grid grid-cols-3 mb-4 pb-1">
       {orderedPlayers.map((player) => {
         const score = totals[player.id] ?? 0;
         const isFirst = rankings && score === rankings.max;
@@ -22,7 +22,7 @@ export function ScoreSummary({
         return (
           <div
             key={player.id}
-            className="bg-[#14222b]/90 p-2 sm:p-3 border border-[#f7e7ad]/10 rounded-lg min-w-0 w-full"
+            className="bg-[#14222b]/90 p-2 sm:p-3 border border-[#f7e7ad]/10 rounded-lg w-full min-w-0"
             style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
           >
             <p className="text-[#d8d3bd] text-sm truncate">{player.name}</p>

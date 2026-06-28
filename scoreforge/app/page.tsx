@@ -22,6 +22,15 @@ const games = [
     description:
       "Score-Hilfe für Evolution, Eigenschaften und das letzte Zeitalter.",
   },
+  {
+    title: "Binokel",
+    status: "Bald",
+    href: "/binokel",
+    enabled: false,
+    accent: "from-[#34d399 ] to-[#10b981]",
+    description:
+      "Score-Hilfe, Regeln und Meldbilder für altes schwäbisches Kartenspiel.",
+  },
 ];
 
 export default function Home() {
@@ -45,6 +54,7 @@ export default function Home() {
             width={88}
             height={88}
             priority
+            loading="eager"
             className="shadow-[0_0_28px_rgba(245,158,34,0.28)] border border-[#f59e22]/40 rounded-lg w-16 sm:w-20 h-16 sm:h-20 object-cover"
           />
         </header>
@@ -57,7 +67,8 @@ export default function Home() {
                 alt=""
                 width={1024}
                 height={1024}
-                className="rounded-md w-full object-cover aspect-[16/10]"
+                className="rounded-md w-full object-cover"
+                loading="eager"
               />
             </div>
             <p className="max-w-2xl text-[#d8d3bd] text-base sm:text-lg leading-7">
@@ -80,7 +91,7 @@ export default function Home() {
 
           <div className="bg-[#14222b]/90 shadow-[0_18px_50px_rgba(0,0,0,0.22)] p-4 border border-[#f59e22]/20 rounded-lg">
             <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
-              Schnelle Spieluebersicht
+              Schnelle Spielübersicht
             </p>
             <div className="gap-3 grid sm:grid-cols-2 lg:grid-cols-1 mt-4">
               {games.map((game) => (

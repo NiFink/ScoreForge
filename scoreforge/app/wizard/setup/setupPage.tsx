@@ -91,6 +91,7 @@ export default function WizardSetup() {
             alt="ScoreForge Logo"
             width={80}
             height={80}
+            loading="eager"
             className="shadow-[0_0_24px_rgba(245,158,34,0.2)] border border-[#f59e22]/35 rounded-lg w-16 h-16 object-cover"
           />
           <div>
@@ -147,7 +148,7 @@ export default function WizardSetup() {
             <div className="space-y-4 mt-5">
               <fieldset>
                 <legend className="font-bold text-[#f7e7ad] text-sm">
-                  Geräte
+                  Auf wie viele Geräte?
                 </legend>
                 <div className="gap-2 grid grid-cols-2 mt-2">
                   {[
@@ -172,11 +173,11 @@ export default function WizardSetup() {
 
               <fieldset>
                 <legend className="font-bold text-[#f7e7ad] text-sm">
-                  Eintragen
+                  Wer darf alles eintragen?
                 </legend>
                 <div className="gap-2 grid grid-cols-2 mt-2">
                   {[
-                    ["host", "Nur einer"],
+                    ["host", "Nur der Host"],
                     ["all", "Alle"],
                   ].map(([value, label]) => (
                     <button

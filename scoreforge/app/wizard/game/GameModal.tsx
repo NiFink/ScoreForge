@@ -1,4 +1,9 @@
-import type { ModalPhase, Player, RoundEntry, ScoreTable } from "./types";
+import type {
+  ModalPhase,
+  Player,
+  RoundEntry,
+  ScoreTable,
+} from "../../types/wizardTypes";
 
 type GameModalProps = {
   activePlayer: Player;
@@ -157,8 +162,7 @@ export function GameModal({
           {modalPhase === "actual" && isLastTurnPlayer ? (
             <p className="mt-3 text-[#f7c65f] text-sm">
               Bei den tatsächlichen Stichen musst du zwischen {actualMinimum}{" "}
-              und
-              {actualMaximum} bleiben.
+              und {actualMaximum} bleiben.
             </p>
           ) : null}
         </div>
@@ -174,8 +178,11 @@ export function GameModal({
           </button>
           <button
             onClick={onMoveNext}
-            className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+            className="bg-[#f59e22] disabled:opacity-50 px-4 py-3 rounded-md font-black text-[#101820] disabled:cursor-not-allowed"
             type="button"
+            disabled={
+              modalPhase === "bid" && currentRound[activePlayer.id].bid === null
+            }
           >
             {modalPhase === "actual" && isLastTurnPlayer ? "Fertig" : "Weiter"}
           </button>

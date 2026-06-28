@@ -1,5 +1,9 @@
-import type { ModalPhase, Player, ScoreTable } from "./types";
-import { getRoundScore, getRoundStartIndex, isRoundUnlocked } from "./utils";
+import type { ModalPhase, Player, ScoreTable } from "../../types/wizardTypes";
+import {
+  getRoundScore,
+  getRoundStartIndex,
+  isRoundUnlocked,
+} from "../../Utils/wizardUtils";
 
 type RoundTableProps = {
   players: Player[];
@@ -105,10 +109,10 @@ export function RoundTable({
                   >
                     <button
                       className="gap-1 grid w-full text-center"
-                      onClick={() =>
-                        onOpenRound(roundIndex, undefined, playerIndex)
-                      }
-                      type="button"
+                      // onClick={() =>
+                      //   onOpenRound(roundIndex, undefined, playerIndex)
+                      // }
+                      // type="button"
                     >
                       <span>Vorh. {entry.bid ?? "-"}</span>
                       <span>Stiche {entry.actual ?? "-"}</span>

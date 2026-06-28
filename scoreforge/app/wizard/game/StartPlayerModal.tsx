@@ -1,6 +1,6 @@
 "use client";
 
-import type { Player } from "./types";
+import type { Player } from "../../types/wizardTypes";
 
 type StartPlayerModalProps = {
   players: Player[];
