@@ -130,13 +130,20 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-auto pt-8">
+        <div className="flex sm:flex-row flex-col gap-2 mt-auto pt-8">
           <button
             onClick={() => router.push("/wizard/setup")}
             className="bg-[#f59e22] hover:bg-[#ffb13d] shadow-[0_0_28px_rgba(245,158,34,0.24)] px-5 py-4 rounded-lg w-full sm:w-auto font-black text-[#101820] text-base transition"
             type="button"
           >
             Wizard starten
+          </button>
+          <button
+            onClick={() => router.push("/wizard/join")}
+            className="hover:bg-[#2aa6c8]/10 px-5 py-4 border border-[#2aa6c8]/40 rounded-lg w-full sm:w-auto font-black text-[#9fc9d5] text-base transition"
+            type="button"
+          >
+            Lobby beitreten
           </button>
         </div>
       </section>

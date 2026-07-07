@@ -1,21 +1,30 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import {
+  use,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useRouter } from "next/navigation";
 
+import { supabase } from "@/lib/supabaseClient";
+import { getClientId } from "@/lib/clientId";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
+import { Lobby } from "./Lobby";
 import type {
+  GameRecord,
+  GameState,
   ModalPhase,
   RoundEntry,
-  ScoreTable,
-  Setup,
 } from "../../types/wizardTypes";
 import {
-  createScoreTable,
   getRoundScore,
   getActualRoundOptions,
   getRoundTurnOrder,
@@ -24,79 +33,198 @@ import {
   rankPlayers,
 } from "../../Utils/wizardUtils";
 
-export default function WizardGame() {
+const subscribeToNothing = () => () => {};
+const getServerClientId = () => "";
+
+export default function WizardGame({
+  params,
+}: {
+  params: Promise<{ gameId: string }>;
+}) {
+  const { gameId } = use(params);
   const router = useRouter();
-  const [setup, setSetup] = useState<Setup | null>(null);
-  const [table, setTable] = useState<ScoreTable>([]);
+
+  const [game, setGame] = useState<GameRecord | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const gameRef = useRef<GameRecord | null>(null);
+
   const [activeRound, setActiveRound] = useState(0);
   const [modalPhase, setModalPhase] = useState<ModalPhase | null>(null);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
-  const [isStartPlayerModalOpen, setIsStartPlayerModalOpen] = useState(false);
 
+  // Auf dem Server "" liefern, im Browser die stabile Geräte-ID
+  const clientId = useSyncExternalStore(
+    subscribeToNothing,
+    getClientId,
+    getServerClientId,
+  );
+
+  // Spielstand initial laden
   useEffect(() => {
-    const stored = localStorage.getItem("scoreforge:wizard:setup");
+    let cancelled = false;
 
-    if (!stored) {
-      router.replace("/wizard/setup");
+    async function load() {
+      try {
+        const response = await fetch(`/api/games/${gameId}`);
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setNotFound(true);
+          }
+          return;
+        }
+
+        const data = (await response.json()) as { game: GameRecord };
+
+        if (!cancelled) {
+          gameRef.current = data.game;
+          setGame(data.game);
+          setStartPlayerIndexDraft(data.game.state.startPlayerIndex ?? 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setNotFound(true);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameId]);
+
+  // Realtime: Änderungen anderer Geräte übernehmen
+  useEffect(() => {
+    const channel = supabase
+      .channel(`game-${gameId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "games",
+          filter: `id=eq.${gameId}`,
+        },
+        (payload) => {
+          const next = payload.new as GameRecord;
+          gameRef.current = next;
+          setGame(next);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [gameId]);
+
+  const state = game?.state ?? null;
+  const table = useMemo(() => state?.table ?? [], [state]);
+
+  const isHost = !!state && !!clientId && state.hostId === clientId;
+  const canWrite = isHost || state?.writeMode === "all";
+
+  // Lokale Änderung sofort anzeigen und an den Server schicken;
+  // Realtime bestätigt sie danach auf allen Geräten (last-write-wins).
+  const mutateState = (updater: (current: GameState) => GameState) => {
+    const current = gameRef.current;
+
+    if (!current || !clientId) {
       return;
     }
 
-    queueMicrotask(() => {
-      const parsed = JSON.parse(stored) as Setup;
-      setSetup(parsed);
-      setTable(createScoreTable(parsed.rounds, parsed.players));
-      setStartPlayerIndexDraft(parsed.startPlayerIndex ?? 0);
-      setIsStartPlayerModalOpen(true);
+    const nextState = updater(current.state);
+    const next = { ...current, state: nextState };
+
+    gameRef.current = next;
+    setGame(next);
+
+    void fetch(`/api/games/${current.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: nextState, clientId }),
     });
-  }, [router]);
+  };
+
+  const claimSlot = async (
+    playerId: string,
+    name?: string,
+  ): Promise<string | null> => {
+    try {
+      const response = await fetch(`/api/games/${gameId}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId, clientId, name }),
+      });
+
+      const data = (await response.json()) as {
+        game?: GameRecord;
+        error?: string;
+      };
+
+      if (!response.ok || !data.game) {
+        return data.error ?? "Konnte den Platz nicht übernehmen.";
+      }
+
+      gameRef.current = data.game;
+      setGame(data.game);
+      return null;
+    } catch {
+      return "Verbindung fehlgeschlagen.";
+    }
+  };
 
   const totals = useMemo(() => {
-    if (!setup) {
+    if (!state) {
       return {};
     }
 
     return Object.fromEntries(
-      setup.players.map((player) => [
+      state.players.map((player) => [
         player.id,
         table.reduce((sum, round) => sum + getRoundScore(round[player.id]), 0),
       ]),
     );
-  }, [setup, table]);
+  }, [state, table]);
 
   const currentRound = table[activeRound];
   const roundNumber = activeRound + 1;
-  const activePlayer = setup?.players[activePlayerIndex];
-  const rankings = setup ? rankPlayers(setup.players, totals) : null;
+  const activePlayer = state?.players[activePlayerIndex];
+  const rankings = state ? rankPlayers(state.players, totals) : null;
+  const isStartPlayerModalOpen =
+    !!state && state.phase === "playing" && !state.startPlayerChosen && isHost;
   const resolvedStartPlayerIndex = isStartPlayerModalOpen
     ? startPlayerIndexDraft
-    : (setup?.startPlayerIndex ?? 0);
+    : (state?.startPlayerIndex ?? 0);
   const roundTurnOrder = useMemo(() => {
-    if (!setup) {
+    if (!state) {
       return [];
     }
 
     return getRoundTurnOrder(
       activeRound,
-      setup.players.length,
+      state.players.length,
       resolvedStartPlayerIndex,
     );
-  }, [activeRound, resolvedStartPlayerIndex, setup]);
+  }, [activeRound, resolvedStartPlayerIndex, state]);
   const activeTurnPosition = roundTurnOrder.indexOf(activePlayerIndex);
   const isLastTurnPlayer =
-    !!setup && activeTurnPosition === roundTurnOrder.length - 1;
+    !!state && activeTurnPosition === roundTurnOrder.length - 1;
   const roundStartPlayerIndex = roundTurnOrder[0] ?? 0;
 
   const scoreOrderedPlayers = useMemo(() => {
-    if (!setup) {
+    if (!state) {
       return [];
     }
 
     const playerOrder = new Map(
-      setup.players.map((player, index) => [player.id, index]),
+      state.players.map((player, index) => [player.id, index]),
     );
 
-    return [...setup.players].sort((left, right) => {
+    return [...state.players].sort((left, right) => {
       const leftScore = totals[left.id] ?? 0;
       const rightScore = totals[right.id] ?? 0;
 
@@ -106,23 +234,27 @@ export default function WizardGame() {
 
       return (playerOrder.get(left.id) ?? 0) - (playerOrder.get(right.id) ?? 0);
     });
-  }, [setup, totals]);
+  }, [state, totals]);
 
   const openRound = (
     roundIndex: number,
     phase?: ModalPhase,
     playerIndex?: number,
   ) => {
-    if (!setup || !isRoundUnlocked(table, setup.players, roundIndex)) {
+    if (
+      !state ||
+      !canWrite ||
+      !isRoundUnlocked(table, state.players, roundIndex)
+    ) {
       return;
     }
 
     const round = table[roundIndex];
-    const bidsDone = isRoundPhaseComplete(round, setup.players, "bid");
+    const bidsDone = isRoundPhaseComplete(round, state.players, "bid");
     const nextPhase = phase ?? (bidsDone ? "actual" : "bid");
     const roundOrder = getRoundTurnOrder(
       roundIndex,
-      setup.players.length,
+      state.players.length,
       resolvedStartPlayerIndex,
     );
     const startPlayerIndex = roundOrder[0] ?? 0;
@@ -145,8 +277,9 @@ export default function WizardGame() {
     key: keyof RoundEntry,
     value: number,
   ) => {
-    setTable((current) =>
-      current.map((round, index) =>
+    mutateState((current) => ({
+      ...current,
+      table: current.table.map((round, index) =>
         index === activeRound
           ? {
               ...round,
@@ -157,11 +290,11 @@ export default function WizardGame() {
             }
           : round,
       ),
-    );
+    }));
   };
 
   const moveNext = () => {
-    if (!setup || !modalPhase) {
+    if (!state || !modalPhase) {
       return;
     }
 
@@ -175,19 +308,7 @@ export default function WizardGame() {
       const currentActual = currentRound[activePlayer.id]?.actual;
 
       if (currentActual !== forcedValue) {
-        setTable((current) =>
-          current.map((round, index) =>
-            index === activeRound
-              ? {
-                  ...round,
-                  [activePlayer.id]: {
-                    ...round[activePlayer.id],
-                    actual: forcedValue,
-                  },
-                }
-              : round,
-          ),
-        );
+        updateEntry(activePlayer.id, "actual", forcedValue);
       }
     }
 
@@ -206,7 +327,7 @@ export default function WizardGame() {
     if (
       modalPhase === "bid" &&
       currentRound &&
-      isRoundPhaseComplete(currentRound, setup.players, "bid")
+      isRoundPhaseComplete(currentRound, state.players, "bid")
     ) {
       setModalPhase("actual");
       setActivePlayerIndex(roundTurnOrder[0] ?? 0);
@@ -217,7 +338,7 @@ export default function WizardGame() {
   };
 
   const movePrevious = () => {
-    if (!setup || !modalPhase) {
+    if (!state || !modalPhase) {
       return;
     }
 
@@ -240,7 +361,7 @@ export default function WizardGame() {
   };
 
   const allowedBidOptions = useMemo(() => {
-    if (!setup || !currentRound || !activePlayer) {
+    if (!state || !currentRound || !activePlayer) {
       return [];
     }
 
@@ -253,7 +374,7 @@ export default function WizardGame() {
     const previousBids = roundTurnOrder
       .slice(0, -1)
       .reduce((sum, playerIndex) => {
-        const playerId = setup.players[playerIndex]?.id;
+        const playerId = state.players[playerIndex]?.id;
         return sum + (playerId ? (currentRound[playerId]?.bid ?? 0) : 0);
       }, 0);
 
@@ -264,17 +385,17 @@ export default function WizardGame() {
     isLastTurnPlayer,
     roundNumber,
     roundTurnOrder,
-    setup,
+    state,
   ]);
 
   const actualOptions =
-    setup && currentRound && modalPhase === "actual" && activePlayer
+    state && currentRound && modalPhase === "actual" && activePlayer
       ? (() => {
           const actualTurnPosition = roundTurnOrder.indexOf(activePlayerIndex);
           const takenSoFar = roundTurnOrder
             .slice(0, actualTurnPosition)
             .reduce((sum, playerIndex) => {
-              const playerId = setup.players[playerIndex]?.id;
+              const playerId = state.players[playerIndex]?.id;
               return (
                 sum + (playerId ? (currentRound[playerId]?.actual ?? 0) : 0)
               );
@@ -288,26 +409,63 @@ export default function WizardGame() {
   const actualMaximum = actualOptions[actualOptions.length - 1] ?? 0;
 
   const activeRoundBidsDone =
-    !!setup &&
+    !!state &&
     !!currentRound &&
-    isRoundPhaseComplete(currentRound, setup.players, "bid");
+    isRoundPhaseComplete(currentRound, state.players, "bid");
 
   const confirmStartPlayer = () => {
-    if (!setup) {
-      return;
-    }
-
-    const nextSetup = {
-      ...setup,
+    mutateState((current) => ({
+      ...current,
       startPlayerIndex: startPlayerIndexDraft,
-    };
-
-    setSetup(nextSetup);
-    localStorage.setItem("scoreforge:wizard:setup", JSON.stringify(nextSetup));
-    setIsStartPlayerModalOpen(false);
+      startPlayerChosen: true,
+    }));
   };
 
-  if (!setup) {
+  const startGameFromLobby = () => {
+    mutateState((current) => ({
+      ...current,
+      phase: "playing",
+    }));
+  };
+
+  if (notFound) {
+    return (
+      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+        <div className="text-center">
+          <Image
+            src="/Logo.png"
+            alt="ScoreForge Logo"
+            width={96}
+            height={96}
+            loading="eager"
+            className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
+          />
+          <h1 className="font-black text-2xl">Spiel nicht gefunden</h1>
+          <p className="mt-2 text-[#d8d3bd]">
+            Der Link ist ungültig oder das Spiel existiert nicht mehr.
+          </p>
+          <div className="flex justify-center gap-2 mt-5">
+            <button
+              onClick={() => router.push("/wizard/join")}
+              className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+              type="button"
+            >
+              Lobby beitreten
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              type="button"
+            >
+              Zur Startseite
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!game || !state) {
     return (
       <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
@@ -325,13 +483,57 @@ export default function WizardGame() {
     );
   }
 
+  if (state.phase === "lobby") {
+    return (
+      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+        <div className="mx-auto max-w-5xl">
+          <header className="mb-5">
+            <button
+              onClick={() => router.push("/")}
+              className="mb-3 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+              type="button"
+            >
+              Zurück
+            </button>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/Logo.png"
+                alt="ScoreForge Logo"
+                width={72}
+                height={72}
+                loading="eager"
+                className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+              />
+              <div>
+                <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+                  Wizard Lobby
+                </p>
+                <h1 className="mt-1 font-black text-3xl">
+                  Warten auf Spieler
+                </h1>
+              </div>
+            </div>
+          </header>
+
+          <Lobby
+            game={game}
+            clientId={clientId}
+            isHost={isHost}
+            onClaim={claimSlot}
+            onStart={startGameFromLobby}
+          />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-7xl">
         <header className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-4">
           <div>
             <button
-              onClick={() => router.push("/wizard/setup")}
+              onClick={() => router.push("/")}
               className="mb-3 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
               type="button"
             >
@@ -354,23 +556,34 @@ export default function WizardGame() {
               </div>
             </div>
           </div>
-          <div className="gap-2 grid grid-cols-3 text-sm text-center">
+          <div className="gap-2 grid grid-cols-4 text-sm text-center">
+            <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+              <p className="text-[#9fc9d5]">Code</p>
+              <p className="font-black tracking-widest">{game.code}</p>
+            </div>
             <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
               <p className="text-[#9fc9d5]">Spieler</p>
-              <p className="font-black">{setup.playerCount}</p>
+              <p className="font-black">{state.playerCount}</p>
             </div>
             <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
               <p className="text-[#9fc9d5]">Runden</p>
-              <p className="font-black">{setup.rounds}</p>
+              <p className="font-black">{state.rounds}</p>
             </div>
             <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
               <p className="text-[#9fc9d5]">Modus</p>
               <p className="font-black">
-                {setup.writeMode === "host" ? "Host" : "Alle"}
+                {state.writeMode === "host" ? "Host" : "Alle"}
               </p>
             </div>
           </div>
         </header>
+
+        {!canWrite ? (
+          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
+            Nur der Host trägt Punkte ein — deine Ansicht aktualisiert sich
+            automatisch.
+          </p>
+        ) : null}
 
         <ScoreSummary
           totals={totals}
@@ -379,7 +592,7 @@ export default function WizardGame() {
         />
 
         <RoundTable
-          players={setup.players}
+          players={state.players}
           table={table}
           totals={totals}
           startPlayerIndex={resolvedStartPlayerIndex}
@@ -388,9 +601,9 @@ export default function WizardGame() {
         />
       </div>
 
-      {setup && isStartPlayerModalOpen ? (
+      {isStartPlayerModalOpen ? (
         <StartPlayerModal
-          players={setup.players}
+          players={state.players}
           selectedPlayerIndex={startPlayerIndexDraft}
           onChange={setStartPlayerIndexDraft}
           onConfirm={confirmStartPlayer}
