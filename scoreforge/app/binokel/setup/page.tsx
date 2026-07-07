@@ -10,16 +10,12 @@ import { format, useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
-import { createScoreTable } from "../../Utils/wizardUtils";
-import type { GameState } from "../../types/wizardTypes";
-import type { DeviceMode, Player, WriteMode } from "../../types/gameTypes";
-
-const roundMap: Record<number, number> = {
-  3: 20,
-  4: 15,
-  5: 12,
-  6: 10,
-};
+import type {
+  BinokelState,
+  DeviceMode,
+  Player,
+  WriteMode,
+} from "../../types/gameTypes";
 
 const createPlayers = (count: number, nameTemplate: string): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -28,19 +24,18 @@ const createPlayers = (count: number, nameTemplate: string): Player[] =>
     color: colorOptions[i % colorOptions.length].value,
   }));
 
-export default function WizardSetup() {
+export default function BinokelSetup() {
   const router = useRouter();
   const { t } = useI18n();
 
   const [playerCount, setPlayerCount] = useState(3);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
+  const [targetScore, setTargetScore] = useState(1000);
   const [players, setPlayers] = useState<Player[]>(() =>
     createPlayers(3, "Spieler {n}"),
   );
   const [loading, setLoading] = useState(false);
-
-  const rounds = useMemo(() => roundMap[playerCount] || 10, [playerCount]);
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
@@ -49,6 +44,17 @@ export default function WizardSetup() {
       ),
     );
   };
+
+  const teamsNote = useMemo(() => {
+    if (playerCount !== 4 || players.length < 4) {
+      return null;
+    }
+
+    return format(t.binokel.teamsNote, {
+      teamA: `${players[0].name} & ${players[2].name}`,
+      teamB: `${players[1].name} & ${players[3].name}`,
+    });
+  }, [playerCount, players, t]);
 
   const startGame = async () => {
     setLoading(true);
@@ -63,25 +69,21 @@ export default function WizardSetup() {
         claimedBy: null,
       }));
 
-      const state: GameState = {
-        gameType: "wizard",
+      const state: BinokelState = {
+        gameType: "binokel",
         playerCount,
         deviceMode,
         writeMode,
-        rounds,
-        startPlayerIndex: 0,
-        startPlayerChosen: false,
+        targetScore,
         players: cleanPlayers,
         phase: deviceMode === "multi" ? "lobby" : "playing",
         hostId: getClientId(),
-        table: createScoreTable(rounds, cleanPlayers),
+        rounds: [],
       };
 
       const response = await fetch("/api/games", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ state }),
       });
 
@@ -91,7 +93,7 @@ export default function WizardSetup() {
       }
 
       const { game } = (await response.json()) as { game: { id: string } };
-      router.push(`/wizard/${game.id}`);
+      router.push(`/binokel/${game.id}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,7 +104,6 @@ export default function WizardSetup() {
   return (
     <main className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-5xl">
-        {/* BACK */}
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
@@ -114,7 +115,6 @@ export default function WizardSetup() {
           <LanguageSwitcher />
         </div>
 
-        {/* HEADER */}
         <header className="flex items-center gap-4 mb-6">
           <Image
             src="/Logo.png"
@@ -126,10 +126,10 @@ export default function WizardSetup() {
 
           <div>
             <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
-              {t.wizard.setupTag}
+              {t.binokel.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
-              {t.wizard.setupTitle}
+              {t.common.prepareGame}
             </h1>
           </div>
         </header>
@@ -137,13 +137,12 @@ export default function WizardSetup() {
         <div className="gap-4 grid lg:grid-cols-[0.85fr_1.15fr]">
           {/* LEFT */}
           <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
-            {/* PLAYER COUNT */}
             <label className="font-bold text-[#f7e7ad] text-sm">
               {t.common.playerCount}
             </label>
 
-            <div className="gap-2 grid grid-cols-4 mt-3">
-              {[3, 4, 5, 6].map((count) => (
+            <div className="gap-2 grid grid-cols-2 mt-3">
+              {[3, 4].map((count) => (
                 <button
                   key={count}
                   onClick={() => {
@@ -175,10 +174,47 @@ export default function WizardSetup() {
               ))}
             </div>
 
-            {/* ROUNDS */}
-            <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-              <p className="text-[#9fc9d5] text-sm">{t.common.rounds}</p>
-              <p className="mt-1 font-black text-4xl">{rounds}</p>
+            {teamsNote ? (
+              <p className="bg-[#2aa6c8]/10 mt-3 px-3 py-2 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
+                {teamsNote}
+              </p>
+            ) : null}
+
+            {/* TARGET SCORE */}
+            <div className="mt-5">
+              <label className="font-bold text-[#f7e7ad] text-sm">
+                {t.binokel.targetScore}
+              </label>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() =>
+                    setTargetScore((current) => Math.max(100, current - 100))
+                  }
+                  className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                  type="button"
+                >
+                  -100
+                </button>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={100}
+                  step={50}
+                  value={targetScore}
+                  onChange={(event) => {
+                    const next = Number(event.target.value);
+                    setTargetScore(Number.isFinite(next) ? next : 1000);
+                  }}
+                  className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full font-black text-lg text-center"
+                />
+                <button
+                  onClick={() => setTargetScore((current) => current + 100)}
+                  className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                  type="button"
+                >
+                  +100
+                </button>
+              </div>
             </div>
 
             {/* MODES */}
@@ -203,7 +239,6 @@ export default function WizardSetup() {
 
             <PlayerEditor players={players} onUpdate={updatePlayer} />
 
-            {/* START */}
             <button
               onClick={startGame}
               disabled={loading}

@@ -1,3 +1,6 @@
+"use client";
+
+import { format, useI18n } from "@/lib/i18n";
 import type {
   ModalPhase,
   Player,
@@ -50,19 +53,23 @@ export function GameModal({
   onPhaseChange,
   onUpdateEntry,
 }: GameModalProps) {
+  const { t } = useI18n();
+
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
       <div className="bg-[#18262f] shadow-2xl p-4 border border-[#f59e22]/25 rounded-lg w-full max-w-md">
         <div className="flex justify-between items-start gap-3 mb-4">
           <div>
             <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.16em]">
-              Runde {roundNumber}
+              {format(t.wizard.roundLabel, { n: roundNumber })}
             </p>
             <p className="mt-1 text-[#9fc9d5] text-xs">
-              Startspieler: Spieler {roundStartPlayerIndex + 1}
+              {format(t.wizard.startPlayerShort, {
+                n: roundStartPlayerIndex + 1,
+              })}
             </p>
             <h2 className="mt-1 font-black text-2xl">
-              {modalPhase === "bid" ? "Vorhersage" : "Tatsächliche Stiche"}
+              {modalPhase === "bid" ? t.wizard.prediction : t.wizard.actualTricks}
             </h2>
           </div>
           <button
@@ -76,8 +83,8 @@ export function GameModal({
 
         <div className="gap-2 grid grid-cols-2 bg-[#101820] mb-4 p-1 rounded-lg">
           {[
-            ["bid", "Vorhergesagt"],
-            ["actual", "Tatsächlich"],
+            ["bid", t.wizard.predicted],
+            ["actual", t.wizard.actual],
           ].map(([phase, label]) => (
             <button
               key={phase}
@@ -98,7 +105,7 @@ export function GameModal({
               }`}
               title={
                 phase === "actual" && !activeRoundBidsDone
-                  ? "Erst alle Vorhersagen eintragen"
+                  ? t.wizard.bidsFirst
                   : undefined
               }
               type="button"
@@ -113,15 +120,17 @@ export function GameModal({
           className="bg-[#101820] p-4 rounded-lg transition"
           style={{ boxShadow: `inset 4px 0 0 ${activePlayer.color}` }}
         >
-          <p className="text-[#9fc9d5] text-sm">Aktiver Spieler</p>
+          <p className="text-[#9fc9d5] text-sm">{t.wizard.activePlayer}</p>
           <p className="mt-1 font-black text-2xl">{activePlayer.name}</p>
           <p className="mt-1 text-[#d8d3bd] text-sm">
-            Punkte: {totals[activePlayer.id] ?? 0}
+            {format(t.wizard.pointsLabel, {
+              points: totals[activePlayer.id] ?? 0,
+            })}
           </p>
 
           <label className="block mt-5">
             <span className="font-bold text-[#f7e7ad] text-sm">
-              {modalPhase === "bid" ? "Vorhersage" : "Stiche"}
+              {modalPhase === "bid" ? t.wizard.prediction : t.wizard.tricks}
             </span>
             <select
               className="bg-[#18262f] mt-2 px-3 py-4 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full font-black text-lg"
@@ -140,7 +149,7 @@ export function GameModal({
               }}
             >
               <option value="" disabled>
-                Auswählen
+                {t.common.select}
               </option>
               {(modalPhase === "bid" ? allowedBidOptions : actualOptions).map(
                 (value) => (
@@ -154,15 +163,16 @@ export function GameModal({
 
           {modalPhase === "bid" && isLastTurnPlayer ? (
             <p className="mt-3 text-[#f7c65f] text-sm">
-              Der letzte Spieler darf die Summe der Vorhersagen nicht genau auf
-              {roundNumber} bringen.
+              {format(t.wizard.lastPlayerBidHint, { n: roundNumber })}
             </p>
           ) : null}
 
           {modalPhase === "actual" && isLastTurnPlayer ? (
             <p className="mt-3 text-[#f7c65f] text-sm">
-              Bei den tatsächlichen Stichen musst du zwischen {actualMinimum}{" "}
-              und {actualMaximum} bleiben.
+              {format(t.wizard.lastPlayerActualHint, {
+                min: actualMinimum,
+                max: actualMaximum,
+              })}
             </p>
           ) : null}
         </div>
@@ -174,7 +184,7 @@ export function GameModal({
             className="disabled:opacity-35 px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd] disabled:cursor-not-allowed"
             type="button"
           >
-            Zurück
+            {t.common.previous}
           </button>
           <button
             onClick={onMoveNext}
@@ -184,7 +194,9 @@ export function GameModal({
               modalPhase === "bid" && currentRound[activePlayer.id].bid === null
             }
           >
-            {modalPhase === "actual" && isLastTurnPlayer ? "Fertig" : "Weiter"}
+            {modalPhase === "actual" && isLastTurnPlayer
+              ? t.common.done
+              : t.common.next}
           </button>
         </div>
       </div>

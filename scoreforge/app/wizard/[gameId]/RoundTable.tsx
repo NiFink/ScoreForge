@@ -1,3 +1,6 @@
+"use client";
+
+import { format, useI18n } from "@/lib/i18n";
 import type { ModalPhase, Player, ScoreTable } from "../../types/wizardTypes";
 import {
   getRoundScore,
@@ -26,13 +29,15 @@ export function RoundTable({
   onOpenRound,
   onOpenPlayer,
 }: RoundTableProps) {
+  const { t } = useI18n();
+
   return (
     <div className="bg-[#14222b]/80 border border-[#f59e22]/20 rounded-lg overflow-x-auto">
       <table className="min-w-230 text-sm border-collapse">
         <thead>
           <tr>
             <th className="left-0 z-10 sticky bg-[#18262f] px-3 py-3 text-left">
-              Spieler
+              {t.common.players}
             </th>
             {table.map((_, roundIndex) => {
               const unlocked = isRoundUnlocked(table, players, roundIndex);
@@ -59,19 +64,21 @@ export function RoundTable({
                       }`}
                       title={
                         unlocked
-                          ? `Runde ${roundIndex + 1} eintragen`
-                          : "Vorherige Runde erst komplett beantworten"
+                          ? format(t.wizard.enterRound, { n: roundIndex + 1 })
+                          : t.wizard.finishPreviousRound
                       }
                       type="button"
                     >
-                      {unlocked ? "Runde" : "\u{1f512}"} {roundIndex + 1}
+                      {unlocked ? t.common.round : "\u{1f512}"} {roundIndex + 1}
                     </button>
                     <span className="inline-flex items-center gap-1 bg-[#101820] px-2 py-1 rounded-full text-[#9fc9d5] text-[11px] leading-none">
                       <span
                         className="inline-block rounded-full w-2 h-2"
                         style={{ backgroundColor: roundStartPlayer?.color }}
                       />
-                      Start: {roundStartPlayer?.name}
+                      {format(t.wizard.startShort, {
+                        name: roundStartPlayer?.name ?? "",
+                      })}
                     </span>
                   </div>
                 </th>
@@ -93,7 +100,9 @@ export function RoundTable({
                 >
                   <span className="block max-w-32 truncate">{player.name}</span>
                   <span className="text-[#9fc9d5] text-xs">
-                    Score {totals[player.id] ?? 0}
+                    {format(t.wizard.scoreShort, {
+                      points: totals[player.id] ?? 0,
+                    })}
                   </span>
                 </button>
               </th>
@@ -114,8 +123,12 @@ export function RoundTable({
                       // }
                       // type="button"
                     >
-                      <span>Vorh. {entry.bid ?? "-"}</span>
-                      <span>Stiche {entry.actual ?? "-"}</span>
+                      <span>
+                        {t.wizard.bidShort} {entry.bid ?? "-"}
+                      </span>
+                      <span>
+                        {t.wizard.tricks} {entry.actual ?? "-"}
+                      </span>
                       <span
                         className={`font-black ${
                           points >= 0 ? "text-[#2aa6c8]" : "text-[#ef5b2a]"

@@ -1,33 +1,19 @@
-export type Player = {
-  id: string;
-  name: string;
-  color: string;
-  claimedBy?: string | null;
-};
+import type { BaseGameState, GameRecord } from "./gameTypes";
 
-export type DeviceMode = "single" | "multi";
-export type WriteMode = "host" | "all";
+export type { DeviceMode, GameRecord, Player, WriteMode } from "./gameTypes";
+
 export type GamePhase = "lobby" | "playing";
 
-export type GameState = {
-  playerCount: number;
-  deviceMode: DeviceMode;
-  writeMode: WriteMode;
+export type GameState = BaseGameState & {
+  gameType?: "wizard";
   rounds: number;
   startPlayerIndex: number;
   startPlayerChosen: boolean;
-  players: Player[];
   phase: GamePhase;
-  hostId: string;
   table: ScoreTable;
 };
 
-export type GameRecord = {
-  id: string;
-  code: string;
-  state: GameState;
-  created_at?: string;
-};
+export type WizardGameRecord = GameRecord<GameState>;
 
 export type RoundEntry = {
   bid: number | null;

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
@@ -10,16 +10,28 @@ import { format, useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
-import { createScoreTable } from "../../Utils/wizardUtils";
-import type { GameState } from "../../types/wizardTypes";
-import type { DeviceMode, Player, WriteMode } from "../../types/gameTypes";
+import type {
+  DeviceMode,
+  DoomlingsScores,
+  DoomlingsState,
+  Player,
+  WriteMode,
+} from "../../types/gameTypes";
 
-const roundMap: Record<number, number> = {
-  3: 20,
-  4: 15,
-  5: 12,
-  6: 10,
-};
+const availableAddons = [
+  "Dinolings",
+  "Overlush",
+  "Multiverse",
+  "Techlings",
+  "Legends of Enderas",
+];
+
+const emptyScores = (): DoomlingsScores => ({
+  numbers: 0,
+  cross: 0,
+  sickle: 0,
+  worldsEnd: 0,
+});
 
 const createPlayers = (count: number, nameTemplate: string): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -28,25 +40,32 @@ const createPlayers = (count: number, nameTemplate: string): Player[] =>
     color: colorOptions[i % colorOptions.length].value,
   }));
 
-export default function WizardSetup() {
+export default function DoomlingsSetup() {
   const router = useRouter();
   const { t } = useI18n();
 
   const [playerCount, setPlayerCount] = useState(3);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
+  const [addons, setAddons] = useState<string[]>([]);
   const [players, setPlayers] = useState<Player[]>(() =>
     createPlayers(3, "Spieler {n}"),
   );
   const [loading, setLoading] = useState(false);
-
-  const rounds = useMemo(() => roundMap[playerCount] || 10, [playerCount]);
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
       current.map((player, index) =>
         index === i ? { ...player, [key]: value } : player,
       ),
+    );
+  };
+
+  const toggleAddon = (addon: string) => {
+    setAddons((current) =>
+      current.includes(addon)
+        ? current.filter((item) => item !== addon)
+        : [...current, addon],
     );
   };
 
@@ -63,25 +82,24 @@ export default function WizardSetup() {
         claimedBy: null,
       }));
 
-      const state: GameState = {
-        gameType: "wizard",
+      const state: DoomlingsState = {
+        gameType: "doomlings",
         playerCount,
         deviceMode,
         writeMode,
-        rounds,
-        startPlayerIndex: 0,
-        startPlayerChosen: false,
+        addons,
         players: cleanPlayers,
         phase: deviceMode === "multi" ? "lobby" : "playing",
         hostId: getClientId(),
-        table: createScoreTable(rounds, cleanPlayers),
+        scoringStep: 0,
+        scores: Object.fromEntries(
+          cleanPlayers.map((player) => [player.id, emptyScores()]),
+        ),
       };
 
       const response = await fetch("/api/games", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ state }),
       });
 
@@ -91,7 +109,7 @@ export default function WizardSetup() {
       }
 
       const { game } = (await response.json()) as { game: { id: string } };
-      router.push(`/wizard/${game.id}`);
+      router.push(`/doomlings/${game.id}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -102,7 +120,6 @@ export default function WizardSetup() {
   return (
     <main className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-5xl">
-        {/* BACK */}
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
@@ -114,7 +131,6 @@ export default function WizardSetup() {
           <LanguageSwitcher />
         </div>
 
-        {/* HEADER */}
         <header className="flex items-center gap-4 mb-6">
           <Image
             src="/Logo.png"
@@ -126,10 +142,10 @@ export default function WizardSetup() {
 
           <div>
             <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
-              {t.wizard.setupTag}
+              {t.doomlings.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
-              {t.wizard.setupTitle}
+              {t.common.prepareGame}
             </h1>
           </div>
         </header>
@@ -137,13 +153,12 @@ export default function WizardSetup() {
         <div className="gap-4 grid lg:grid-cols-[0.85fr_1.15fr]">
           {/* LEFT */}
           <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
-            {/* PLAYER COUNT */}
             <label className="font-bold text-[#f7e7ad] text-sm">
               {t.common.playerCount}
             </label>
 
-            <div className="gap-2 grid grid-cols-4 mt-3">
-              {[3, 4, 5, 6].map((count) => (
+            <div className="gap-2 grid grid-cols-5 mt-3">
+              {[2, 3, 4, 5, 6].map((count) => (
                 <button
                   key={count}
                   onClick={() => {
@@ -175,10 +190,34 @@ export default function WizardSetup() {
               ))}
             </div>
 
-            {/* ROUNDS */}
-            <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-              <p className="text-[#9fc9d5] text-sm">{t.common.rounds}</p>
-              <p className="mt-1 font-black text-4xl">{rounds}</p>
+            {/* ADD-ONS */}
+            <div className="mt-5">
+              <p className="font-bold text-[#f7e7ad] text-sm">
+                {t.doomlings.addons}
+              </p>
+              <p className="mt-1 text-[#9fc9d5] text-xs">
+                {t.doomlings.addonsHint}
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {availableAddons.map((addon) => {
+                  const active = addons.includes(addon);
+
+                  return (
+                    <button
+                      key={addon}
+                      onClick={() => toggleAddon(addon)}
+                      className={`rounded-md px-3 py-2 text-sm font-bold ${
+                        active
+                          ? "bg-[#2aa6c8] text-[#101820]"
+                          : "bg-[#18262f] text-[#d8d3bd]"
+                      }`}
+                      type="button"
+                    >
+                      {addon}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* MODES */}
@@ -203,7 +242,6 @@ export default function WizardSetup() {
 
             <PlayerEditor players={players} onUpdate={updatePlayer} />
 
-            {/* START */}
             <button
               onClick={startGame}
               disabled={loading}

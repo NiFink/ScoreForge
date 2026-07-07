@@ -1,0 +1,427 @@
+"use client";
+
+import Image from "next/image";
+import { use, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { useGame } from "@/lib/useGame";
+import { format, useI18n } from "@/lib/i18n";
+import { Lobby } from "@/components/Lobby";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { MeldReference } from "./MeldReference";
+import { RoundModal } from "./RoundModal";
+import type { BinokelRound, BinokelState } from "../../types/gameTypes";
+import {
+  getBinokelTotals,
+  getParties,
+  isRoundComplete,
+  scoreBinokelRound,
+} from "../../Utils/binokelUtils";
+
+export default function BinokelGame({
+  params,
+}: {
+  params: Promise<{ gameId: string }>;
+}) {
+  const { gameId } = use(params);
+  const router = useRouter();
+  const { t } = useI18n();
+
+  const {
+    game,
+    state,
+    notFound,
+    clientId,
+    isHost,
+    canWrite,
+    mutateState,
+    claimSlot,
+  } = useGame<BinokelState>(gameId);
+
+  const [editingRoundIndex, setEditingRoundIndex] = useState<number | null>(
+    null,
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showMelds, setShowMelds] = useState(false);
+
+  const parties = useMemo(
+    () => (state ? getParties(state.players) : []),
+    [state],
+  );
+  const rounds = useMemo(() => state?.rounds ?? [], [state]);
+  const totals = useMemo(
+    () => getBinokelTotals(rounds, parties),
+    [rounds, parties],
+  );
+
+  const leader = useMemo(() => {
+    if (!state) {
+      return null;
+    }
+
+    const reached = parties
+      .filter((party) => (totals[party.id] ?? 0) >= state.targetScore)
+      .sort((left, right) => (totals[right.id] ?? 0) - (totals[left.id] ?? 0));
+
+    return reached[0] ?? null;
+  }, [parties, state, totals]);
+
+  const openNewRound = () => {
+    if (!canWrite) {
+      return;
+    }
+
+    setEditingRoundIndex(null);
+    setIsModalOpen(true);
+  };
+
+  const openExistingRound = (index: number) => {
+    if (!canWrite) {
+      return;
+    }
+
+    setEditingRoundIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const saveRound = (round: BinokelRound) => {
+    mutateState((current) => {
+      const nextRounds = [...(current.rounds ?? [])];
+
+      if (editingRoundIndex === null) {
+        nextRounds.push(round);
+      } else {
+        nextRounds[editingRoundIndex] = round;
+      }
+
+      return { ...current, rounds: nextRounds };
+    });
+
+    setIsModalOpen(false);
+  };
+
+  const deleteRound = () => {
+    if (editingRoundIndex === null) {
+      return;
+    }
+
+    mutateState((current) => ({
+      ...current,
+      rounds: (current.rounds ?? []).filter(
+        (_, index) => index !== editingRoundIndex,
+      ),
+    }));
+
+    setIsModalOpen(false);
+  };
+
+  if (notFound) {
+    return (
+      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+        <div className="text-center">
+          <Image
+            src="/Logo.png"
+            alt="ScoreForge Logo"
+            width={96}
+            height={96}
+            loading="eager"
+            className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
+          />
+          <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
+          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
+          <div className="flex justify-center gap-2 mt-5">
+            <button
+              onClick={() => router.push("/join")}
+              className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+              type="button"
+            >
+              {t.common.joinLobby}
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              type="button"
+            >
+              {t.common.toHome}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!game || !state) {
+    return (
+      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+        <div className="text-center">
+          <Image
+            src="/Logo.png"
+            alt="ScoreForge Logo"
+            width={96}
+            height={96}
+            loading="eager"
+            className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
+          />
+          <p className="text-[#d8d3bd]">{t.binokel.loadingGame}</p>
+        </div>
+      </main>
+    );
+  }
+
+  const header = (tag: string, title: string) => (
+    <header className="mb-5">
+      <div className="flex justify-between items-center mb-3">
+        <button
+          onClick={() => router.push("/")}
+          className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+          type="button"
+        >
+          {t.common.back}
+        </button>
+        <LanguageSwitcher />
+      </div>
+      <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/Logo.png"
+            alt="ScoreForge Logo"
+            width={72}
+            height={72}
+            loading="eager"
+            className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+          />
+          <div>
+            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+              {tag}
+            </p>
+            <h1 className="mt-1 font-black text-3xl">{title}</h1>
+          </div>
+        </div>
+        <div className="gap-2 grid grid-cols-3 text-sm text-center">
+          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+            <p className="text-[#9fc9d5]">{t.common.code}</p>
+            <p className="font-black tracking-widest">{game.code}</p>
+          </div>
+          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+            <p className="text-[#9fc9d5]">{t.binokel.target}</p>
+            <p className="font-black">{state.targetScore}</p>
+          </div>
+          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+            <p className="text-[#9fc9d5]">{t.common.mode}</p>
+            <p className="font-black">
+              {state.writeMode === "host" ? t.common.modeHost : t.common.modeAll}
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+
+  if (state.phase === "lobby") {
+    return (
+      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+        <div className="mx-auto max-w-5xl">
+          {header(t.binokel.lobbyTag, t.lobby.header)}
+          <Lobby
+            game={game}
+            clientId={clientId}
+            isHost={isHost}
+            onClaim={claimSlot}
+            onStart={() =>
+              mutateState((current) => ({ ...current, phase: "playing" }))
+            }
+          />
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <div className="mx-auto max-w-5xl">
+        {header(t.binokel.tag, t.wizard.scoreTable)}
+
+        {!canWrite ? (
+          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
+            {t.common.hostOnlyBanner}
+          </p>
+        ) : null}
+
+        {leader ? (
+          <p className="bg-[#f59e22]/10 mb-4 px-4 py-3 border border-[#f59e22]/40 rounded-lg font-black text-[#f7c65f] text-lg text-center">
+            {format(t.binokel.targetReached, { name: leader.name })}
+          </p>
+        ) : null}
+
+        {/* TOTALS */}
+        <section
+          className={`gap-2 grid mb-4 ${
+            parties.length === 2 ? "grid-cols-2" : "grid-cols-3"
+          }`}
+        >
+          {parties.map((party) => (
+            <div
+              key={party.id}
+              className="bg-[#14222b]/90 p-3 border border-[#f7e7ad]/10 rounded-lg min-w-0"
+              style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
+            >
+              <p className="text-[#d8d3bd] text-sm truncate">{party.name}</p>
+              <p className="mt-1 font-black text-2xl">
+                {totals[party.id] ?? 0}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        {/* ROUNDS */}
+        <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-black text-xl">{t.binokel.roundsHeader}</h2>
+            {canWrite ? (
+              <button
+                onClick={openNewRound}
+                className="bg-[#f59e22] px-4 py-2 rounded-md font-black text-[#101820] text-sm"
+                type="button"
+              >
+                {t.binokel.newRound}
+              </button>
+            ) : null}
+          </div>
+
+          {rounds.length === 0 ? (
+            <p className="py-6 text-[#9fc9d5] text-sm text-center">
+              {t.binokel.noRounds}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="text-[#9fc9d5] text-left">
+                    <th className="py-2 pr-3 font-semibold">#</th>
+                    <th className="py-2 pr-3 font-semibold">
+                      {t.binokel.bidder}
+                    </th>
+                    {parties.map((party) => (
+                      <th
+                        key={party.id}
+                        className="py-2 pr-3 font-semibold text-right"
+                      >
+                        <span
+                          className="inline-block mr-1 rounded-full w-2 h-2"
+                          style={{ backgroundColor: party.color }}
+                        />
+                        {party.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rounds.map((round, index) => {
+                    const complete = isRoundComplete(round, parties);
+                    const results = complete
+                      ? scoreBinokelRound(round, parties)
+                      : null;
+                    const bidderParty = parties.find(
+                      (party) => party.id === round.bidderPartyId,
+                    );
+                    const bidderFailed =
+                      results && round.bidderPartyId
+                        ? results[round.bidderPartyId]?.madeBid === false
+                        : false;
+
+                    return (
+                      <tr
+                        key={index}
+                        onClick={() => openExistingRound(index)}
+                        className={`border-t border-[#f7e7ad]/10 ${
+                          canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
+                        }`}
+                      >
+                        <td className="py-3 pr-3 font-black">{index + 1}</td>
+                        <td className="py-3 pr-3">
+                          {bidderParty ? (
+                            <>
+                              <span className="font-bold">
+                                {bidderParty.name}
+                              </span>
+                              <span className="text-[#9fc9d5]">
+                                {" "}
+                                · {round.bid ?? 0}
+                              </span>
+                              {bidderFailed ? (
+                                <span className="block text-[#ef5b2a] text-xs">
+                                  {format(t.binokel.bidFailed, {
+                                    bid: round.bid ?? 0,
+                                  })}
+                                </span>
+                              ) : null}
+                            </>
+                          ) : (
+                            <span className="text-[#9fc9d5]">
+                              {t.binokel.inProgress}
+                            </span>
+                          )}
+                        </td>
+                        {parties.map((party) => {
+                          const result = results?.[party.id];
+
+                          return (
+                            <td
+                              key={party.id}
+                              className={`py-3 pr-3 text-right font-black ${
+                                result && result.points < 0
+                                  ? "text-[#ef5b2a]"
+                                  : ""
+                              }`}
+                            >
+                              {result
+                                ? result.points
+                                : (round.tricks[party.id] ??
+                                    round.melds[party.id] ??
+                                    "-")}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowMelds(true)}
+            className="mt-4 px-4 py-3 border border-[#2aa6c8]/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+            type="button"
+          >
+            {t.binokel.showMelds}
+          </button>
+        </section>
+      </div>
+
+      {isModalOpen ? (
+        <RoundModal
+          parties={parties}
+          roundNumber={
+            editingRoundIndex === null
+              ? rounds.length + 1
+              : editingRoundIndex + 1
+          }
+          initialRound={
+            editingRoundIndex === null
+              ? null
+              : (rounds[editingRoundIndex] ?? null)
+          }
+          canDelete={editingRoundIndex !== null}
+          onSave={saveRound}
+          onDelete={deleteRound}
+          onClose={() => setIsModalOpen(false)}
+          onShowMelds={() => setShowMelds(true)}
+        />
+      ) : null}
+
+      {showMelds ? <MeldReference onClose={() => setShowMelds(false)} /> : null}
+    </main>
+  );
+}

@@ -1,3 +1,6 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n";
 import type { Player } from "../../types/wizardTypes";
 
 type ScoreSummaryProps = {
@@ -11,6 +14,8 @@ export function ScoreSummary({
   orderedPlayers,
   rankings,
 }: ScoreSummaryProps) {
+  const { t } = useI18n();
+
   return (
     <section className="gap-2 grid grid-cols-3 mb-4 pb-1">
       {orderedPlayers.map((player) => {
@@ -29,12 +34,12 @@ export function ScoreSummary({
             <div className="flex items-center gap-2 mt-1">
               <p className="font-black text-2xl">{score}</p>
               {isFirst ? (
-                <span aria-label="Erster Platz" title="Erster Platz">
+                <span aria-label={t.wizard.firstPlace} title={t.wizard.firstPlace}>
                   {"\u2655"}
                 </span>
               ) : null}
               {isLast ? (
-                <span aria-label="Letzter Platz" title="Letzter Platz">
+                <span aria-label={t.wizard.lastPlace} title={t.wizard.lastPlace}>
                   {"\u25bc"}
                 </span>
               ) : null}

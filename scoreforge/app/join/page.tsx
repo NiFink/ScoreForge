@@ -4,8 +4,13 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function WizardJoin() {
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import type { BaseGameState, GameRecord } from "@/app/types/gameTypes";
+
+export default function JoinPage() {
   const router = useRouter();
+  const { t } = useI18n();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,7 +19,7 @@ export default function WizardJoin() {
     const normalizedCode = code.trim().toUpperCase();
 
     if (!normalizedCode) {
-      setError("Bitte gib einen Code ein.");
+      setError(t.join.missingCode);
       return;
     }
 
@@ -29,18 +34,18 @@ export default function WizardJoin() {
       });
 
       const data = (await response.json()) as {
-        game?: { id: string };
-        error?: string;
+        game?: GameRecord<BaseGameState>;
       };
 
       if (!response.ok || !data.game) {
-        setError(data.error ?? "Beitritt fehlgeschlagen.");
+        setError(response.status === 404 ? t.join.notFound : t.join.failed);
         return;
       }
 
-      router.push(`/wizard/${data.game.id}`);
+      const gameType = data.game.state.gameType ?? "wizard";
+      router.push(`/${gameType}/${data.game.id}`);
     } catch {
-      setError("Verbindung fehlgeschlagen. Versuche es erneut.");
+      setError(t.join.connectionFailed);
     } finally {
       setLoading(false);
     }
@@ -49,13 +54,16 @@ export default function WizardJoin() {
   return (
     <main className="place-items-center grid bg-[#101820] px-4 py-5 min-h-screen text-[#fff4c7]">
       <div className="w-full max-w-md">
-        <button
-          onClick={() => router.push("/")}
-          className="mb-5 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
-          type="button"
-        >
-          Zurück
-        </button>
+        <div className="flex justify-between items-center mb-5">
+          <button
+            onClick={() => router.push("/")}
+            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            type="button"
+          >
+            {t.common.back}
+          </button>
+          <LanguageSwitcher />
+        </div>
 
         <div className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
           <div className="flex items-center gap-4 mb-5">
@@ -68,15 +76,13 @@ export default function WizardJoin() {
             />
             <div>
               <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
-                Wizard
+                ScoreForge
               </p>
-              <h1 className="mt-1 font-black text-2xl">Lobby beitreten</h1>
+              <h1 className="mt-1 font-black text-2xl">{t.join.title}</h1>
             </div>
           </div>
 
-          <p className="text-[#d8d3bd] text-sm">
-            Gib den Code ein, den dir der Host zeigt.
-          </p>
+          <p className="text-[#d8d3bd] text-sm">{t.join.prompt}</p>
 
           <form
             onSubmit={(event) => {
@@ -107,7 +113,7 @@ export default function WizardJoin() {
               disabled={loading}
               className="bg-[#f59e22] disabled:opacity-50 mt-4 px-5 py-4 rounded-lg w-full font-black text-[#101820]"
             >
-              {loading ? "Suche Spiel..." : "Beitreten"}
+              {loading ? t.join.searching : t.join.joinButton}
             </button>
           </form>
         </div>

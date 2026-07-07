@@ -2,17 +2,19 @@
 
 import { useState } from "react";
 
-import type { GameRecord } from "../../types/wizardTypes";
+import { useI18n } from "@/lib/i18n";
+import type { BaseGameState, GameRecord } from "@/app/types/gameTypes";
 
 type LobbyProps = {
-  game: GameRecord;
+  game: GameRecord<BaseGameState>;
   clientId: string;
   isHost: boolean;
-  onClaim: (playerId: string, name?: string) => Promise<string | null>;
+  onClaim: (playerId: string, name?: string) => Promise<number | null>;
   onStart: () => void;
 };
 
 export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) {
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [busyPlayerId, setBusyPlayerId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
@@ -32,10 +34,16 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
     setBusyPlayerId(playerId);
     setError(null);
 
-    const claimError = await onClaim(playerId, name);
+    const status = await onClaim(playerId, name);
 
-    if (claimError) {
-      setError(claimError);
+    if (status !== null) {
+      setError(
+        status === 409
+          ? t.lobby.slotTaken
+          : status === 0
+            ? t.lobby.connectionFailed
+            : t.lobby.claimFailed,
+      );
     }
 
     setBusyPlayerId(null);
@@ -46,18 +54,15 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
       {/* CODE + STATUS */}
       <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
         <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
-          Beitritts-Code
+          {t.lobby.joinCode}
         </p>
         <p className="bg-[#101820] mt-3 py-5 rounded-lg font-black text-[#f59e22] text-5xl text-center tracking-[0.35em]">
           {game.code}
         </p>
-        <p className="mt-3 text-[#d8d3bd] text-sm">
-          Andere Spieler öffnen ScoreForge, wählen &bdquo;Lobby beitreten&ldquo;
-          und geben diesen Code ein.
-        </p>
+        <p className="mt-3 text-[#d8d3bd] text-sm">{t.lobby.shareHint}</p>
 
         <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-          <p className="text-[#9fc9d5] text-sm">Belegte Plätze</p>
+          <p className="text-[#9fc9d5] text-sm">{t.lobby.claimedSlots}</p>
           <p className="mt-1 font-black text-4xl">
             {claimedCount}/{players.length}
           </p>
@@ -69,11 +74,11 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
             className="bg-[#f59e22] mt-5 px-5 py-4 rounded-lg w-full font-black text-[#101820]"
             type="button"
           >
-            Spiel starten
+            {t.common.startGame}
           </button>
         ) : (
           <p className="mt-5 py-4 text-[#9fc9d5] text-sm text-center animate-pulse">
-            Warten auf den Host...
+            {t.lobby.waitingForHost}
           </p>
         )}
       </section>
@@ -81,13 +86,11 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
       {/* SLOTS */}
       <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
         <div className="flex justify-between mb-4">
-          <h2 className="font-black text-xl">Spieler-Plätze</h2>
-          <span className="text-[#9fc9d5] text-sm">Wähle deinen Platz</span>
+          <h2 className="font-black text-xl">{t.lobby.slotsTitle}</h2>
+          <span className="text-[#9fc9d5] text-sm">{t.lobby.chooseSlot}</span>
         </div>
 
-        {error ? (
-          <p className="mb-3 text-[#ef5b2a] text-sm">{error}</p>
-        ) : null}
+        {error ? <p className="mb-3 text-[#ef5b2a] text-sm">{error}</p> : null}
 
         <div className="space-y-3">
           {players.map((player) => {
@@ -111,7 +114,7 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
                           : "bg-[#f7e7ad]/10 text-[#d8d3bd]"
                     }`}
                   >
-                    {isMine ? "Du" : isTaken ? "Belegt" : "Frei"}
+                    {isMine ? t.lobby.you : isTaken ? t.lobby.taken : t.lobby.free}
                   </span>
                 </div>
 
@@ -121,7 +124,7 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
                       className="bg-[#101820] px-3 py-2 rounded-md w-full"
                       value={nameDraft}
                       onChange={(event) => setNameDraft(event.target.value)}
-                      placeholder="Dein Name"
+                      placeholder={t.lobby.yourName}
                     />
                     <button
                       onClick={() => claim(player.id, nameDraft)}
@@ -129,7 +132,7 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
                       className="bg-[#2aa6c8] disabled:opacity-50 px-4 py-2 rounded-md font-bold text-[#101820] text-sm whitespace-nowrap"
                       type="button"
                     >
-                      Speichern
+                      {t.common.save}
                     </button>
                   </div>
                 ) : !isTaken ? (
@@ -140,8 +143,8 @@ export function Lobby({ game, clientId, isHost, onClaim, onStart }: LobbyProps) 
                     type="button"
                   >
                     {busyPlayerId === player.id
-                      ? "Übernehme..."
-                      : "Platz übernehmen"}
+                      ? t.lobby.claiming
+                      : t.lobby.claimSlot}
                   </button>
                 ) : null}
               </div>

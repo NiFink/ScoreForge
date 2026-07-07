@@ -3,49 +3,53 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const games = [
-  {
-    title: "Wizard",
-    status: "Spielbereit",
-    href: "/wizard/setup",
-    enabled: true,
-    accent: "from-[#f59e22] to-[#f7e7ad]",
-    description:
-      "Vorhersagen, Stiche und Punkte für jede Runde schnell eintragen.",
-  },
-  {
-    title: "Dooomlings",
-    status: "Bald",
-    href: "/doomlings",
-    enabled: false,
-    accent: "from-[#2aa6c8] to-[#f59e22]",
-    description:
-      "Score-Hilfe für Evolution, Eigenschaften und das letzte Zeitalter.",
-  },
-  {
-    title: "Binokel",
-    status: "Bald",
-    href: "/binokel",
-    enabled: false,
-    accent: "from-[#34d399 ] to-[#10b981]",
-    description:
-      "Score-Hilfe, Regeln und Meldbilder für altes schwäbisches Kartenspiel.",
-  },
-];
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useI18n();
+
+  const games = [
+    {
+      title: "Wizard",
+      status: t.home.statusReady,
+      href: "/wizard/setup",
+      enabled: true,
+      accent: "from-[#f59e22] to-[#f7e7ad]",
+      description: t.home.wizardDescription,
+    },
+    {
+      title: "Doomlings",
+      status: t.home.statusReady,
+      href: "/doomlings/setup",
+      enabled: true,
+      accent: "from-[#2aa6c8] to-[#f59e22]",
+      description: t.home.doomlingsDescription,
+    },
+    {
+      title: "Binokel",
+      status: t.home.statusReady,
+      href: "/binokel/setup",
+      enabled: true,
+      accent: "from-[#34d399] to-[#10b981]",
+      description: t.home.binokelDescription,
+    },
+  ];
 
   return (
     <main className="bg-[#101820] min-h-screen text-[#fff4c7]">
       <section className="flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full max-w-6xl min-h-screen">
         <header className="flex justify-between items-center gap-3">
           <div>
-            <p className="font-semibold text-[#f59e22] text-xs uppercase tracking-[0.18em]">
-              ScoreForge
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="font-semibold text-[#f59e22] text-xs uppercase tracking-[0.18em]">
+                {t.home.brand}
+              </p>
+              <LanguageSwitcher />
+            </div>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
-              Spielpunkte ohne Zettelchaos.
+              {t.home.title}
             </h1>
           </div>
           <Image
@@ -72,26 +76,24 @@ export default function Home() {
               />
             </div>
             <p className="max-w-2xl text-[#d8d3bd] text-base sm:text-lg leading-7">
-              Eine mobile-freundliche Punkte-App fuer Brett- und Kartenspiele.
-              Starte eine Runde, lege Spieler mit Farbe an und lass ScoreForge
-              Vorhersagen, Stiche und Platzierungen sauber mitrechnen.
+              {t.home.description}
             </p>
             <div className="flex flex-wrap gap-2 mt-5 text-[#f7e7ad] text-sm">
               <span className="bg-[#f59e22]/10 px-3 py-2 border border-[#f59e22]/25 rounded-md">
-                Mobile zuerst
+                {t.home.badgeMobile}
               </span>
               <span className="bg-[#2aa6c8]/10 px-3 py-2 border border-[#2aa6c8]/25 rounded-md">
-                PC-taugliche Tabellen
+                {t.home.badgeTables}
               </span>
               <span className="bg-[#f7e7ad]/10 px-3 py-2 border border-[#f7e7ad]/20 rounded-md">
-                Lokale Spielrunde
+                {t.home.badgeLive}
               </span>
             </div>
           </div>
 
           <div className="bg-[#14222b]/90 shadow-[0_18px_50px_rgba(0,0,0,0.22)] p-4 border border-[#f59e22]/20 rounded-lg">
             <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
-              Schnelle Spielübersicht
+              {t.home.quickOverview}
             </p>
             <div className="gap-3 grid sm:grid-cols-2 lg:grid-cols-1 mt-4">
               {games.map((game) => (
@@ -136,14 +138,14 @@ export default function Home() {
             className="bg-[#f59e22] hover:bg-[#ffb13d] shadow-[0_0_28px_rgba(245,158,34,0.24)] px-5 py-4 rounded-lg w-full sm:w-auto font-black text-[#101820] text-base transition"
             type="button"
           >
-            Wizard starten
+            {t.home.startWizard}
           </button>
           <button
-            onClick={() => router.push("/wizard/join")}
+            onClick={() => router.push("/join")}
             className="hover:bg-[#2aa6c8]/10 px-5 py-4 border border-[#2aa6c8]/40 rounded-lg w-full sm:w-auto font-black text-[#9fc9d5] text-base transition"
             type="button"
           >
-            Lobby beitreten
+            {t.home.joinLobby}
           </button>
         </div>
       </section>

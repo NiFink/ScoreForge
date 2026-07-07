@@ -1,29 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import {
-  use,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { supabase } from "@/lib/supabaseClient";
-import { getClientId } from "@/lib/clientId";
+import { useGame } from "@/lib/useGame";
+import { useI18n } from "@/lib/i18n";
+import { Lobby } from "@/components/Lobby";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
-import { Lobby } from "./Lobby";
-import type {
-  GameRecord,
-  GameState,
-  ModalPhase,
-  RoundEntry,
-} from "../../types/wizardTypes";
+import type { GameState, ModalPhase, RoundEntry } from "../../types/wizardTypes";
 import {
   getRoundScore,
   getActualRoundOptions,
@@ -33,9 +22,6 @@ import {
   rankPlayers,
 } from "../../Utils/wizardUtils";
 
-const subscribeToNothing = () => () => {};
-const getServerClientId = () => "";
-
 export default function WizardGame({
   params,
 }: {
@@ -43,139 +29,25 @@ export default function WizardGame({
 }) {
   const { gameId } = use(params);
   const router = useRouter();
+  const { t } = useI18n();
 
-  const [game, setGame] = useState<GameRecord | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const gameRef = useRef<GameRecord | null>(null);
+  const {
+    game,
+    state,
+    notFound,
+    clientId,
+    isHost,
+    canWrite,
+    mutateState,
+    claimSlot,
+  } = useGame<GameState>(gameId);
 
   const [activeRound, setActiveRound] = useState(0);
   const [modalPhase, setModalPhase] = useState<ModalPhase | null>(null);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
 
-  // Auf dem Server "" liefern, im Browser die stabile Geräte-ID
-  const clientId = useSyncExternalStore(
-    subscribeToNothing,
-    getClientId,
-    getServerClientId,
-  );
-
-  // Spielstand initial laden
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const response = await fetch(`/api/games/${gameId}`);
-
-        if (!response.ok) {
-          if (!cancelled) {
-            setNotFound(true);
-          }
-          return;
-        }
-
-        const data = (await response.json()) as { game: GameRecord };
-
-        if (!cancelled) {
-          gameRef.current = data.game;
-          setGame(data.game);
-          setStartPlayerIndexDraft(data.game.state.startPlayerIndex ?? 0);
-        }
-      } catch {
-        if (!cancelled) {
-          setNotFound(true);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [gameId]);
-
-  // Realtime: Änderungen anderer Geräte übernehmen
-  useEffect(() => {
-    const channel = supabase
-      .channel(`game-${gameId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "games",
-          filter: `id=eq.${gameId}`,
-        },
-        (payload) => {
-          const next = payload.new as GameRecord;
-          gameRef.current = next;
-          setGame(next);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [gameId]);
-
-  const state = game?.state ?? null;
   const table = useMemo(() => state?.table ?? [], [state]);
-
-  const isHost = !!state && !!clientId && state.hostId === clientId;
-  const canWrite = isHost || state?.writeMode === "all";
-
-  // Lokale Änderung sofort anzeigen und an den Server schicken;
-  // Realtime bestätigt sie danach auf allen Geräten (last-write-wins).
-  const mutateState = (updater: (current: GameState) => GameState) => {
-    const current = gameRef.current;
-
-    if (!current || !clientId) {
-      return;
-    }
-
-    const nextState = updater(current.state);
-    const next = { ...current, state: nextState };
-
-    gameRef.current = next;
-    setGame(next);
-
-    void fetch(`/api/games/${current.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state: nextState, clientId }),
-    });
-  };
-
-  const claimSlot = async (
-    playerId: string,
-    name?: string,
-  ): Promise<string | null> => {
-    try {
-      const response = await fetch(`/api/games/${gameId}/claim`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId, clientId, name }),
-      });
-
-      const data = (await response.json()) as {
-        game?: GameRecord;
-        error?: string;
-      };
-
-      if (!response.ok || !data.game) {
-        return data.error ?? "Konnte den Platz nicht übernehmen.";
-      }
-
-      gameRef.current = data.game;
-      setGame(data.game);
-      return null;
-    } catch {
-      return "Verbindung fehlgeschlagen.";
-    }
-  };
 
   const totals = useMemo(() => {
     if (!state) {
@@ -440,24 +312,22 @@ export default function WizardGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <h1 className="font-black text-2xl">Spiel nicht gefunden</h1>
-          <p className="mt-2 text-[#d8d3bd]">
-            Der Link ist ungültig oder das Spiel existiert nicht mehr.
-          </p>
+          <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
+          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
           <div className="flex justify-center gap-2 mt-5">
             <button
-              onClick={() => router.push("/wizard/join")}
+              onClick={() => router.push("/join")}
               className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
               type="button"
             >
-              Lobby beitreten
+              {t.common.joinLobby}
             </button>
             <button
               onClick={() => router.push("/")}
               className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
               type="button"
             >
-              Zur Startseite
+              {t.common.toHome}
             </button>
           </div>
         </div>
@@ -477,7 +347,7 @@ export default function WizardGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <p className="text-[#d8d3bd]">Wizard wird geladen...</p>
+          <p className="text-[#d8d3bd]">{t.wizard.loadingGame}</p>
         </div>
       </main>
     );
@@ -488,13 +358,16 @@ export default function WizardGame({
       <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-5xl">
           <header className="mb-5">
-            <button
-              onClick={() => router.push("/")}
-              className="mb-3 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
-              type="button"
-            >
-              Zurück
-            </button>
+            <div className="flex justify-between items-center mb-3">
+              <button
+                onClick={() => router.push("/")}
+                className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+                type="button"
+              >
+                {t.common.back}
+              </button>
+              <LanguageSwitcher />
+            </div>
             <div className="flex items-center gap-3">
               <Image
                 src="/Logo.png"
@@ -506,11 +379,9 @@ export default function WizardGame({
               />
               <div>
                 <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
-                  Wizard Lobby
+                  {t.wizard.lobbyTag}
                 </p>
-                <h1 className="mt-1 font-black text-3xl">
-                  Warten auf Spieler
-                </h1>
+                <h1 className="mt-1 font-black text-3xl">{t.lobby.header}</h1>
               </div>
             </div>
           </header>
@@ -532,13 +403,18 @@ export default function WizardGame({
       <div className="mx-auto max-w-7xl">
         <header className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-4">
           <div>
-            <button
-              onClick={() => router.push("/")}
-              className="mb-3 px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
-              type="button"
-            >
-              Zurück
-            </button>
+            <div className="flex justify-between items-center mb-3">
+              <button
+                onClick={() => router.push("/")}
+                className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+                type="button"
+              >
+                {t.common.back}
+              </button>
+              <span className="sm:hidden">
+                <LanguageSwitcher />
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               <Image
                 src="/Logo.png"
@@ -550,38 +426,46 @@ export default function WizardGame({
               />
               <div>
                 <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
-                  Wizard
+                  {t.wizard.tag}
                 </p>
-                <h1 className="mt-1 font-black text-3xl">Score-Tabelle</h1>
+                <h1 className="mt-1 font-black text-3xl">
+                  {t.wizard.scoreTable}
+                </h1>
               </div>
             </div>
           </div>
-          <div className="gap-2 grid grid-cols-4 text-sm text-center">
-            <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-              <p className="text-[#9fc9d5]">Code</p>
-              <p className="font-black tracking-widest">{game.code}</p>
-            </div>
-            <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-              <p className="text-[#9fc9d5]">Spieler</p>
-              <p className="font-black">{state.playerCount}</p>
-            </div>
-            <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-              <p className="text-[#9fc9d5]">Runden</p>
-              <p className="font-black">{state.rounds}</p>
-            </div>
-            <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-              <p className="text-[#9fc9d5]">Modus</p>
-              <p className="font-black">
-                {state.writeMode === "host" ? "Host" : "Alle"}
-              </p>
+          <div className="flex flex-col items-end gap-2">
+            <span className="hidden sm:block">
+              <LanguageSwitcher />
+            </span>
+            <div className="gap-2 grid grid-cols-4 text-sm text-center">
+              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+                <p className="text-[#9fc9d5]">{t.common.code}</p>
+                <p className="font-black tracking-widest">{game.code}</p>
+              </div>
+              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+                <p className="text-[#9fc9d5]">{t.common.players}</p>
+                <p className="font-black">{state.playerCount}</p>
+              </div>
+              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+                <p className="text-[#9fc9d5]">{t.common.rounds}</p>
+                <p className="font-black">{state.rounds}</p>
+              </div>
+              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
+                <p className="text-[#9fc9d5]">{t.common.mode}</p>
+                <p className="font-black">
+                  {state.writeMode === "host"
+                    ? t.common.modeHost
+                    : t.common.modeAll}
+                </p>
+              </div>
             </div>
           </div>
         </header>
 
         {!canWrite ? (
           <p className="bg-[#18262f] mb-4 px-4 py-3 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
-            Nur der Host trägt Punkte ein — deine Ansicht aktualisiert sich
-            automatisch.
+            {t.common.hostOnlyBanner}
           </p>
         ) : null}
 
