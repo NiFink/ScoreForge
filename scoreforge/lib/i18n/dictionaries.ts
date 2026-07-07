@@ -53,7 +53,7 @@ const de = {
     doomlingsDescription:
       "Geführte Endwertung: Zahlen, Kreuz, Sichel und World's End.",
     binokelDescription:
-      "Reizen, Melden und Stiche — die Punkte rechnet ScoreForge aus.",
+      "Steigern, Melden und Stiche — die Punkte rechnet ScoreForge aus.",
     startWizard: "Wizard starten",
     joinLobby: "Lobby beitreten",
   },
@@ -154,7 +154,8 @@ const de = {
     tag: "Binokel",
     lobbyTag: "Binokel Lobby",
     loadingGame: "Binokel wird geladen...",
-    teamsNote: "Bei 4 Spielern spielen Gegenüber zusammen: {teamA} gegen {teamB}",
+    teamsNote:
+      "Bei 4 Spielern spielen Gegenüber zusammen: {teamA} gegen {teamB}",
     targetScore: "Spielziel (Punkte)",
     target: "Ziel",
     roundsHeader: "Runden",
@@ -162,7 +163,7 @@ const de = {
     newRound: "Neue Runde eintragen",
     editRound: "Runde {n} bearbeiten",
     inProgress: "läuft...",
-    bidStepTitle: "Reizen",
+    bidStepTitle: "Steigern",
     bidderQuestion: "Wer hat das Spiel ersteigert?",
     bid: "Gebot",
     meldStepTitle: "Melden",
@@ -196,9 +197,17 @@ const de = {
     ],
     melds: [
       { name: "Paar (König + Ober einer Farbe)", value: "20", trump: "40" },
-      { name: "Familie (A, 10, K, O, U einer Farbe)", value: "100", trump: "150" },
+      {
+        name: "Familie (A, 10, K, O, U einer Farbe)",
+        value: "100",
+        trump: "150",
+      },
       { name: "Doppelfamilie", value: "1500", trump: "1500" },
-      { name: "Binokel (Schippen-Ober + Schellen-Unter)", value: "40", trump: "40" },
+      {
+        name: "Binokel (Schippen-Ober + Bollen-Unter)",
+        value: "40",
+        trump: "40",
+      },
       { name: "Doppel-Binokel", value: "300", trump: "300" },
       { name: "Vier Asse (verschiedene Farben)", value: "100", trump: "100" },
       { name: "Vier Könige (verschiedene Farben)", value: "80", trump: "80" },
@@ -256,12 +265,10 @@ const en: typeof de = {
     quickOverview: "Quick game overview",
     statusReady: "Ready to play",
     statusSoon: "Soon",
-    wizardDescription:
-      "Quickly enter bids, tricks and points for every round.",
+    wizardDescription: "Quickly enter bids, tricks and points for every round.",
     doomlingsDescription:
       "Guided final scoring: numbers, cross, sickle and World's End.",
-    binokelDescription:
-      "Bidding, melds and tricks — ScoreForge does the math.",
+    binokelDescription: "Bidding, melds and tricks — ScoreForge does the math.",
     startWizard: "Start Wizard",
     joinLobby: "Join lobby",
   },
@@ -362,7 +369,8 @@ const en: typeof de = {
     tag: "Binokel",
     lobbyTag: "Binokel lobby",
     loadingGame: "Loading Binokel...",
-    teamsNote: "With 4 players, opposite seats play together: {teamA} vs {teamB}",
+    teamsNote:
+      "With 4 players, opposite seats play together: {teamA} vs {teamB}",
     targetScore: "Target score (points)",
     target: "Target",
     roundsHeader: "Rounds",
@@ -404,9 +412,17 @@ const en: typeof de = {
     ],
     melds: [
       { name: "Pair (king + ober of one suit)", value: "20", trump: "40" },
-      { name: "Family (A, 10, K, O, U of one suit)", value: "100", trump: "150" },
+      {
+        name: "Family (A, 10, K, O, U of one suit)",
+        value: "100",
+        trump: "150",
+      },
       { name: "Double family", value: "1500", trump: "1500" },
-      { name: "Binokel (ober of leaves + unter of bells)", value: "40", trump: "40" },
+      {
+        name: "Binokel (ober of leaves + unter of bells)",
+        value: "40",
+        trump: "40",
+      },
       { name: "Double binokel", value: "300", trump: "300" },
       { name: "Four aces (different suits)", value: "100", trump: "100" },
       { name: "Four kings (different suits)", value: "80", trump: "80" },
