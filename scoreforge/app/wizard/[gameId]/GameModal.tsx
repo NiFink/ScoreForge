@@ -57,10 +57,10 @@ export function GameModal({
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-4 border border-[#f59e22]/25 rounded-lg w-full max-w-md">
+      <div className="bg-[#18262f] shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md">
         <div className="flex justify-between items-start gap-3 mb-4">
           <div>
-            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.16em]">
+            <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
               {format(t.wizard.roundLabel, { n: roundNumber })}
             </p>
             <p className="mt-1 text-[#9fc9d5] text-xs">
@@ -98,7 +98,7 @@ export function GameModal({
               }}
               className={`rounded-md px-3 py-2 text-sm font-black ${
                 modalPhase === phase
-                  ? "bg-[#f59e22] text-[#101820]"
+                  ? "bg-(--accent) text-(--on-accent)"
                   : phase === "actual" && !activeRoundBidsDone
                     ? "cursor-not-allowed text-[#5f7f92]"
                     : "text-[#d8d3bd]"
@@ -133,7 +133,7 @@ export function GameModal({
               {modalPhase === "bid" ? t.wizard.prediction : t.wizard.tricks}
             </span>
             <select
-              className="bg-[#18262f] mt-2 px-3 py-4 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full font-black text-lg"
+              className="bg-[#18262f] mt-2 px-3 py-4 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg"
               value={
                 modalPhase === "bid"
                   ? (currentRound[activePlayer.id].bid ?? "")
@@ -162,13 +162,13 @@ export function GameModal({
           </label>
 
           {modalPhase === "bid" && isLastTurnPlayer ? (
-            <p className="mt-3 text-[#f7c65f] text-sm">
+            <p className="mt-3 text-(--accent-2) text-sm">
               {format(t.wizard.lastPlayerBidHint, { n: roundNumber })}
             </p>
           ) : null}
 
           {modalPhase === "actual" && isLastTurnPlayer ? (
-            <p className="mt-3 text-[#f7c65f] text-sm">
+            <p className="mt-3 text-(--accent-2) text-sm">
               {format(t.wizard.lastPlayerActualHint, {
                 min: actualMinimum,
                 max: actualMaximum,
@@ -188,7 +188,7 @@ export function GameModal({
           </button>
           <button
             onClick={onMoveNext}
-            className="bg-[#f59e22] disabled:opacity-50 px-4 py-3 rounded-md font-black text-[#101820] disabled:cursor-not-allowed"
+            className="bg-(--accent) disabled:opacity-50 px-4 py-3 rounded-md font-black text-(--on-accent) disabled:cursor-not-allowed"
             type="button"
             disabled={
               modalPhase === "bid" && currentRound[activePlayer.id].bid === null

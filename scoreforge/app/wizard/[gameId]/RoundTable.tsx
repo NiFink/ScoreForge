@@ -32,7 +32,7 @@ export function RoundTable({
   const { t } = useI18n();
 
   return (
-    <div className="bg-[#14222b]/80 border border-[#f59e22]/20 rounded-lg overflow-x-auto">
+    <div className="bg-[#14222b]/80 border border-(--accent)/20 rounded-lg overflow-x-auto">
       <table className="min-w-230 text-sm border-collapse">
         <thead>
           <tr>
@@ -59,7 +59,7 @@ export function RoundTable({
                       disabled={!unlocked}
                       className={`rounded-md px-3 py-2 font-black ${
                         unlocked
-                          ? "bg-[#f59e22] text-[#101820]"
+                          ? "bg-(--accent) text-(--on-accent)"
                           : "cursor-not-allowed bg-[#18262f] text-[#5f7f92]"
                       }`}
                       title={

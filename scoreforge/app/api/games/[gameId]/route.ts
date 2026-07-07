@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import type { GameState } from "@/app/types/wizardTypes";
+import type { BaseGameState } from "@/app/types/gameTypes";
 
 type RouteParams = { params: Promise<{ gameId: string }> };
 
@@ -12,6 +12,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     .from("games")
     .select("*")
     .eq("id", gameId)
+    .gt("expires_at", new Date().toISOString())
     .maybeSingle();
 
   if (error || !data) {
@@ -32,9 +33,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { state, clientId } = body as {
-    state?: GameState;
+  const { state, clientId, finished } = body as {
+    state?: BaseGameState;
     clientId?: string;
+    finished?: boolean;
   };
 
   if (!state || typeof state !== "object" || !clientId) {
@@ -48,29 +50,39 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const { data: existing, error: fetchError } = await supabase
     .from("games")
-    .select("state")
+    .select("state, expires_at")
     .eq("id", gameId)
+    .gt("expires_at", new Date().toISOString())
     .maybeSingle();
 
   if (fetchError || !existing) {
     return NextResponse.json({ error: "Game not found." }, { status: 404 });
   }
 
-  const currentState = existing.state as GameState;
+  const currentState = existing.state as BaseGameState;
 
-  if (
-    currentState.writeMode === "host" &&
-    clientId !== currentState.hostId
-  ) {
+  if (currentState.writeMode === "host" && clientId !== currentState.hostId) {
     return NextResponse.json(
       { error: "Only the host can update this game." },
       { status: 403 },
     );
   }
 
+  const update: { state: BaseGameState; expires_at?: string } = { state };
+
+  // Fertige Spiele bleiben nur noch 1 Stunde sichtbar
+  if (finished === true) {
+    const oneHour = new Date(Date.now() + 60 * 60 * 1000);
+    const current = new Date(existing.expires_at as string);
+
+    if (oneHour < current) {
+      update.expires_at = oneHour.toISOString();
+    }
+  }
+
   const { data, error } = await supabase
     .from("games")
-    .update({ state })
+    .update(update)
     .eq("id", gameId)
     .select()
     .single();

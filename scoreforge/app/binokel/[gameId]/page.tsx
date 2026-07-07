@@ -1,5 +1,7 @@
 "use client";
 
+import { gameThemes } from "@/lib/gameThemes";
+
 import Image from "next/image";
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CodeBadge } from "@/components/CodeBadge";
 import { MeldReference } from "./MeldReference";
 import { RoundModal } from "./RoundModal";
 import type { BinokelRound, BinokelState } from "../../types/gameTypes";
@@ -85,17 +88,28 @@ export default function BinokelGame({
   };
 
   const saveRound = (round: BinokelRound) => {
-    mutateState((current) => {
-      const nextRounds = [...(current.rounds ?? [])];
+    mutateState(
+      (current) => {
+        const nextRounds = [...(current.rounds ?? [])];
 
-      if (editingRoundIndex === null) {
-        nextRounds.push(round);
-      } else {
-        nextRounds[editingRoundIndex] = round;
-      }
+        if (editingRoundIndex === null) {
+          nextRounds.push(round);
+        } else {
+          nextRounds[editingRoundIndex] = round;
+        }
 
-      return { ...current, rounds: nextRounds };
-    });
+        return { ...current, rounds: nextRounds };
+      },
+      // Ziel erreicht -> Lobby läuft nur noch 1 Stunde weiter
+      (next) => {
+        const nextParties = getParties(next.players);
+        const nextTotals = getBinokelTotals(next.rounds ?? [], nextParties);
+
+        return nextParties.some(
+          (party) => (nextTotals[party.id] ?? 0) >= next.targetScore,
+        );
+      },
+    );
 
     setIsModalOpen(false);
   };
@@ -117,7 +131,7 @@ export default function BinokelGame({
 
   if (notFound) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -132,7 +146,7 @@ export default function BinokelGame({
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
-              className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+              className="bg-(--accent) px-4 py-3 rounded-md font-black text-(--on-accent)"
               type="button"
             >
               {t.common.joinLobby}
@@ -152,7 +166,7 @@ export default function BinokelGame({
 
   if (!game || !state) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -188,20 +202,17 @@ export default function BinokelGame({
             width={72}
             height={72}
             loading="eager"
-            className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+            className="border border-(--accent)/35 rounded-lg w-14 h-14 object-cover"
           />
           <div>
-            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+            <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
               {tag}
             </p>
             <h1 className="mt-1 font-black text-3xl">{title}</h1>
           </div>
         </div>
         <div className="gap-2 grid grid-cols-3 text-sm text-center">
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.code}</p>
-            <p className="font-black tracking-widest">{game.code}</p>
-          </div>
+          <CodeBadge code={game.code} />
           <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
             <p className="text-[#9fc9d5]">{t.binokel.target}</p>
             <p className="font-black">{state.targetScore}</p>
@@ -219,7 +230,7 @@ export default function BinokelGame({
 
   if (state.phase === "lobby") {
     return (
-      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-5xl">
           {header(t.binokel.lobbyTag, t.lobby.header)}
           <Lobby
@@ -230,6 +241,14 @@ export default function BinokelGame({
             onStart={() =>
               mutateState((current) => ({ ...current, phase: "playing" }))
             }
+            groups={
+              state.players.length === 4
+                ? [
+                    { title: t.binokel.team1, indexes: [0, 2] },
+                    { title: t.binokel.team2, indexes: [1, 3] },
+                  ]
+                : undefined
+            }
           />
         </div>
       </main>
@@ -237,18 +256,18 @@ export default function BinokelGame({
   }
 
   return (
-    <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.binokel.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-5xl">
         {header(t.binokel.tag, t.wizard.scoreTable)}
 
         {!canWrite ? (
-          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
+          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
             {t.common.hostOnlyBanner}
           </p>
         ) : null}
 
         {leader ? (
-          <p className="bg-[#f59e22]/10 mb-4 px-4 py-3 border border-[#f59e22]/40 rounded-lg font-black text-[#f7c65f] text-lg text-center">
+          <p className="bg-(--accent)/10 mb-4 px-4 py-3 border border-(--accent)/40 rounded-lg font-black text-(--accent-2) text-lg text-center">
             {format(t.binokel.targetReached, { name: leader.name })}
           </p>
         ) : null}
@@ -274,13 +293,13 @@ export default function BinokelGame({
         </section>
 
         {/* ROUNDS */}
-        <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
+        <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-black text-xl">{t.binokel.roundsHeader}</h2>
             {canWrite ? (
               <button
                 onClick={openNewRound}
-                className="bg-[#f59e22] px-4 py-2 rounded-md font-black text-[#101820] text-sm"
+                className="bg-(--accent) px-4 py-2 rounded-md font-black text-(--on-accent) text-sm"
                 type="button"
               >
                 {t.binokel.newRound}
@@ -392,7 +411,7 @@ export default function BinokelGame({
 
           <button
             onClick={() => setShowMelds(true)}
-            className="mt-4 px-4 py-3 border border-[#2aa6c8]/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+            className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
             type="button"
           >
             {t.binokel.showMelds}

@@ -36,6 +36,10 @@ const de = {
     hostOnlyBanner:
       "Nur der Host trägt Punkte ein — deine Ansicht aktualisiert sich automatisch.",
     total: "Gesamt",
+    lobbyName: "Lobby-Name",
+    lobbyNamePlaceholder: "z.B. Freitagsrunde",
+    scanToJoin: "Zum Beitreten scannen — der Link führt direkt ins Spiel.",
+    close: "Schließen",
   },
   home: {
     brand: "ScoreForge",
@@ -56,6 +60,11 @@ const de = {
       "Steigern, Melden und Stiche — die Punkte rechnet ScoreForge aus.",
     startWizard: "Wizard starten",
     joinLobby: "Lobby beitreten",
+    gamesTitle: "Welches Spiel spielt ihr?",
+    playNow: "Spiel starten",
+    joinTitle: "Schon eine Runde am Laufen?",
+    joinHint:
+      "Tritt einer offenen Lobby bei oder gib direkt den Code vom Host ein.",
   },
   join: {
     title: "Lobby beitreten",
@@ -66,6 +75,15 @@ const de = {
     connectionFailed: "Verbindung fehlgeschlagen. Versuche es erneut.",
     searching: "Suche Spiel...",
     joinButton: "Beitreten",
+    openLobbies: "Offene Lobbys",
+    refresh: "Aktualisieren",
+    loadingLobbies: "Lade Lobbys...",
+    noLobbies: "Gerade ist keine Lobby offen — erstelle eine neue Runde.",
+    pinPrompt: "Diese Lobby ist mit einem 5-stelligen PIN geschützt.",
+    wrongPin: "Falscher PIN.",
+    joinByCode: "Oder direkt mit Code beitreten",
+    statusLobby: "Lobby",
+    statusPlaying: "Läuft",
   },
   lobby: {
     header: "Warten auf Spieler",
@@ -156,6 +174,9 @@ const de = {
     loadingGame: "Binokel wird geladen...",
     teamsNote:
       "Bei 4 Spielern spielen Gegenüber zusammen: {teamA} gegen {teamB}",
+    team1: "Team 1",
+    team2: "Team 2",
+    chooseTeam: "Wähle dein Team",
     targetScore: "Spielziel (Punkte)",
     target: "Ziel",
     roundsHeader: "Runden",
@@ -253,6 +274,10 @@ const en: typeof de = {
     hostOnlyBanner:
       "Only the host enters scores — your view updates automatically.",
     total: "Total",
+    lobbyName: "Lobby name",
+    lobbyNamePlaceholder: "e.g. Friday night crew",
+    scanToJoin: "Scan to join — the link leads straight into the game.",
+    close: "Close",
   },
   home: {
     brand: "ScoreForge",
@@ -271,6 +296,10 @@ const en: typeof de = {
     binokelDescription: "Bidding, melds and tricks — ScoreForge does the math.",
     startWizard: "Start Wizard",
     joinLobby: "Join lobby",
+    gamesTitle: "Which game are you playing?",
+    playNow: "Start game",
+    joinTitle: "Already a session running?",
+    joinHint: "Join an open lobby or enter the host's code directly.",
   },
   join: {
     title: "Join lobby",
@@ -281,6 +310,15 @@ const en: typeof de = {
     connectionFailed: "Connection failed. Please try again.",
     searching: "Looking for game...",
     joinButton: "Join",
+    openLobbies: "Open lobbies",
+    refresh: "Refresh",
+    loadingLobbies: "Loading lobbies...",
+    noLobbies: "No lobby is open right now — start a new session.",
+    pinPrompt: "This lobby is protected with a 5-digit PIN.",
+    wrongPin: "Wrong PIN.",
+    joinByCode: "Or join directly with a code",
+    statusLobby: "Lobby",
+    statusPlaying: "Playing",
   },
   lobby: {
     header: "Waiting for players",
@@ -371,6 +409,9 @@ const en: typeof de = {
     loadingGame: "Loading Binokel...",
     teamsNote:
       "With 4 players, opposite seats play together: {teamA} vs {teamB}",
+    team1: "Team 1",
+    team2: "Team 2",
+    chooseTeam: "Pick your team",
     targetScore: "Target score (points)",
     target: "Target",
     roundsHeader: "Rounds",

@@ -37,7 +37,7 @@ export function SetupModes({
               onClick={() => onDeviceModeChange(value)}
               className={`rounded-md px-3 py-3 text-sm font-bold ${
                 deviceMode === value
-                  ? "bg-[#2aa6c8] text-[#101820]"
+                  ? "bg-(--accent-2) text-(--on-accent)"
                   : "bg-[#18262f] text-[#d8d3bd]"
               }`}
               type="button"
@@ -66,7 +66,7 @@ export function SetupModes({
                 onClick={() => onWriteModeChange(value)}
                 className={`rounded-md px-3 py-3 text-sm font-bold ${
                   writeMode === value
-                    ? "bg-[#f7c65f] text-[#101820]"
+                    ? "bg-(--accent-2) text-(--on-accent)"
                     : "bg-[#18262f] text-[#d8d3bd]"
                 }`}
                 type="button"

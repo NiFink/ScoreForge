@@ -3,6 +3,10 @@
 :root {
   --background: #101820;
   --foreground: #fff4c7;
+  /* Spiel-Akzentfarben - werden pro Spielseite per Inline-Style überschrieben */
+  --accent: #f59e22;
+  --accent-2: #2aa6c8;
+  --on-accent: #101820;
 }
 
 @theme inline {

@@ -1,5 +1,7 @@
 "use client";
 
+import { gameThemes } from "@/lib/gameThemes";
+
 import Image from "next/image";
 import { use } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CodeBadge } from "@/components/CodeBadge";
 import type {
   DoomlingsScores,
   DoomlingsState,
@@ -83,7 +86,11 @@ export default function DoomlingsGame({
   };
 
   const setPhase = (phase: DoomlingsState["phase"]) => {
-    mutateState((current) => ({ ...current, phase }));
+    // "finished" -> Lobby läuft nur noch 1 Stunde weiter
+    mutateState(
+      (current) => ({ ...current, phase }),
+      (next) => next.phase === "finished",
+    );
   };
 
   const setStep = (step: number) => {
@@ -92,7 +99,7 @@ export default function DoomlingsGame({
 
   if (notFound) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -107,7 +114,7 @@ export default function DoomlingsGame({
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
-              className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+              className="bg-(--accent) px-4 py-3 rounded-md font-black text-(--on-accent)"
               type="button"
             >
               {t.common.joinLobby}
@@ -127,7 +134,7 @@ export default function DoomlingsGame({
 
   if (!game || !state) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -163,20 +170,17 @@ export default function DoomlingsGame({
             width={72}
             height={72}
             loading="eager"
-            className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+            className="border border-(--accent)/35 rounded-lg w-14 h-14 object-cover"
           />
           <div>
-            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+            <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
               {tag}
             </p>
             <h1 className="mt-1 font-black text-3xl">{title}</h1>
           </div>
         </div>
         <div className="gap-2 grid grid-cols-3 text-sm text-center">
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.code}</p>
-            <p className="font-black tracking-widest">{game.code}</p>
-          </div>
+          <CodeBadge code={game.code} />
           <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
             <p className="text-[#9fc9d5]">{t.common.players}</p>
             <p className="font-black">{state.playerCount}</p>
@@ -194,7 +198,7 @@ export default function DoomlingsGame({
           {state.addons.map((addon) => (
             <span
               key={addon}
-              className="bg-[#2aa6c8]/10 px-2 py-1 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-xs"
+              className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
             >
               {addon}
             </span>
@@ -206,7 +210,7 @@ export default function DoomlingsGame({
 
   if (state.phase === "lobby") {
     return (
-      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-5xl">
           {header(t.doomlings.lobbyTag, t.lobby.header)}
           <Lobby
@@ -223,11 +227,11 @@ export default function DoomlingsGame({
 
   if (state.phase === "playing") {
     return (
-      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-5xl">
           {header(t.doomlings.tag, t.doomlings.overview)}
 
-          <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
+          <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
             <p className="text-[#d8d3bd]">{t.doomlings.playingHint}</p>
 
             <div className="gap-2 grid sm:grid-cols-2 mt-4">
@@ -245,7 +249,7 @@ export default function DoomlingsGame({
             {canWrite ? (
               <button
                 onClick={() => setPhase("scoring")}
-                className="bg-[#f59e22] mt-5 px-5 py-4 rounded-lg w-full font-black text-[#101820]"
+                className="bg-(--accent) mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent)"
                 type="button"
               >
                 {t.doomlings.startScoring}
@@ -267,12 +271,12 @@ export default function DoomlingsGame({
     const stepLabel = stepLabels[step];
 
     return (
-      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-3xl">
           {header(t.doomlings.scoringTag, stepLabel.title)}
 
-          <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
-            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.16em]">
+          <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
+            <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
               {format(t.doomlings.stepOf, {
                 current: step + 1,
                 total: scoreKeys.length,
@@ -310,7 +314,7 @@ export default function DoomlingsGame({
                             setScore(player.id, scoreKey, parsed);
                           }
                         }}
-                        className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-24 font-black text-lg text-center"
+                        className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
                       />
                     ) : (
                       <p className="w-24 font-black text-lg text-center">
@@ -339,7 +343,7 @@ export default function DoomlingsGame({
                       ? setPhase("finished")
                       : setStep(step + 1)
                   }
-                  className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+                  className="bg-(--accent) px-4 py-3 rounded-md font-black text-(--on-accent)"
                   type="button"
                 >
                   {step === scoreKeys.length - 1
@@ -361,12 +365,12 @@ export default function DoomlingsGame({
   const winner = ranked[0];
 
   return (
-    <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-3xl">
         {header(t.doomlings.tag, t.doomlings.results)}
 
         {winner ? (
-          <p className="bg-[#f59e22]/10 mb-4 px-4 py-3 border border-[#f59e22]/40 rounded-lg font-black text-[#f7c65f] text-xl text-center">
+          <p className="bg-(--accent)/10 mb-4 px-4 py-3 border border-(--accent)/40 rounded-lg font-black text-(--accent-2) text-xl text-center">
             {format(t.doomlings.winner, { name: winner.name })}
           </p>
         ) : null}

@@ -17,6 +17,7 @@ export type BaseGameState = {
   players: Player[];
   hostId: string;
   phase: string;
+  lobbyName?: string;
 };
 
 export type GameRecord<S extends BaseGameState = BaseGameState> = {
@@ -24,6 +25,17 @@ export type GameRecord<S extends BaseGameState = BaseGameState> = {
   code: string;
   state: S;
   created_at?: string;
+  expires_at?: string;
+};
+
+export type LobbySummary = {
+  id: string;
+  name: string | null;
+  gameType: GameType;
+  phase: string;
+  playerCount: number;
+  claimedCount: number;
+  createdAt: string;
 };
 
 // --- Doomlings ---

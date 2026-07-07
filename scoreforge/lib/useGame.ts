@@ -87,7 +87,12 @@ export function useGame<S extends BaseGameState>(gameId: string) {
 
   // Lokale Änderung sofort anzeigen und an den Server schicken;
   // Realtime bestätigt sie danach auf allen Geräten (last-write-wins).
-  const mutateState = (updater: (current: S) => S) => {
+  // isFinished meldet dem Server, dass das Spiel vorbei ist (Lobby läuft
+  // dann nur noch 1 Stunde weiter).
+  const mutateState = (
+    updater: (current: S) => S,
+    isFinished?: (next: S) => boolean,
+  ) => {
     const current = gameRef.current;
 
     if (!current || !clientId) {
@@ -103,7 +108,11 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     void fetch(`/api/games/${current.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ state: nextState, clientId }),
+      body: JSON.stringify({
+        state: nextState,
+        clientId,
+        finished: isFinished ? isFinished(nextState) : false,
+      }),
     });
   };
 

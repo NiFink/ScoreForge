@@ -16,7 +16,7 @@ export function LanguageSwitcher() {
           onClick={() => setLanguage(option)}
           className={`rounded px-2 py-1 text-xs font-black uppercase ${
             lang === option
-              ? "bg-[#f59e22] text-[#101820]"
+              ? "bg-(--accent) text-(--on-accent)"
               : "text-[#d8d3bd]"
           }`}
           type="button"

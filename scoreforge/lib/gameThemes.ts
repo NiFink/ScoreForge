@@ -1,0 +1,68 @@
+import type { CSSProperties } from "react";
+
+import type { GameType } from "@/app/types/gameTypes";
+
+export type GameThemeKey = GameType | "forge";
+
+export type GameTheme = {
+  label: string;
+  // CSS-Variablen, die die Akzentklassen (bg-(--accent) usw.) der Seite steuern
+  style: CSSProperties;
+  hex: string;
+  hex2: string;
+  gradient: string;
+};
+
+const makeStyle = (
+  accent: string,
+  accent2: string,
+  onAccent = "#101820",
+): CSSProperties =>
+  ({
+    "--accent": accent,
+    "--accent-2": accent2,
+    "--on-accent": onAccent,
+  }) as CSSProperties;
+
+export const gameThemes: Record<GameThemeKey, GameTheme> = {
+  // ScoreForge-Standard (Startseite, Beitreten)
+  forge: {
+    label: "ScoreForge",
+    style: makeStyle("#f59e22", "#2aa6c8"),
+    hex: "#f59e22",
+    hex2: "#2aa6c8",
+    gradient: "bg-linear-to-r from-[#f59e22] to-[#f7e7ad]",
+  },
+  // Wizard: Lila/Gold wie die Spielschachtel
+  wizard: {
+    label: "Wizard",
+    style: makeStyle("#a78bfa", "#f7c65f"),
+    hex: "#a78bfa",
+    hex2: "#f7c65f",
+    gradient: "bg-linear-to-r from-[#7c3aed] to-[#c4b5fd]",
+  },
+  // Doomlings: Türkis/Koralle wie das Artwork
+  doomlings: {
+    label: "Doomlings",
+    style: makeStyle("#2dd4bf", "#fb7185"),
+    hex: "#2dd4bf",
+    hex2: "#fb7185",
+    gradient: "bg-linear-to-r from-[#14b8a6] to-[#fb7185]",
+  },
+  // Binokel: Grün/Mint/Weiß wie das württembergische Blatt
+  binokel: {
+    label: "Binokel",
+    style: makeStyle("#34d399", "#f8fafc"),
+    hex: "#34d399",
+    hex2: "#f8fafc",
+    gradient: "bg-linear-to-r from-[#059669] to-[#a7f3d0]",
+  },
+};
+
+export function themeForGameType(gameType: string | undefined): GameTheme {
+  if (gameType && gameType in gameThemes) {
+    return gameThemes[gameType as GameThemeKey];
+  }
+
+  return gameThemes.forge;
+}

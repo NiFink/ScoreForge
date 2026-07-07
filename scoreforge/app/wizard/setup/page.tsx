@@ -1,5 +1,7 @@
 "use client";
 
+import { gameThemes } from "@/lib/gameThemes";
+
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -38,6 +40,7 @@ export default function WizardSetup() {
   const [players, setPlayers] = useState<Player[]>(() =>
     createPlayers(3, "Spieler {n}"),
   );
+  const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const rounds = useMemo(() => roundMap[playerCount] || 10, [playerCount]);
@@ -73,6 +76,7 @@ export default function WizardSetup() {
         startPlayerChosen: false,
         players: cleanPlayers,
         phase: deviceMode === "multi" ? "lobby" : "playing",
+        lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
         table: createScoreTable(rounds, cleanPlayers),
       };
@@ -100,7 +104,7 @@ export default function WizardSetup() {
   };
 
   return (
-    <main className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.wizard.style} className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-5xl">
         {/* BACK */}
         <div className="flex justify-between items-center mb-5">
@@ -121,11 +125,11 @@ export default function WizardSetup() {
             alt="ScoreForge Logo"
             width={80}
             height={80}
-            className="border border-[#f59e22]/35 rounded-lg w-16 h-16 object-cover"
+            className="border border-(--accent)/35 rounded-lg w-16 h-16 object-cover"
           />
 
           <div>
-            <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+            <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
               {t.wizard.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
@@ -136,7 +140,7 @@ export default function WizardSetup() {
 
         <div className="gap-4 grid lg:grid-cols-[0.85fr_1.15fr]">
           {/* LEFT */}
-          <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
+          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
             {/* PLAYER COUNT */}
             <label className="font-bold text-[#f7e7ad] text-sm">
               {t.common.playerCount}
@@ -165,7 +169,7 @@ export default function WizardSetup() {
                   }}
                   className={`rounded-md px-3 py-3 font-black ${
                     playerCount === count
-                      ? "bg-[#f59e22] text-[#101820]"
+                      ? "bg-(--accent) text-(--on-accent)"
                       : "bg-[#18262f] text-[#d8d3bd]"
                   }`}
                   type="button"
@@ -190,10 +194,25 @@ export default function WizardSetup() {
                 onWriteModeChange={setWriteMode}
               />
             </div>
+
+            {deviceMode === "multi" ? (
+              <div className="mt-5">
+                <label className="font-bold text-[#f7e7ad] text-sm">
+                  {t.common.lobbyName}
+                </label>
+                <input
+                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full"
+                  value={lobbyName}
+                  onChange={(event) => setLobbyName(event.target.value)}
+                  placeholder={t.common.lobbyNamePlaceholder}
+                  maxLength={40}
+                />
+              </div>
+            ) : null}
           </section>
 
           {/* RIGHT */}
-          <section className="bg-[#14222b]/90 p-4 border border-[#f59e22]/20 rounded-lg">
+          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
             <div className="flex justify-between mb-4">
               <h2 className="font-black text-xl">{t.common.players}</h2>
               <span className="text-[#9fc9d5] text-sm">
@@ -207,7 +226,7 @@ export default function WizardSetup() {
             <button
               onClick={startGame}
               disabled={loading}
-              className="bg-[#f59e22] mt-5 px-5 py-4 rounded-lg w-full font-black text-[#101820]"
+              className="bg-(--accent) mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent)"
             >
               {loading ? t.common.creatingGame : t.common.startGame}
             </button>

@@ -1,5 +1,7 @@
 "use client";
 
+import { gameThemes } from "@/lib/gameThemes";
+
 import Image from "next/image";
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CodeBadge } from "@/components/CodeBadge";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
@@ -17,6 +20,7 @@ import {
   getRoundScore,
   getActualRoundOptions,
   getRoundTurnOrder,
+  isRoundComplete,
   isRoundPhaseComplete,
   isRoundUnlocked,
   rankPlayers,
@@ -149,20 +153,25 @@ export default function WizardGame({
     key: keyof RoundEntry,
     value: number,
   ) => {
-    mutateState((current) => ({
-      ...current,
-      table: current.table.map((round, index) =>
-        index === activeRound
-          ? {
-              ...round,
-              [playerId]: {
-                ...round[playerId],
-                [key]: value,
-              },
-            }
-          : round,
-      ),
-    }));
+    mutateState(
+      (current) => ({
+        ...current,
+        table: current.table.map((round, index) =>
+          index === activeRound
+            ? {
+                ...round,
+                [playerId]: {
+                  ...round[playerId],
+                  [key]: value,
+                },
+              }
+            : round,
+        ),
+      }),
+      // Alle Runden komplett -> Lobby läuft nur noch 1 Stunde weiter
+      (next) =>
+        next.table.every((round) => isRoundComplete(round, next.players)),
+    );
   };
 
   const moveNext = () => {
@@ -302,7 +311,7 @@ export default function WizardGame({
 
   if (notFound) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -317,7 +326,7 @@ export default function WizardGame({
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
-              className="bg-[#f59e22] px-4 py-3 rounded-md font-black text-[#101820]"
+              className="bg-(--accent) px-4 py-3 rounded-md font-black text-(--on-accent)"
               type="button"
             >
               {t.common.joinLobby}
@@ -337,7 +346,7 @@ export default function WizardGame({
 
   if (!game || !state) {
     return (
-      <main className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -355,7 +364,7 @@ export default function WizardGame({
 
   if (state.phase === "lobby") {
     return (
-      <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
         <div className="mx-auto max-w-5xl">
           <header className="mb-5">
             <div className="flex justify-between items-center mb-3">
@@ -375,10 +384,10 @@ export default function WizardGame({
                 width={72}
                 height={72}
                 loading="eager"
-                className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+                className="border border-(--accent)/35 rounded-lg w-14 h-14 object-cover"
               />
               <div>
-                <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+                <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
                   {t.wizard.lobbyTag}
                 </p>
                 <h1 className="mt-1 font-black text-3xl">{t.lobby.header}</h1>
@@ -399,7 +408,7 @@ export default function WizardGame({
   }
 
   return (
-    <main className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.wizard.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
       <div className="mx-auto max-w-7xl">
         <header className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-4">
           <div>
@@ -422,10 +431,10 @@ export default function WizardGame({
                 width={72}
                 height={72}
                 loading="eager"
-                className="border border-[#f59e22]/35 rounded-lg w-14 h-14 object-cover"
+                className="border border-(--accent)/35 rounded-lg w-14 h-14 object-cover"
               />
               <div>
-                <p className="font-semibold text-[#f59e22] text-sm uppercase tracking-[0.18em]">
+                <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
                   {t.wizard.tag}
                 </p>
                 <h1 className="mt-1 font-black text-3xl">
@@ -439,10 +448,7 @@ export default function WizardGame({
               <LanguageSwitcher />
             </span>
             <div className="gap-2 grid grid-cols-4 text-sm text-center">
-              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-                <p className="text-[#9fc9d5]">{t.common.code}</p>
-                <p className="font-black tracking-widest">{game.code}</p>
-              </div>
+              <CodeBadge code={game.code} />
               <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
                 <p className="text-[#9fc9d5]">{t.common.players}</p>
                 <p className="font-black">{state.playerCount}</p>
@@ -464,7 +470,7 @@ export default function WizardGame({
         </header>
 
         {!canWrite ? (
-          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-[#2aa6c8]/25 rounded-md text-[#9fc9d5] text-sm">
+          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
             {t.common.hostOnlyBanner}
           </p>
         ) : null}

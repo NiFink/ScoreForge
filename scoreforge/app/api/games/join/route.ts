@@ -12,17 +12,41 @@ export async function POST(request: Request) {
     );
   }
 
-  const { code } = body as { code?: string };
+  const { code, gameId } = body as { code?: string; gameId?: string };
   const normalizedCode = code?.trim().toUpperCase();
 
   if (!normalizedCode) {
     return NextResponse.json({ error: "Missing code." }, { status: 400 });
   }
 
-  const { data, error } = await getSupabaseAdmin()
+  const supabase = getSupabaseAdmin();
+  const nowIso = new Date().toISOString();
+
+  // Aus der Lobby-Liste gewählt: der PIN muss zur gewählten Lobby passen
+  if (gameId) {
+    const { data, error } = await supabase
+      .from("games")
+      .select("*")
+      .eq("id", gameId)
+      .gt("expires_at", nowIso)
+      .maybeSingle();
+
+    if (error || !data) {
+      return NextResponse.json({ error: "Game not found." }, { status: 404 });
+    }
+
+    if ((data.code as string)?.toUpperCase() !== normalizedCode) {
+      return NextResponse.json({ error: "Wrong PIN." }, { status: 403 });
+    }
+
+    return NextResponse.json({ game: data });
+  }
+
+  const { data, error } = await supabase
     .from("games")
     .select("*")
     .eq("code", normalizedCode)
+    .gt("expires_at", nowIso)
     .maybeSingle();
 
   if (error) {
@@ -30,10 +54,7 @@ export async function POST(request: Request) {
   }
 
   if (!data) {
-    return NextResponse.json(
-      { error: "Kein Spiel mit diesem Code gefunden." },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Game not found." }, { status: 404 });
   }
 
   return NextResponse.json({ game: data });

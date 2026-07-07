@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import type { BaseGameState } from "@/app/types/gameTypes";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
@@ -13,14 +14,34 @@ function generateCode() {
   ).join("");
 }
 
+// Öffentliche Lobby-Übersicht - bewusst OHNE den Code (der ist der PIN)
 export async function GET() {
-  const { data, error } = await getSupabaseAdmin().from("games").select("*");
+  const { data, error } = await getSupabaseAdmin()
+    .from("games")
+    .select("id, created_at, expires_at, state")
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false })
+    .limit(30);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ games: data ?? [] });
+  const lobbies = (data ?? [])
+    .map((row) => ({ ...row, state: row.state as BaseGameState }))
+    .filter((row) => row.state?.deviceMode === "multi")
+    .map((row) => ({
+      id: row.id,
+      name: row.state.lobbyName?.trim() || null,
+      gameType: row.state.gameType ?? "wizard",
+      phase: row.state.phase ?? "playing",
+      playerCount: row.state.playerCount ?? row.state.players?.length ?? 0,
+      claimedCount: (row.state.players ?? []).filter((p) => p?.claimedBy)
+        .length,
+      createdAt: row.created_at,
+    }));
+
+  return NextResponse.json({ lobbies });
 }
 
 export async function POST(request: Request) {

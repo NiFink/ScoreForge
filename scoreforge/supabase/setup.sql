@@ -1,4 +1,4 @@
--- Einmalig im Supabase SQL Editor ausführen (kann gefahrlos wiederholt werden).
+-- Im Supabase SQL Editor ausführen (kann gefahrlos wiederholt werden).
 
 -- 1. RLS aktivieren: Schreiben geht nur noch über die API-Routes (Service-Role-Key),
 --    der Browser-Client (Publishable Key) darf nur lesen.
@@ -24,5 +24,28 @@ begin
       and tablename = 'games'
   ) then
     alter publication supabase_realtime add table public.games;
+  end if;
+end $$;
+
+-- 3. Ablaufdatum: Lobbys leben 2 Tage; nach Spielende setzt die API auf +1 Stunde.
+alter table public.games
+  add column if not exists expires_at timestamptz not null
+  default (now() + interval '2 days');
+
+create index if not exists games_expires_at_idx on public.games (expires_at);
+
+-- 4. Automatisches Aufräumen abgelaufener Spiele (stündlich).
+--    Voraussetzung: Extension "pg_cron" aktivieren unter
+--    Dashboard -> Database -> Extensions -> pg_cron
+do $$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.schedule(
+      'cleanup-expired-games',
+      '17 * * * *',
+      $job$ delete from public.games where expires_at < now() $job$
+    );
+  else
+    raise notice 'pg_cron ist nicht aktiviert - abgelaufene Spiele werden nur ausgeblendet, nicht geloescht.';
   end if;
 end $$;
