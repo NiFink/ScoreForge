@@ -107,19 +107,6 @@ export default function Home() {
             </button>
           </div>
         </div>
-
-        {/* BADGES */}
-        <div className="flex flex-wrap gap-2 mt-auto pt-8 text-[#f7e7ad] text-sm">
-          <span className="bg-[#f59e22]/10 px-3 py-2 border border-[#f59e22]/25 rounded-md">
-            {t.home.badgeMobile}
-          </span>
-          <span className="bg-[#2aa6c8]/10 px-3 py-2 border border-[#2aa6c8]/25 rounded-md">
-            {t.home.badgeTables}
-          </span>
-          <span className="bg-[#f7e7ad]/10 px-3 py-2 border border-[#f7e7ad]/20 rounded-md">
-            {t.home.badgeLive}
-          </span>
-        </div>
       </section>
     </main>
   );
