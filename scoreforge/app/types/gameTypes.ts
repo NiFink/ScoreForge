@@ -36,6 +36,10 @@ export type LobbySummary = {
   playerCount: number;
   claimedCount: number;
   createdAt: string;
+  // Ob die anfragende Person selbst der Host ist (per clientId erkannt).
+  isMine: boolean;
+  // Nur bei isMine gesetzt — der Code ist sonst bewusst der PIN.
+  code: string | null;
 };
 
 // --- Doomlings ---
@@ -45,23 +49,50 @@ export type DoomlingsScores = {
   cross: number;
   sickle: number;
   worldsEnd: number;
+  // Nur befüllt, wenn das Addon "The Meaning of Life" aktiv ist.
+  secretGoals?: number;
 };
+
+export type DoomlingsPhase =
+  | "lobby"
+  | "playing"
+  | "scoring"
+  | "revealing"
+  | "finished";
 
 export type DoomlingsState = BaseGameState & {
   gameType: "doomlings";
   addons: string[];
-  phase: "lobby" | "playing" | "scoring" | "finished";
+  phase: DoomlingsPhase;
   scoringStep: number;
   scores: Record<string, DoomlingsScores>;
+  // Zähl-Reihenfolge bei der Endwertung (analog zum Startspieler bei Wizard).
+  scoringStartPlayerIndex?: number;
+  scoringStartPlayerChosen?: boolean;
+  // Mehrgeräte-Modus: wer hat seine Werte bereits bestätigt.
+  readyPlayers?: Record<string, boolean>;
+  // Enthüllungs-Fortschritt: wie viele Plätze schon aufgedeckt sind.
+  revealIndex?: number;
 };
 
 // --- Binokel ---
+
+// "durch" = 1000 (alle Stiche angesagt), "aufgelegt" = 1500 (Karten offen)
+export type BinokelSpecial = 1000 | 1500;
 
 export type BinokelRound = {
   bidderPartyId: string | null;
   bid: number | null;
   melds: Record<string, number | null>;
   tricks: Record<string, number | null>;
+  // Sonderspiel des Ersteigerers: alle Stiche für +1000/+1500, sonst -1000/-1500.
+  // Andere melden nicht und bekommen keine Stichpunkte.
+  special?: BinokelSpecial | null;
+  // Ob der Ersteigerer alle Stiche gemacht hat (nur bei special relevant).
+  specialMade?: boolean | null;
+  // Spielmacher gibt schon beim Melden ab: er bekommt -Gebot, die anderen
+  // behalten ihre Meldung und erhalten zusätzlich +40 Punkte.
+  conceded?: boolean | null;
 };
 
 export type BinokelState = BaseGameState & {

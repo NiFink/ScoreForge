@@ -45,18 +45,25 @@ export function MeldReference({ onClose }: MeldReferenceProps) {
                   {meld.value}
                 </td>
                 <td className="py-2 font-black text-(--accent) text-right">
-                  {meld.trump}
+                  {meld.trump && meld.trump !== meld.value ? meld.trump : "–"}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
 
+        <p className="mt-3 text-[#9fc9d5] text-xs">
+          {t.binokel.meldNoTensNote}
+        </p>
+
         <div className="bg-[#101820] mt-5 p-4 rounded-lg">
           <h3 className="font-black">{t.binokel.cardValuesTitle}</h3>
           <p className="mt-2 text-[#d8d3bd] text-sm">{t.binokel.cardValues}</p>
           <p className="mt-1 text-(--accent-2) text-sm">
             {t.binokel.lastTrickValue}
+          </p>
+          <p className="mt-1 text-[#9fc9d5] text-sm">
+            {t.binokel.tricksTotalNote}
           </p>
         </div>
 

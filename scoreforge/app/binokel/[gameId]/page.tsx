@@ -11,6 +11,8 @@ import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CodeBadge } from "@/components/CodeBadge";
+import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { MeldReference } from "./MeldReference";
 import { RoundModal } from "./RoundModal";
 import type { BinokelRound, BinokelState } from "../../types/gameTypes";
@@ -39,6 +41,7 @@ export default function BinokelGame({
     canWrite,
     mutateState,
     claimSlot,
+    deleteGame,
   } = useGame<BinokelState>(gameId);
 
   const [editingRoundIndex, setEditingRoundIndex] = useState<number | null>(
@@ -46,6 +49,7 @@ export default function BinokelGame({
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMelds, setShowMelds] = useState(false);
+  const [celebrationDismissed, setCelebrationDismissed] = useState(false);
 
   const parties = useMemo(
     () => (state ? getParties(state.players) : []),
@@ -68,6 +72,22 @@ export default function BinokelGame({
 
     return reached[0] ?? null;
   }, [parties, state, totals]);
+
+  const celebrationStandings = useMemo(
+    () =>
+      [...parties]
+        .sort((left, right) => (totals[right.id] ?? 0) - (totals[left.id] ?? 0))
+        .map((party) => ({
+          id: party.id,
+          name: party.name,
+          color: party.color,
+          score: totals[party.id] ?? 0,
+        })),
+    [parties, totals],
+  );
+
+  // Siegerehrung erscheint automatisch, sobald das Ziel erreicht ist.
+  const showCelebration = !!leader && !celebrationDismissed;
 
   const openNewRound = () => {
     if (!canWrite) {
@@ -192,7 +212,10 @@ export default function BinokelGame({
         >
           {t.common.back}
         </button>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-2">
+          {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
+          <LanguageSwitcher />
+        </div>
       </div>
       <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3">
         <div className="flex items-center gap-3">
@@ -267,9 +290,17 @@ export default function BinokelGame({
         ) : null}
 
         {leader ? (
-          <p className="bg-(--accent)/10 mb-4 px-4 py-3 border border-(--accent)/40 rounded-lg font-black text-(--accent-2) text-lg text-center">
+          <button
+            onClick={() => setCelebrationDismissed(false)}
+            className="bg-(--accent)/10 hover:bg-(--accent)/20 mb-4 px-4 py-3 border border-(--accent)/40 rounded-lg w-full font-black text-(--accent-2) text-lg text-center"
+            type="button"
+          >
+            {"\u{1F3C6} "}
             {format(t.binokel.targetReached, { name: leader.name })}
-          </p>
+            <span className="block mt-0.5 font-semibold text-[#9fc9d5] text-xs">
+              {t.celebration.showResult}
+            </span>
+          </button>
         ) : null}
 
         {/* TOTALS */}
@@ -365,9 +396,35 @@ export default function BinokelGame({
                               </span>
                               <span className="text-[#9fc9d5]">
                                 {" "}
-                                · {round.bid ?? 0}
+                                ·{" "}
+                                {round.special
+                                  ? round.special === 1500
+                                    ? t.binokel.aufgelegt1500
+                                    : t.binokel.durch1000
+                                  : (round.bid ?? 0)}
                               </span>
-                              {bidderFailed ? (
+                              {round.special ? (
+                                <span
+                                  className={`block text-xs ${
+                                    round.specialMade
+                                      ? "text-(--accent-2)"
+                                      : "text-[#ef5b2a]"
+                                  }`}
+                                >
+                                  {format(
+                                    round.specialMade
+                                      ? t.binokel.specialMadeBadge
+                                      : t.binokel.specialFailedBadge,
+                                    { value: round.special },
+                                  )}
+                                </span>
+                              ) : round.conceded ? (
+                                <span className="block text-[#ef5b2a] text-xs">
+                                  {format(t.binokel.concedeBadge, {
+                                    bid: round.bid ?? 0,
+                                  })}
+                                </span>
+                              ) : bidderFailed ? (
                                 <span className="block text-[#ef5b2a] text-xs">
                                   {format(t.binokel.bidFailed, {
                                     bid: round.bid ?? 0,
@@ -441,6 +498,18 @@ export default function BinokelGame({
       ) : null}
 
       {showMelds ? <MeldReference onClose={() => setShowMelds(false)} /> : null}
+
+      {showCelebration && leader ? (
+        <WinnerCelebration
+          gameType="binokel"
+          gameLabel={t.binokel.tag}
+          standings={celebrationStandings}
+          code={game.code}
+          lobbyName={state.lobbyName}
+          scoreUnit={t.celebration.pointsLabel}
+          onClose={() => setCelebrationDismissed(true)}
+        />
+      ) : null}
     </main>
   );
 }

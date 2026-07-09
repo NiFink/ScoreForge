@@ -20,13 +20,7 @@ import type {
   WriteMode,
 } from "../../types/gameTypes";
 
-const availableAddons = [
-  "Dinolings",
-  "Overlush",
-  "Multiverse",
-  "Techlings",
-  "Legends of Enderas",
-];
+const availableAddons = ["The Meaning of Life"];
 
 const emptyScores = (): DoomlingsScores => ({
   numbers: 0,
@@ -96,6 +90,10 @@ export default function DoomlingsSetup() {
         lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
         scoringStep: 0,
+        scoringStartPlayerIndex: 0,
+        scoringStartPlayerChosen: false,
+        readyPlayers: {},
+        revealIndex: 0,
         scores: Object.fromEntries(
           cleanPlayers.map((player) => [player.id, emptyScores()]),
         ),
@@ -122,7 +120,10 @@ export default function DoomlingsSetup() {
   };
 
   return (
-    <main style={gameThemes.doomlings.style} className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
+    <main
+      style={gameThemes.doomlings.style}
+      className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]"
+    >
       <div className="mx-auto max-w-5xl">
         <div className="flex justify-between items-center mb-5">
           <button

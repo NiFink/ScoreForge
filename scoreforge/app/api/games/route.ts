@@ -14,11 +14,15 @@ function generateCode() {
   ).join("");
 }
 
-// Öffentliche Lobby-Übersicht - bewusst OHNE den Code (der ist der PIN)
-export async function GET() {
+// Öffentliche Lobby-Übersicht - der Code (= PIN) wird nur an den Ersteller
+// selbst herausgegeben (per clientId-Abgleich mit dem gespeicherten hostId).
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const clientId = searchParams.get("clientId")?.trim() || null;
+
   const { data, error } = await getSupabaseAdmin()
     .from("games")
-    .select("id, created_at, expires_at, state")
+    .select("id, code, created_at, expires_at, state")
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(30);
@@ -30,16 +34,24 @@ export async function GET() {
   const lobbies = (data ?? [])
     .map((row) => ({ ...row, state: row.state as BaseGameState }))
     .filter((row) => row.state?.deviceMode === "multi")
-    .map((row) => ({
-      id: row.id,
-      name: row.state.lobbyName?.trim() || null,
-      gameType: row.state.gameType ?? "wizard",
-      phase: row.state.phase ?? "playing",
-      playerCount: row.state.playerCount ?? row.state.players?.length ?? 0,
-      claimedCount: (row.state.players ?? []).filter((p) => p?.claimedBy)
-        .length,
-      createdAt: row.created_at,
-    }));
+    .map((row) => {
+      const isMine = !!clientId && row.state.hostId === clientId;
+
+      return {
+        id: row.id,
+        name: row.state.lobbyName?.trim() || null,
+        gameType: row.state.gameType ?? "wizard",
+        phase: row.state.phase ?? "playing",
+        playerCount: row.state.playerCount ?? row.state.players?.length ?? 0,
+        claimedCount: (row.state.players ?? []).filter((p) => p?.claimedBy)
+          .length,
+        createdAt: row.created_at,
+        isMine,
+        code: isMine ? (row.code as string) : null,
+      };
+    })
+    // Eigene Lobbies zuerst, sonst bleibt die Reihenfolge nach Erstellzeit.
+    .sort((left, right) => Number(right.isMine) - Number(left.isMine));
 
   return NextResponse.json({ lobbies });
 }

@@ -142,6 +142,27 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     }
   };
 
+  // Löscht das Spiel unwiderruflich (nur der Host darf das serverseitig).
+  const deleteGame = async (): Promise<boolean> => {
+    const current = gameRef.current;
+
+    if (!current || !clientId) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`/api/games/${current.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId }),
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     game,
     state,
@@ -151,5 +172,6 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     canWrite,
     mutateState,
     claimSlot,
+    deleteGame,
   };
 }

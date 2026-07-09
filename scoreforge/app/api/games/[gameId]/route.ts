@@ -93,3 +93,43 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   return NextResponse.json({ game: data });
 }
+
+// Nur der Host darf das Spiel + die Lobby endgültig löschen.
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const { gameId } = await params;
+  const body = await request.json().catch(() => null);
+  const { clientId } = (body ?? {}) as { clientId?: string };
+
+  if (!clientId) {
+    return NextResponse.json({ error: "Missing clientId." }, { status: 400 });
+  }
+
+  const supabase = getSupabaseAdmin();
+
+  const { data: existing, error: fetchError } = await supabase
+    .from("games")
+    .select("state")
+    .eq("id", gameId)
+    .maybeSingle();
+
+  if (fetchError || !existing) {
+    return NextResponse.json({ error: "Game not found." }, { status: 404 });
+  }
+
+  const currentState = existing.state as BaseGameState;
+
+  if (clientId !== currentState.hostId) {
+    return NextResponse.json(
+      { error: "Only the host can delete this game." },
+      { status: 403 },
+    );
+  }
+
+  const { error } = await supabase.from("games").delete().eq("id", gameId);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

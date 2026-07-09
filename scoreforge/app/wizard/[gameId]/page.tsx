@@ -11,6 +11,8 @@ import { useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CodeBadge } from "@/components/CodeBadge";
+import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
@@ -44,12 +46,14 @@ export default function WizardGame({
     canWrite,
     mutateState,
     claimSlot,
+    deleteGame,
   } = useGame<GameState>(gameId);
 
   const [activeRound, setActiveRound] = useState(0);
   const [modalPhase, setModalPhase] = useState<ModalPhase | null>(null);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
+  const [celebrationDismissed, setCelebrationDismissed] = useState(false);
 
   const table = useMemo(() => state?.table ?? [], [state]);
 
@@ -111,6 +115,29 @@ export default function WizardGame({
       return (playerOrder.get(left.id) ?? 0) - (playerOrder.get(right.id) ?? 0);
     });
   }, [state, totals]);
+
+  const gameOver = useMemo(
+    () =>
+      !!state &&
+      table.length > 0 &&
+      table.every((round) => isRoundComplete(round, state.players)),
+    [state, table],
+  );
+
+  const celebrationStandings = useMemo(
+    () =>
+      scoreOrderedPlayers.map((player) => ({
+        id: player.id,
+        name: player.name,
+        color: player.color,
+        score: totals[player.id] ?? 0,
+      })),
+    [scoreOrderedPlayers, totals],
+  );
+
+  // Siegerehrung erscheint automatisch, sobald alle Runden gespielt sind,
+  // und lässt sich schließen bzw. über den Button erneut öffnen.
+  const showCelebration = gameOver && !celebrationDismissed;
 
   const openRound = (
     roundIndex: number,
@@ -375,7 +402,10 @@ export default function WizardGame({
               >
                 {t.common.back}
               </button>
-              <LanguageSwitcher />
+              <div className="flex items-center gap-2">
+                {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
+                <LanguageSwitcher />
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Image
@@ -420,9 +450,12 @@ export default function WizardGame({
               >
                 {t.common.back}
               </button>
-              <span className="sm:hidden">
-                <LanguageSwitcher />
-              </span>
+              <div className="flex items-center gap-2">
+                {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
+                <span className="sm:hidden">
+                  <LanguageSwitcher />
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Image
@@ -475,6 +508,17 @@ export default function WizardGame({
           </p>
         ) : null}
 
+        {gameOver ? (
+          <button
+            onClick={() => setCelebrationDismissed(false)}
+            className="bg-(--accent)/10 hover:bg-(--accent)/20 mb-4 px-4 py-3 border border-(--accent)/40 rounded-lg w-full font-black text-(--accent) text-center"
+            type="button"
+          >
+            {"\u{1F3C6} "}
+            {t.celebration.showResult}
+          </button>
+        ) : null}
+
         <ScoreSummary
           totals={totals}
           orderedPlayers={scoreOrderedPlayers}
@@ -520,6 +564,18 @@ export default function WizardGame({
           onMovePrevious={movePrevious}
           onPhaseChange={setModalPhase}
           onUpdateEntry={updateEntry}
+        />
+      ) : null}
+
+      {showCelebration ? (
+        <WinnerCelebration
+          gameType="wizard"
+          gameLabel={t.wizard.tag}
+          standings={celebrationStandings}
+          code={game.code}
+          lobbyName={state.lobbyName}
+          scoreUnit={t.celebration.pointsLabel}
+          onClose={() => setCelebrationDismissed(true)}
         />
       ) : null}
     </main>

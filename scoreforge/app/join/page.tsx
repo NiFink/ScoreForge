@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n";
+import { getClientId } from "@/lib/clientId";
 import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type {
@@ -19,6 +20,9 @@ export default function JoinPage() {
 
   const [lobbies, setLobbies] = useState<LobbySummary[] | null>(null);
   const [selectedLobbyId, setSelectedLobbyId] = useState<string | null>(null);
+  const [lastAttemptedLobbyId, setLastAttemptedLobbyId] = useState<
+    string | null
+  >(null);
   const [pin, setPin] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +31,9 @@ export default function JoinPage() {
 
   const loadLobbies = useCallback(async () => {
     try {
-      const response = await fetch("/api/games");
+      const response = await fetch(
+        `/api/games?clientId=${encodeURIComponent(getClientId())}`,
+      );
       const data = (await response.json()) as { lobbies?: LobbySummary[] };
 
       if (!response.ok || !data.lobbies) {
@@ -95,8 +101,21 @@ export default function JoinPage() {
 
   const selectLobby = (lobbyId: string) => {
     setSelectedLobbyId((current) => (current === lobbyId ? null : lobbyId));
+    setLastAttemptedLobbyId(null);
     setPin("");
     setError(null);
+  };
+
+  // Eigene Lobbies brauchen keinen PIN — der Code ist dem Ersteller bekannt.
+  const openLobby = (lobby: LobbySummary) => {
+    if (lobby.isMine && lobby.code) {
+      setSelectedLobbyId(null);
+      setLastAttemptedLobbyId(lobby.id);
+      join(lobby.code, lobby.id);
+      return;
+    }
+
+    selectLobby(lobby.id);
   };
 
   return (
@@ -167,8 +186,9 @@ export default function JoinPage() {
                     style={{ boxShadow: `inset 4px 0 0 ${theme.hex}` }}
                   >
                     <button
-                      onClick={() => selectLobby(lobby.id)}
-                      className="flex justify-between items-center gap-3 p-3 w-full text-left"
+                      onClick={() => openLobby(lobby)}
+                      disabled={lobby.isMine && loading}
+                      className="flex justify-between items-center gap-3 disabled:opacity-60 p-3 w-full text-left"
                       type="button"
                     >
                       <div className="min-w-0">
@@ -184,18 +204,33 @@ export default function JoinPage() {
                           {lobby.playerCount} {t.common.players}
                         </p>
                       </div>
-                      <span
-                        className="px-2 py-1 rounded-md font-bold text-xs"
-                        style={{
-                          backgroundColor: `${theme.hex}22`,
-                          color: theme.hex,
-                        }}
-                      >
-                        {lobby.phase === "lobby"
-                          ? t.join.statusLobby
-                          : t.join.statusPlaying}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {lobby.isMine ? (
+                          <span className="bg-(--accent)/20 px-2 py-1 rounded-md font-bold text-(--accent) text-xs whitespace-nowrap">
+                            {loading && lastAttemptedLobbyId === lobby.id
+                              ? t.join.searching
+                              : t.join.yourLobby}
+                          </span>
+                        ) : null}
+                        <span
+                          className="px-2 py-1 rounded-md font-bold text-xs whitespace-nowrap"
+                          style={{
+                            backgroundColor: `${theme.hex}22`,
+                            color: theme.hex,
+                          }}
+                        >
+                          {lobby.phase === "lobby"
+                            ? t.join.statusLobby
+                            : t.join.statusPlaying}
+                        </span>
+                      </div>
                     </button>
+
+                    {lastAttemptedLobbyId === lobby.id && error ? (
+                      <p className="px-3 pb-3 text-[#ef5b2a] text-sm">
+                        {error}
+                      </p>
+                    ) : null}
 
                     {isSelected ? (
                       <form
@@ -251,6 +286,7 @@ export default function JoinPage() {
             onSubmit={(event) => {
               event.preventDefault();
               setSelectedLobbyId(null);
+              setLastAttemptedLobbyId(null);
               join(code);
             }}
           >
