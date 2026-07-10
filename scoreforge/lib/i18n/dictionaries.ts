@@ -28,7 +28,6 @@ const de = {
     nameAndColor: "Name + Farbe",
     startGame: "Spiel starten",
     creatingGame: "Erstelle Spiel...",
-    defaultPlayerName: "Spieler {n}",
     prepareGame: "Spiel vorbereiten",
     gameNotFound: "Spiel nicht gefunden",
     invalidLink: "Der Link ist ungültig oder das Spiel existiert nicht mehr.",
@@ -48,6 +47,10 @@ const de = {
     deleteConfirmButton: "Endgültig löschen",
     deleting: "Lösche...",
     deleteFailed: "Löschen fehlgeschlagen. Versuch's noch mal.",
+    namePlaceholder: "Name",
+    fillAllNames: "Bitte gib allen Spielern einen Namen.",
+    copyLink: "Link kopieren",
+    linkCopied: "Link kopiert!",
   },
   home: {
     brand: "ScoreForge",
@@ -131,6 +134,11 @@ const de = {
     predicted: "Vorhergesagt",
     actual: "Tatsächlich",
     bidsFirst: "Erst alle Vorhersagen eintragen",
+    bidLocked: "Die Vorhersage ist für diese Runde bereits gesperrt.",
+    bidEditableHint:
+      "Bombe oder Wolke im Spiel: Du darfst deine Vorhersage hier noch anpassen.",
+    actualVoidedHint:
+      "Bombe oder Wolke im Spiel: Falls ein Stich entfallen ist, dürft ihr insgesamt einen Stich weniger eintragen (muss nicht sein).",
     activePlayer: "Aktiver Spieler",
     pointsLabel: "Punkte: {points}",
     tricks: "Stiche",
@@ -145,6 +153,87 @@ const de = {
     bidShort: "Vorh.",
     firstPlace: "Erster Platz",
     lastPlace: "Letzter Platz",
+    modeLabel: "Spielmodus",
+    modeStandard: "Standard",
+    modeAnniversary: "Jubiläumsausgabe",
+    modeAnniversaryHint:
+      "Mit Sonderkarten wie Fee, Drache oder Werwolf — wähle unten aus, welche ihr im Spiel habt.",
+    specialCardsTitle: "Sonderkarten",
+    specialCardsHint: "Wähle, welche Sonderkarten in eurem Deck stecken.",
+    rulesReferenceButton: "Regelwerk ansehen",
+    rulesTitle: "Regelwerk",
+    scoringTitle: "Punkteberechnung",
+    scoringRules: [
+      "Jede Runde sagt jeder Spieler an, wie viele Stiche er glaubt zu machen.",
+      "Vorhersage exakt getroffen: 20 Punkte + 10 Punkte pro angesagtem Stich.",
+      "Vorhersage verfehlt: -10 Punkte für jeden Stich Differenz.",
+      "Der letzte Spieler darf die Summe aller Vorhersagen nicht genau auf die Rundenzahl bringen.",
+    ],
+    playTitle: "Was gilt beim Ausspielen?",
+    playRules: [
+      "Bedienzwang: Die angespielte Farbe muss bedient werden, wenn möglich.",
+      "Der Zauberer sticht immer, der Narr verliert immer — beide unabhängig von Trumpf und Farbe.",
+      "Wird zuerst ein Zauberer gespielt, gilt für diesen Stich kein Bedienzwang mehr.",
+      "Trumpf sticht jede Fehlfarbe; bei zwei gleich hohen Karten gewinnt die zuerst gespielte.",
+    ],
+    specialCardsNote:
+      "Kurzreferenz — bei Unklarheiten gilt die Anleitung der Jubiläumsausgabe.",
+    specialCards: [
+      {
+        id: "fee",
+        name: "Fee",
+        description:
+          "Schlägt einen Zauberer, wenn beide im selben Stich liegen — sonst zählt sie wie ein Narr und verliert immer.",
+      },
+      {
+        id: "drache",
+        name: "Drache",
+        description:
+          "Sticht wie ein Zauberer alles — wird aber von der Fee bezwungen, wenn beide im selben Stich liegen.",
+      },
+      {
+        id: "jongleur",
+        name: "Jongleur",
+        description:
+          "Zählt wahlweise als höchste oder niedrigste Karte der angespielten Farbe — der Spieler entscheidet beim Ausspielen.",
+      },
+      {
+        id: "wolke",
+        name: "Wolke",
+        description:
+          "Macht den Stich ungültig: Er zählt für niemanden als gemachter Stich, egal wer die höchste Karte hatte.",
+      },
+      {
+        id: "hexe",
+        name: "Hexe",
+        description:
+          "Zwingt den nächsten Spieler, seine höchste Karte der angespielten Farbe zu spielen, falls möglich.",
+      },
+      {
+        id: "vampir",
+        name: "Vampir",
+        description:
+          "Gewinnt den Stich und raubt zusätzlich einen Stich vom Spieler mit den bisher meisten Stichen.",
+      },
+      {
+        id: "werwolf",
+        name: "Werwolf",
+        description:
+          "Zählt nur als stärkster Trumpf, wenn er als letzte Karte im Stich gespielt wird — sonst wie eine normale Farbkarte.",
+      },
+      {
+        id: "gestaltenwandler",
+        name: "Gestaltenwandler",
+        description:
+          "Übernimmt die Sonderregel der zuerst gespielten Sonderkarte im selben Stich — ohne andere Sonderkarte zählt er normal.",
+      },
+      {
+        id: "bombe",
+        name: "Bombe",
+        description:
+          "Beendet den Stich sofort ohne Sieger, sobald sie gespielt wird — dadurch ändert sich die Zahl der noch offenen Stiche.",
+      },
+    ],
   },
   doomlings: {
     setupTag: "Doomlings Setup",
@@ -349,7 +438,6 @@ const en: typeof de = {
     nameAndColor: "Name + color",
     startGame: "Start game",
     creatingGame: "Creating game...",
-    defaultPlayerName: "Player {n}",
     prepareGame: "Prepare game",
     gameNotFound: "Game not found",
     invalidLink: "The link is invalid or the game no longer exists.",
@@ -369,6 +457,10 @@ const en: typeof de = {
     deleteConfirmButton: "Delete permanently",
     deleting: "Deleting...",
     deleteFailed: "Deletion failed. Please try again.",
+    namePlaceholder: "Name",
+    fillAllNames: "Please give every player a name.",
+    copyLink: "Copy link",
+    linkCopied: "Link copied!",
   },
   home: {
     brand: "ScoreForge",
@@ -449,6 +541,11 @@ const en: typeof de = {
     predicted: "Bid",
     actual: "Actual",
     bidsFirst: "Enter all bids first",
+    bidLocked: "The bid is already locked in for this round.",
+    bidEditableHint:
+      "Bomb or Cloud is in play: you can still adjust your bid here.",
+    actualVoidedHint:
+      "Bomb or Cloud is in play: if a trick was voided, the total here can be one trick fewer (not required).",
     activePlayer: "Active player",
     pointsLabel: "Points: {points}",
     tricks: "Tricks",
@@ -463,6 +560,87 @@ const en: typeof de = {
     bidShort: "Bid",
     firstPlace: "First place",
     lastPlace: "Last place",
+    modeLabel: "Game mode",
+    modeStandard: "Standard",
+    modeAnniversary: "Anniversary Edition",
+    modeAnniversaryHint:
+      "Adds special cards like Fairy, Dragon or Werewolf — pick below which ones you're playing with.",
+    specialCardsTitle: "Special cards",
+    specialCardsHint: "Choose which special cards are in your deck.",
+    rulesReferenceButton: "View rulebook",
+    rulesTitle: "Rulebook",
+    scoringTitle: "Scoring",
+    scoringRules: [
+      "Each round, every player bids how many tricks they think they'll win.",
+      "Bid matched exactly: 20 points + 10 points per trick bid.",
+      "Bid missed: -10 points for every trick of difference.",
+      "The last player may not bring the sum of all bids to exactly the round number.",
+    ],
+    playTitle: "Rules of play",
+    playRules: [
+      "You must follow the led suit if you can.",
+      "The Wizard always wins the trick, the Fool always loses — both regardless of trump or suit.",
+      "If a Wizard is led first, no one has to follow suit in that trick.",
+      "Trump beats any plain suit; with two equal cards, the first one played wins.",
+    ],
+    specialCardsNote:
+      "Quick reference — when in doubt, the Anniversary Edition rulebook applies.",
+    specialCards: [
+      {
+        id: "fee",
+        name: "Fairy",
+        description:
+          "Beats a Wizard if both are played in the same trick — otherwise it counts like a Fool and always loses.",
+      },
+      {
+        id: "drache",
+        name: "Dragon",
+        description:
+          "Beats everything like a Wizard — but is tamed by the Fairy if both are played in the same trick.",
+      },
+      {
+        id: "jongleur",
+        name: "Juggler",
+        description:
+          "Counts as either the highest or lowest card of the led suit — the player decides when playing it.",
+      },
+      {
+        id: "wolke",
+        name: "Cloud",
+        description:
+          "Voids the trick: no one wins it, no matter who played the highest card.",
+      },
+      {
+        id: "hexe",
+        name: "Witch",
+        description:
+          "Forces the next player to play their highest card of the led suit, if they have one.",
+      },
+      {
+        id: "vampir",
+        name: "Vampire",
+        description:
+          "Wins the trick and also steals one trick from whoever currently has the most tricks.",
+      },
+      {
+        id: "werwolf",
+        name: "Werewolf",
+        description:
+          "Only counts as the strongest trump if played as the last card of the trick — otherwise it's a normal suit card.",
+      },
+      {
+        id: "gestaltenwandler",
+        name: "Shapeshifter",
+        description:
+          "Copies the special rule of the first special card played in the same trick — with none present, it's a normal card.",
+      },
+      {
+        id: "bombe",
+        name: "Bomb",
+        description:
+          "Instantly ends the trick with no winner as soon as it's played — this changes how many tricks are still up for grabs.",
+      },
+    ],
   },
   doomlings: {
     setupTag: "Doomlings setup",

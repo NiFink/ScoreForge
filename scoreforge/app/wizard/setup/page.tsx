@@ -8,12 +8,12 @@ import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
 import { colorOptions } from "@/lib/colors";
-import { format, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
 import { createScoreTable } from "../../Utils/wizardUtils";
-import type { GameState } from "../../types/wizardTypes";
+import type { GameState, WizardMode } from "../../types/wizardTypes";
 import type { DeviceMode, Player, WriteMode } from "../../types/gameTypes";
 
 const roundMap: Record<number, number> = {
@@ -23,10 +23,10 @@ const roundMap: Record<number, number> = {
   6: 10,
 };
 
-const createPlayers = (count: number, nameTemplate: string): Player[] =>
+const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
     id: `player-${i + 1}`,
-    name: format(nameTemplate, { n: i + 1 }),
+    name: "",
     color: colorOptions[i % colorOptions.length].value,
   }));
 
@@ -37,13 +37,14 @@ export default function WizardSetup() {
   const [playerCount, setPlayerCount] = useState(3);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
-  const [players, setPlayers] = useState<Player[]>(() =>
-    createPlayers(3, "Spieler {n}"),
-  );
+  const [mode, setMode] = useState<WizardMode>("standard");
+  const [specialCards, setSpecialCards] = useState<string[]>([]);
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
   const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const rounds = useMemo(() => roundMap[playerCount] || 10, [playerCount]);
+  const allNamesFilled = players.every((player) => player.name.trim());
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
@@ -53,15 +54,25 @@ export default function WizardSetup() {
     );
   };
 
+  const toggleSpecialCard = (id: string) => {
+    setSpecialCards((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  };
+
   const startGame = async () => {
+    if (!allNamesFilled) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const cleanPlayers: Player[] = players.map((player, index) => ({
+      const cleanPlayers: Player[] = players.map((player) => ({
         id: player.id,
-        name:
-          player.name.trim() ||
-          format(t.common.defaultPlayerName, { n: index + 1 }),
+        name: player.name.trim(),
         color: player.color,
         claimedBy: null,
       }));
@@ -79,6 +90,8 @@ export default function WizardSetup() {
         lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
         table: createScoreTable(rounds, cleanPlayers),
+        mode,
+        specialCards: mode === "anniversary" ? specialCards : [],
       };
 
       const response = await fetch("/api/games", {
@@ -157,9 +170,7 @@ export default function WizardSetup() {
                         return (
                           current[index] ?? {
                             id: `player-${index + 1}`,
-                            name: format(t.common.defaultPlayerName, {
-                              n: index + 1,
-                            }),
+                            name: "",
                             color:
                               colorOptions[index % colorOptions.length].value,
                           }
@@ -183,6 +194,65 @@ export default function WizardSetup() {
             <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
               <p className="text-[#9fc9d5] text-sm">{t.common.rounds}</p>
               <p className="mt-1 font-black text-4xl">{rounds}</p>
+            </div>
+
+            {/* GAME MODE */}
+            <div className="mt-5">
+              <label className="font-bold text-[#f7e7ad] text-sm">
+                {t.wizard.modeLabel}
+              </label>
+              <div className="gap-2 grid grid-cols-2 mt-2">
+                {(["standard", "anniversary"] as const).map((option) => (
+                  <button
+                    key={option}
+                    onClick={() => setMode(option)}
+                    className={`rounded-md px-3 py-3 font-black ${
+                      mode === option
+                        ? "bg-(--accent) text-(--on-accent)"
+                        : "bg-[#18262f] text-[#d8d3bd]"
+                    }`}
+                    type="button"
+                  >
+                    {option === "standard"
+                      ? t.wizard.modeStandard
+                      : t.wizard.modeAnniversary}
+                  </button>
+                ))}
+              </div>
+
+              {mode === "anniversary" ? (
+                <>
+                  <p className="mt-2 text-[#9fc9d5] text-xs">
+                    {t.wizard.modeAnniversaryHint}
+                  </p>
+                  <p className="mt-4 font-bold text-[#f7e7ad] text-sm">
+                    {t.wizard.specialCardsTitle}
+                  </p>
+                  <p className="mt-1 text-[#9fc9d5] text-xs">
+                    {t.wizard.specialCardsHint}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {t.wizard.specialCards.map((card) => {
+                      const active = specialCards.includes(card.id);
+
+                      return (
+                        <button
+                          key={card.id}
+                          onClick={() => toggleSpecialCard(card.id)}
+                          className={`rounded-md px-3 py-2 text-sm font-bold ${
+                            active
+                              ? "bg-(--accent-2) text-(--on-accent)"
+                              : "bg-[#18262f] text-[#d8d3bd]"
+                          }`}
+                          type="button"
+                        >
+                          {card.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : null}
             </div>
 
             {/* MODES */}
@@ -225,11 +295,16 @@ export default function WizardSetup() {
             {/* START */}
             <button
               onClick={startGame}
-              disabled={loading}
-              className="bg-(--accent) mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent)"
+              disabled={loading || !allNamesFilled}
+              className="bg-(--accent) disabled:opacity-50 mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent) disabled:cursor-not-allowed"
             >
               {loading ? t.common.creatingGame : t.common.startGame}
             </button>
+            {!allNamesFilled ? (
+              <p className="mt-2 text-[#9fc9d5] text-xs text-center">
+                {t.common.fillAllNames}
+              </p>
+            ) : null}
           </section>
         </div>
       </div>

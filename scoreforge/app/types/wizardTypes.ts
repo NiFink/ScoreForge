@@ -3,6 +3,7 @@ import type { BaseGameState, GameRecord } from "./gameTypes";
 export type { DeviceMode, GameRecord, Player, WriteMode } from "./gameTypes";
 
 export type GamePhase = "lobby" | "playing";
+export type WizardMode = "standard" | "anniversary";
 
 export type GameState = BaseGameState & {
   gameType?: "wizard";
@@ -11,6 +12,9 @@ export type GameState = BaseGameState & {
   startPlayerChosen: boolean;
   phase: GamePhase;
   table: ScoreTable;
+  mode?: WizardMode;
+  // Nur bei mode "anniversary" gesetzt — IDs aus dictionaries.ts wizard.specialCards
+  specialCards?: string[];
 };
 
 export type WizardGameRecord = GameRecord<GameState>;

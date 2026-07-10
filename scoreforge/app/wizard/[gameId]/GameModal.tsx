@@ -10,7 +10,6 @@ import type {
 
 type GameModalProps = {
   activePlayer: Player;
-  activePlayerIndex: number;
   activeRoundBidsDone: boolean;
   allowedBidOptions: number[];
   actualMaximum: number;
@@ -22,6 +21,10 @@ type GameModalProps = {
   actualOptions: number[];
   isLastTurnPlayer: boolean;
   totals: Record<string, number>;
+  // Bombe/Wolke im Jubiläumsmodus: Vorhersage bleibt auch in der
+  // "Tatsächlich"-Phase noch änderbar, weil sich die Stichzahl ändern kann.
+  canEditBidAfterLock: boolean;
+  previousDisabled: boolean;
   onClose: () => void;
   onMoveNext: () => void;
   onMovePrevious: () => void;
@@ -35,7 +38,6 @@ type GameModalProps = {
 
 export function GameModal({
   activePlayer,
-  activePlayerIndex,
   activeRoundBidsDone,
   allowedBidOptions,
   actualMaximum,
@@ -47,6 +49,8 @@ export function GameModal({
   actualOptions,
   isLastTurnPlayer,
   totals,
+  canEditBidAfterLock,
+  previousDisabled,
   onClose,
   onMoveNext,
   onMovePrevious,
@@ -54,6 +58,7 @@ export function GameModal({
   onUpdateEntry,
 }: GameModalProps) {
   const { t } = useI18n();
+  const bidTabLocked = modalPhase === "actual" && !canEditBidAfterLock;
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
@@ -88,9 +93,15 @@ export function GameModal({
           ].map(([phase, label]) => (
             <button
               key={phase}
-              disabled={phase === "actual" && !activeRoundBidsDone}
+              disabled={
+                (phase === "actual" && !activeRoundBidsDone) ||
+                (phase === "bid" && bidTabLocked)
+              }
               onClick={() => {
-                if (phase === "actual" && !activeRoundBidsDone) {
+                if (
+                  (phase === "actual" && !activeRoundBidsDone) ||
+                  (phase === "bid" && bidTabLocked)
+                ) {
                   return;
                 }
 
@@ -99,14 +110,17 @@ export function GameModal({
               className={`rounded-md px-3 py-2 text-sm font-black ${
                 modalPhase === phase
                   ? "bg-(--accent) text-(--on-accent)"
-                  : phase === "actual" && !activeRoundBidsDone
+                  : (phase === "actual" && !activeRoundBidsDone) ||
+                      (phase === "bid" && bidTabLocked)
                     ? "cursor-not-allowed text-[#5f7f92]"
                     : "text-[#d8d3bd]"
               }`}
               title={
                 phase === "actual" && !activeRoundBidsDone
                   ? t.wizard.bidsFirst
-                  : undefined
+                  : phase === "bid" && bidTabLocked
+                    ? t.wizard.bidLocked
+                    : undefined
               }
               type="button"
             >
@@ -114,6 +128,17 @@ export function GameModal({
             </button>
           ))}
         </div>
+
+        {modalPhase === "actual" && canEditBidAfterLock ? (
+          <div className="space-y-1 mb-4">
+            <p className="text-(--accent-2) text-xs">
+              {t.wizard.bidEditableHint}
+            </p>
+            <p className="text-(--accent-2) text-xs">
+              {t.wizard.actualVoidedHint}
+            </p>
+          </div>
+        ) : null}
 
         <div
           key={`${modalPhase}-${activePlayer.id}`}
@@ -180,7 +205,7 @@ export function GameModal({
         <div className="gap-2 grid grid-cols-2 mt-4">
           <button
             onClick={onMovePrevious}
-            disabled={modalPhase === "bid" && activePlayerIndex === 0}
+            disabled={previousDisabled}
             className="disabled:opacity-35 px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd] disabled:cursor-not-allowed"
             type="button"
           >

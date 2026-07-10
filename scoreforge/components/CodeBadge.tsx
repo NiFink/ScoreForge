@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useI18n } from "@/lib/i18n";
+import { CopyLinkField } from "./CopyLinkField";
 import { QrCode } from "./QrCode";
 
 type CodeBadgeProps = {
@@ -75,6 +76,12 @@ export function CodeBadge({ code }: CodeBadgeProps) {
             </div>
 
             <p className="mt-3 text-[#d8d3bd] text-sm">{t.common.scanToJoin}</p>
+
+            {typeof window !== "undefined" ? (
+              <div className="mt-4">
+                <CopyLinkField url={window.location.href} />
+              </div>
+            ) : null}
 
             <button
               onClick={() => setOpen(false)}

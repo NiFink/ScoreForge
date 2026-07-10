@@ -17,6 +17,7 @@ import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
+import { WizardRules } from "./WizardRules";
 import type { GameState, ModalPhase, RoundEntry } from "../../types/wizardTypes";
 import {
   getRoundScore,
@@ -54,6 +55,7 @@ export default function WizardGame({
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const table = useMemo(() => state?.table ?? [], [state]);
 
@@ -72,6 +74,14 @@ export default function WizardGame({
 
   const currentRound = table[activeRound];
   const roundNumber = activeRound + 1;
+  // Bombe/Wolke im Jubiläumsmodus lassen einen Stich ersatzlos entfallen —
+  // dadurch sinkt die tatsächlich zu verteilende Stichzahl der Runde um 1,
+  // und die Vorhersage darf trotz gesperrter "Tatsächlich"-Phase noch
+  // angepasst werden.
+  const hasVoidingSpecialCard =
+    state?.mode === "anniversary" &&
+    (state.specialCards?.includes("bombe") ||
+      state.specialCards?.includes("wolke")) === true;
   const activePlayer = state?.players[activePlayerIndex];
   const rankings = state ? rankPlayers(state.players, totals) : null;
   const isStartPlayerModalOpen =
@@ -262,7 +272,7 @@ export default function WizardGame({
       return;
     }
 
-    if (modalPhase === "actual") {
+    if (modalPhase === "actual" && canEditBidAfterLock) {
       setModalPhase("bid");
       setActivePlayerIndex(roundTurnOrder[roundTurnOrder.length - 1] ?? 0);
     }
@@ -309,6 +319,10 @@ export default function WizardGame({
               );
             }, 0);
 
+          // Bombe/Wolke KANN einen Stich ersatzlos entfallen lassen (muss
+          // aber nicht) -> die Obergrenze bleibt roundNumber, "ein Stich
+          // weniger" ist über die stets bei 0 startende Optionsliste schon
+          // ohne Zwang wählbar.
           return getActualRoundOptions(roundNumber, takenSoFar);
         })()
       : [];
@@ -320,6 +334,14 @@ export default function WizardGame({
     !!state &&
     !!currentRound &&
     isRoundPhaseComplete(currentRound, state.players, "bid");
+
+  const canEditBidAfterLock = hasVoidingSpecialCard;
+
+  const previousDisabled =
+    (modalPhase === "bid" && activePlayerIndex === 0) ||
+    (modalPhase === "actual" &&
+      activeTurnPosition === 0 &&
+      !canEditBidAfterLock);
 
   const confirmStartPlayer = () => {
     mutateState((current) => ({
@@ -423,6 +445,24 @@ export default function WizardGame({
                 <h1 className="mt-1 font-black text-3xl">{t.lobby.header}</h1>
               </div>
             </div>
+            {state.mode === "anniversary" && state.specialCards?.length ? (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {state.specialCards.map((id) => {
+                  const card = t.wizard.specialCards.find(
+                    (entry) => entry.id === id,
+                  );
+
+                  return card ? (
+                    <span
+                      key={id}
+                      className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
+                    >
+                      {card.name}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            ) : null}
           </header>
 
           <Lobby
@@ -502,6 +542,25 @@ export default function WizardGame({
           </div>
         </header>
 
+        {state.mode === "anniversary" && state.specialCards?.length ? (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {state.specialCards.map((id) => {
+              const card = t.wizard.specialCards.find(
+                (entry) => entry.id === id,
+              );
+
+              return card ? (
+                <span
+                  key={id}
+                  className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
+                >
+                  {card.name}
+                </span>
+              ) : null;
+            })}
+          </div>
+        ) : null}
+
         {!canWrite ? (
           <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
             {t.common.hostOnlyBanner}
@@ -533,6 +592,14 @@ export default function WizardGame({
           onOpenRound={openRound}
           onOpenPlayer={openPlayerInCurrentRound}
         />
+
+        <button
+          onClick={() => setShowRules(true)}
+          className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+          type="button"
+        >
+          {t.wizard.rulesReferenceButton}
+        </button>
       </div>
 
       {isStartPlayerModalOpen ? (
@@ -547,7 +614,6 @@ export default function WizardGame({
       {modalPhase && activePlayer && currentRound ? (
         <GameModal
           activePlayer={activePlayer}
-          activePlayerIndex={activePlayerIndex}
           activeRoundBidsDone={activeRoundBidsDone}
           allowedBidOptions={allowedBidOptions}
           actualOptions={actualOptions}
@@ -559,6 +625,8 @@ export default function WizardGame({
           roundStartPlayerIndex={roundStartPlayerIndex}
           totals={totals}
           isLastTurnPlayer={isLastTurnPlayer}
+          canEditBidAfterLock={canEditBidAfterLock}
+          previousDisabled={previousDisabled}
           onClose={() => setModalPhase(null)}
           onMoveNext={moveNext}
           onMovePrevious={movePrevious}
@@ -576,6 +644,15 @@ export default function WizardGame({
           lobbyName={state.lobbyName}
           scoreUnit={t.celebration.pointsLabel}
           onClose={() => setCelebrationDismissed(true)}
+        />
+      ) : null}
+
+      {showRules ? (
+        <WizardRules
+          activeSpecialCardIds={
+            state.mode === "anniversary" ? (state.specialCards ?? []) : []
+          }
+          onClose={() => setShowRules(false)}
         />
       ) : null}
     </main>

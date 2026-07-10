@@ -1,6 +1,7 @@
 "use client";
 
 import { colorOptions } from "@/lib/colors";
+import { useI18n } from "@/lib/i18n";
 import type { Player } from "@/app/types/gameTypes";
 
 type PlayerEditorProps = {
@@ -9,6 +10,8 @@ type PlayerEditorProps = {
 };
 
 export function PlayerEditor({ players, onUpdate }: PlayerEditorProps) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-3">
       {players.map((player, index) => (
@@ -18,9 +21,10 @@ export function PlayerEditor({ players, onUpdate }: PlayerEditorProps) {
           style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
         >
           <input
-            className="bg-[#101820] px-3 py-2 rounded-md w-full"
+            className="bg-[#101820] px-3 py-2 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full"
             value={player.name}
             onChange={(event) => onUpdate(index, "name", event.target.value)}
+            placeholder={t.common.namePlaceholder}
           />
 
           <div className="flex gap-2 mt-2">

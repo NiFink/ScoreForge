@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useI18n } from "@/lib/i18n";
+import { CopyLinkField } from "./CopyLinkField";
 import { QrCode } from "./QrCode";
 import type { BaseGameState, GameRecord, Player } from "@/app/types/gameTypes";
 
@@ -135,6 +136,9 @@ export function Lobby({
           <div className="flex flex-col items-center mt-4">
             <QrCode value={window.location.href} size={180} />
             <p className="mt-2 text-[#9fc9d5] text-xs">{t.common.scanToJoin}</p>
+            <div className="mt-3 w-full">
+              <CopyLinkField url={window.location.href} />
+            </div>
           </div>
         ) : null}
 

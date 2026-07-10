@@ -19,10 +19,10 @@ import type {
   WriteMode,
 } from "../../types/gameTypes";
 
-const createPlayers = (count: number, nameTemplate: string): Player[] =>
+const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
     id: `player-${i + 1}`,
-    name: format(nameTemplate, { n: i + 1 }),
+    name: "",
     color: colorOptions[i % colorOptions.length].value,
   }));
 
@@ -34,11 +34,11 @@ export default function BinokelSetup() {
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
   const [targetScore, setTargetScore] = useState(1000);
-  const [players, setPlayers] = useState<Player[]>(() =>
-    createPlayers(3, "Spieler {n}"),
-  );
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
   const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const allNamesFilled = players.every((player) => player.name.trim());
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
@@ -60,14 +60,16 @@ export default function BinokelSetup() {
   }, [playerCount, players, t]);
 
   const startGame = async () => {
+    if (!allNamesFilled) {
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const cleanPlayers: Player[] = players.map((player, index) => ({
+      const cleanPlayers: Player[] = players.map((player) => ({
         id: player.id,
-        name:
-          player.name.trim() ||
-          format(t.common.defaultPlayerName, { n: index + 1 }),
+        name: player.name.trim(),
         color: player.color,
         claimedBy: null,
       }));
@@ -156,9 +158,7 @@ export default function BinokelSetup() {
                         return (
                           current[index] ?? {
                             id: `player-${index + 1}`,
-                            name: format(t.common.defaultPlayerName, {
-                              n: index + 1,
-                            }),
+                            name: "",
                             color:
                               colorOptions[index % colorOptions.length].value,
                           }
@@ -278,11 +278,16 @@ export default function BinokelSetup() {
 
             <button
               onClick={startGame}
-              disabled={loading}
-              className="bg-(--accent) mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent)"
+              disabled={loading || !allNamesFilled}
+              className="bg-(--accent) disabled:opacity-50 mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent) disabled:cursor-not-allowed"
             >
               {loading ? t.common.creatingGame : t.common.startGame}
             </button>
+            {!allNamesFilled ? (
+              <p className="mt-2 text-[#9fc9d5] text-xs text-center">
+                {t.common.fillAllNames}
+              </p>
+            ) : null}
           </section>
         </div>
       </div>
