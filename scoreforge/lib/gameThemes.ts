@@ -57,6 +57,14 @@ export const gameThemes: Record<GameThemeKey, GameTheme> = {
     hex2: "#f8fafc",
     gradient: "bg-linear-to-r from-[#059669] to-[#a7f3d0]",
   },
+  // Universal: neutrales Blau/Gold — passt zu jedem Spiel
+  universal: {
+    label: "Universal",
+    style: makeStyle("#60a5fa", "#fbbf24"),
+    hex: "#60a5fa",
+    hex2: "#fbbf24",
+    gradient: "bg-linear-to-r from-[#2563eb] to-[#93c5fd]",
+  },
 };
 
 export function themeForGameType(gameType: string | undefined): GameTheme {

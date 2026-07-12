@@ -7,7 +7,7 @@ export type Player = {
 
 export type DeviceMode = "single" | "multi";
 export type WriteMode = "host" | "all";
-export type GameType = "wizard" | "doomlings" | "binokel";
+export type GameType = "wizard" | "doomlings" | "binokel" | "universal";
 
 export type BaseGameState = {
   gameType?: GameType;
@@ -18,6 +18,9 @@ export type BaseGameState = {
   hostId: string;
   phase: string;
   lobbyName?: string;
+  // Startpunkte-Ausgleich für nachträglich hinzugefügte Spieler
+  // (wird bei der Gesamtwertung aufaddiert)
+  scoreAdjustments?: Record<string, number>;
 };
 
 export type GameRecord<S extends BaseGameState = BaseGameState> = {
@@ -107,4 +110,22 @@ export type BinokelParty = {
   name: string;
   color: string;
   memberIds: string[];
+};
+
+// --- Universal (freies Punkteboard für beliebige Spiele) ---
+
+// "target" = bis Zielpunktzahl, "rounds" = feste Rundenzahl, "none" = offen
+export type UniversalEndCondition = "target" | "rounds" | "none";
+
+// Punkte pro Spieler in einer Runde (null = noch nicht eingetragen)
+export type UniversalRound = Record<string, number | null>;
+
+export type UniversalState = BaseGameState & {
+  gameType: "universal";
+  phase: "lobby" | "playing" | "finished";
+  endCondition: UniversalEndCondition;
+  // Nur bei endCondition "target" bzw. "rounds" gesetzt
+  targetScore?: number;
+  maxRounds?: number;
+  rounds: UniversalRound[];
 };

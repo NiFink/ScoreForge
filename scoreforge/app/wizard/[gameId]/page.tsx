@@ -12,6 +12,7 @@ import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
@@ -19,6 +20,7 @@ import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
 import { WizardRules } from "./WizardRules";
 import type { GameState, ModalPhase, RoundEntry } from "../../types/wizardTypes";
+import type { DeviceMode, WriteMode } from "../../types/gameTypes";
 import {
   getRoundScore,
   getActualRoundOptions,
@@ -56,6 +58,7 @@ export default function WizardGame({
   const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const table = useMemo(() => state?.table ?? [], [state]);
 
@@ -67,7 +70,12 @@ export default function WizardGame({
     return Object.fromEntries(
       state.players.map((player) => [
         player.id,
-        table.reduce((sum, round) => sum + getRoundScore(round[player.id]), 0),
+        table.reduce(
+          (sum, round) =>
+            sum +
+            getRoundScore(round[player.id] ?? { bid: null, actual: null }),
+          state.scoreAdjustments?.[player.id] ?? 0,
+        ),
       ]),
     );
   }, [state, table]);
@@ -358,6 +366,84 @@ export default function WizardGame({
     }));
   };
 
+  // --- Host-Einstellungen im laufenden Spiel ---
+
+  const changeWriteMode = (writeMode: WriteMode) => {
+    mutateState((current) => ({ ...current, writeMode }));
+  };
+
+  const changeDeviceMode = (deviceMode: DeviceMode) => {
+    mutateState((current) => ({ ...current, deviceMode }));
+  };
+
+  const backToLobby = () => {
+    setShowSettings(false);
+    mutateState((current) => ({ ...current, phase: "lobby" }));
+  };
+
+  const addPlayer = (name: string, color: string, startingPoints: number) => {
+    mutateState((current) => {
+      const newId = `player-${Date.now()}`;
+
+      // Bereits komplette Runden mit 0/0 auffüllen, damit die
+      // Rundenfreischaltung intakt bleibt; die 20 Punkte pro aufgefüllter
+      // Runde werden über scoreAdjustments wieder herausgerechnet.
+      let filledRounds = 0;
+      const nextTable = current.table.map((round) => {
+        if (isRoundComplete(round, current.players)) {
+          filledRounds += 1;
+          return { ...round, [newId]: { bid: 0, actual: 0 } };
+        }
+
+        return { ...round, [newId]: { bid: null, actual: null } };
+      });
+
+      const nextPlayers = [
+        ...current.players,
+        { id: newId, name, color, claimedBy: null },
+      ];
+
+      return {
+        ...current,
+        players: nextPlayers,
+        playerCount: nextPlayers.length,
+        table: nextTable,
+        scoreAdjustments: {
+          ...current.scoreAdjustments,
+          [newId]: startingPoints - filledRounds * 20,
+        },
+      };
+    });
+  };
+
+  const removePlayer = (playerId: string) => {
+    mutateState((current) => {
+      const nextPlayers = current.players.filter(
+        (player) => player.id !== playerId,
+      );
+      const nextTable = current.table.map((round) =>
+        Object.fromEntries(
+          Object.entries(round).filter(([id]) => id !== playerId),
+        ),
+      );
+      const nextAdjustments = Object.fromEntries(
+        Object.entries(current.scoreAdjustments ?? {}).filter(
+          ([id]) => id !== playerId,
+        ),
+      );
+
+      return {
+        ...current,
+        players: nextPlayers,
+        playerCount: nextPlayers.length,
+        table: nextTable,
+        scoreAdjustments: nextAdjustments,
+        startPlayerIndex:
+          current.startPlayerIndex % Math.max(1, nextPlayers.length),
+      };
+    });
+  };
+
   if (notFound) {
     return (
       <main style={gameThemes.wizard.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
@@ -425,6 +511,17 @@ export default function WizardGame({
                 {t.common.back}
               </button>
               <div className="flex items-center gap-2">
+                {isHost ? (
+                  <button
+                    onClick={() => setShowSettings(true)}
+                    className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+                    title={t.settings.openButton}
+                    aria-label={t.settings.openButton}
+                    type="button"
+                  >
+                    {"⚙️"}
+                  </button>
+                ) : null}
                 {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
                 <LanguageSwitcher />
               </div>
@@ -473,6 +570,22 @@ export default function WizardGame({
             onStart={startGameFromLobby}
           />
         </div>
+
+        {showSettings && isHost ? (
+          <GameSettingsModal
+            state={state}
+            totals={totals}
+            minPlayers={3}
+            maxPlayers={6}
+            allowPlayerChanges
+            onChangeWriteMode={changeWriteMode}
+            onChangeDeviceMode={changeDeviceMode}
+            onBackToLobby={backToLobby}
+            onAddPlayer={addPlayer}
+            onRemovePlayer={removePlayer}
+            onClose={() => setShowSettings(false)}
+          />
+        ) : null}
       </main>
     );
   }
@@ -491,6 +604,17 @@ export default function WizardGame({
                 {t.common.back}
               </button>
               <div className="flex items-center gap-2">
+                {isHost ? (
+                  <button
+                    onClick={() => setShowSettings(true)}
+                    className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+                    title={t.settings.openButton}
+                    aria-label={t.settings.openButton}
+                    type="button"
+                  >
+                    {"⚙️"}
+                  </button>
+                ) : null}
                 {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
                 <span className="sm:hidden">
                   <LanguageSwitcher />
@@ -653,6 +777,22 @@ export default function WizardGame({
             state.mode === "anniversary" ? (state.specialCards ?? []) : []
           }
           onClose={() => setShowRules(false)}
+        />
+      ) : null}
+
+      {showSettings && isHost ? (
+        <GameSettingsModal
+          state={state}
+          totals={totals}
+          minPlayers={3}
+          maxPlayers={6}
+          allowPlayerChanges
+          onChangeWriteMode={changeWriteMode}
+          onChangeDeviceMode={changeDeviceMode}
+          onBackToLobby={backToLobby}
+          onAddPlayer={addPlayer}
+          onRemovePlayer={removePlayer}
+          onClose={() => setShowSettings(false)}
         />
       ) : null}
     </main>

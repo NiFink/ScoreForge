@@ -3,7 +3,7 @@
 import { gameThemes } from "@/lib/gameThemes";
 
 import Image from "next/image";
-import { use, useMemo, useState } from "react";
+import { Fragment, use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useGame } from "@/lib/useGame";
@@ -12,10 +12,16 @@ import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { MeldReference } from "./MeldReference";
 import { RoundModal } from "./RoundModal";
-import type { BinokelRound, BinokelState } from "../../types/gameTypes";
+import type {
+  BinokelRound,
+  BinokelState,
+  DeviceMode,
+  WriteMode,
+} from "../../types/gameTypes";
 import {
   getBinokelTotals,
   getParties,
@@ -49,6 +55,7 @@ export default function BinokelGame({
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showMelds, setShowMelds] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
 
   const parties = useMemo(
@@ -60,6 +67,23 @@ export default function BinokelGame({
     () => getBinokelTotals(rounds, parties),
     [rounds, parties],
   );
+
+  // Zwischenstand nach jeder Runde (nur komplette Runden zählen)
+  const runningTotals = useMemo(() => {
+    const acc = Object.fromEntries(parties.map((party) => [party.id, 0]));
+
+    return rounds.map((round) => {
+      if (isRoundComplete(round, parties)) {
+        const results = scoreBinokelRound(round, parties);
+
+        for (const party of parties) {
+          acc[party.id] += results[party.id]?.points ?? 0;
+        }
+      }
+
+      return { ...acc };
+    });
+  }, [parties, rounds]);
 
   const leader = useMemo(() => {
     if (!state) {
@@ -149,6 +173,21 @@ export default function BinokelGame({
     setIsModalOpen(false);
   };
 
+  // --- Host-Einstellungen im laufenden Spiel ---
+
+  const changeWriteMode = (writeMode: WriteMode) => {
+    mutateState((current) => ({ ...current, writeMode }));
+  };
+
+  const changeDeviceMode = (deviceMode: DeviceMode) => {
+    mutateState((current) => ({ ...current, deviceMode }));
+  };
+
+  const backToLobby = () => {
+    setShowSettings(false);
+    mutateState((current) => ({ ...current, phase: "lobby" }));
+  };
+
   if (notFound) {
     return (
       <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
@@ -213,10 +252,36 @@ export default function BinokelGame({
           {t.common.back}
         </button>
         <div className="flex items-center gap-2">
+          {isHost ? (
+            <button
+              onClick={() => setShowSettings(true)}
+              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+              title={t.settings.openButton}
+              aria-label={t.settings.openButton}
+              type="button"
+            >
+              {"⚙️"}
+            </button>
+          ) : null}
           {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
           <LanguageSwitcher />
         </div>
       </div>
+      {showSettings && isHost ? (
+        <GameSettingsModal
+          state={state}
+          totals={{}}
+          minPlayers={3}
+          maxPlayers={4}
+          allowPlayerChanges={false}
+          onChangeWriteMode={changeWriteMode}
+          onChangeDeviceMode={changeDeviceMode}
+          onBackToLobby={backToLobby}
+          onAddPlayer={() => {}}
+          onRemovePlayer={() => {}}
+          onClose={() => setShowSettings(false)}
+        />
+      ) : null}
       <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3">
         <div className="flex items-center gap-3">
           <Image
@@ -378,10 +443,18 @@ export default function BinokelGame({
                       results && round.bidderPartyId
                         ? results[round.bidderPartyId]?.madeBid === false
                         : false;
+                    // Aufschlüsselung nur bei normal gespielten Runden —
+                    // bei Sonderspiel/Abgeben gibt es keine Stichwertung.
+                    const showBreakdown =
+                      complete && !round.special && !round.conceded;
+                    const roundTricksSum = parties.reduce(
+                      (sum, party) => sum + (round.tricks[party.id] ?? 0),
+                      0,
+                    );
 
                     return (
+                      <Fragment key={index}>
                       <tr
-                        key={index}
                         onClick={() => openExistingRound(index)}
                         className={`border-t border-[#f7e7ad]/10 ${
                           canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
@@ -459,6 +532,46 @@ export default function BinokelGame({
                           );
                         })}
                       </tr>
+                      {/* ZWISCHENSTAND: Meldung + Stiche der Runde, kumulierter Stand */}
+                      <tr
+                        onClick={() => openExistingRound(index)}
+                        className={`text-xs text-[#9fc9d5] ${
+                          canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
+                        }`}
+                      >
+                        <td className="pb-3 pr-3" />
+                        <td className="pb-3 pr-3">
+                          {showBreakdown ? (
+                            <span
+                              className={
+                                roundTricksSum === 250 ? "" : "text-[#ef5b2a]"
+                              }
+                            >
+                              {format(t.binokel.roundTricksSum, {
+                                sum: roundTricksSum,
+                              })}
+                            </span>
+                          ) : null}
+                        </td>
+                        {parties.map((party) => (
+                          <td key={party.id} className="pb-3 pr-3 text-right">
+                            {showBreakdown ? (
+                              <span className="block">
+                                {format(t.binokel.subRowBreakdown, {
+                                  melds: round.melds[party.id] ?? 0,
+                                  tricks: round.tricks[party.id] ?? 0,
+                                })}
+                              </span>
+                            ) : null}
+                            <span className="block font-bold text-[#d8d3bd]">
+                              {format(t.binokel.runningTotalShort, {
+                                total: runningTotals[index]?.[party.id] ?? 0,
+                              })}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
+                      </Fragment>
                     );
                   })}
                 </tbody>

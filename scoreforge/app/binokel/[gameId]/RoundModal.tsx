@@ -9,6 +9,10 @@ import type {
   BinokelSpecial,
 } from "../../types/gameTypes";
 import { createEmptyRound, roundToTens } from "../../Utils/binokelUtils";
+import { MeldCalculator } from "./MeldCalculator";
+
+// Easy Mode ist eine Geräte-Einstellung — jeder Spieler entscheidet selbst.
+const EASY_MODE_KEY = "scoreforge:binokelEasyMode";
 
 type RoundModalProps = {
   parties: BinokelParty[];
@@ -47,13 +51,35 @@ export function RoundModal({
   const [draft, setDraft] = useState<BinokelRound>(
     () => initialRound ?? createEmptyRound(parties),
   );
+  const [easyMode, setEasyMode] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.localStorage.getItem(EASY_MODE_KEY) === "1",
+  );
+  const [calcPartyId, setCalcPartyId] = useState<string | null>(null);
+
+  const toggleEasyMode = () => {
+    setEasyMode((current) => {
+      const next = !current;
+      window.localStorage.setItem(EASY_MODE_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
+
+  const calcParty = parties.find((party) => party.id === calcPartyId) ?? null;
 
   const isSpecial = draft.special !== null && draft.special !== undefined;
 
-  const tricksSum = parties.reduce(
-    (sum, party) => sum + (draft.tricks[party.id] ?? 0),
-    0,
-  );
+  // Die letzte Partei wird automatisch ausgerechnet: 250 minus die
+  // Augen der anderen. Geht das nicht auf (Summe > 250), lässt sich die
+  // Runde nicht speichern.
+  const lastPartyId = parties[parties.length - 1]?.id;
+  const enteredTricksSum = parties
+    .filter((party) => party.id !== lastPartyId)
+    .reduce((sum, party) => sum + (draft.tricks[party.id] ?? 0), 0);
+  const computedLastTricks = 250 - enteredTricksSum;
+  const tricksValid = computedLastTricks >= 0;
+  const tricksSum = tricksValid ? 250 : enteredTricksSum;
 
   const bidderParty = parties.find(
     (party) => party.id === draft.bidderPartyId,
@@ -105,7 +131,34 @@ export function RoundModal({
       ? !!draft.bidderPartyId && draft.bid !== null
       : step === "special"
         ? draft.specialMade !== null && draft.specialMade !== undefined
-        : true;
+        : step === "tricks"
+          ? tricksValid
+          : true;
+
+  // Schritt anklickbar, wenn er schon erreichbar ist bzw. gerade dran ist.
+  const bidDone = !!draft.bidderPartyId && draft.bid !== null;
+  const canGoToStep = (target: Step) => {
+    if (target === "bid") {
+      return true;
+    }
+    if (target === "melds") {
+      return bidDone;
+    }
+    if (target === "tricks") {
+      return bidDone && !isSpecial;
+    }
+    return bidDone && isSpecial;
+  };
+
+  const goToStep = (target: Step) => {
+    if (target === step || !canGoToStep(target)) {
+      return;
+    }
+    if (step === "bid" && draft.bid !== null) {
+      setBid(draft.bid);
+    }
+    setStep(target);
+  };
 
   const stepTitle =
     step === "bid"
@@ -120,11 +173,21 @@ export function RoundModal({
     onSave({
       ...draft,
       bid: draft.bid === null ? null : roundToTens(draft.bid),
+      // Meldungen gibt es nur in Zehnerschritten (240, nicht 241).
       melds: Object.fromEntries(
-        parties.map((party) => [party.id, draft.melds[party.id] ?? 0]),
+        parties.map((party) => [
+          party.id,
+          roundToTens(draft.melds[party.id] ?? 0),
+        ]),
       ),
+      // Stiche auf Zehner runden; die letzte Partei ergibt sich aus 250 − Rest.
       tricks: Object.fromEntries(
-        parties.map((party) => [party.id, draft.tricks[party.id] ?? 0]),
+        parties.map((party) => [
+          party.id,
+          party.id === lastPartyId
+            ? Math.max(0, computedLastTricks)
+            : roundToTens(draft.tricks[party.id] ?? 0),
+        ]),
       ),
     });
   };
@@ -164,7 +227,10 @@ export function RoundModal({
       conceded: true,
       bid: draft.bid === null ? null : roundToTens(draft.bid),
       melds: Object.fromEntries(
-        parties.map((party) => [party.id, draft.melds[party.id] ?? 0]),
+        parties.map((party) => [
+          party.id,
+          roundToTens(draft.melds[party.id] ?? 0),
+        ]),
       ),
       tricks: Object.fromEntries(
         parties.map((party) => [party.id, draft.tricks[party.id] ?? 0]),
@@ -191,20 +257,29 @@ export function RoundModal({
           </button>
         </div>
 
-        {/* STEP INDICATOR */}
+        {/* STEP INDICATOR — anklickbar, wenn der Schritt erreichbar ist */}
         <div className="gap-2 grid grid-cols-3 bg-[#101820] mb-4 p-1 rounded-lg">
-          {steps.map((entry, index) => (
-            <div
-              key={entry.key}
-              className={`rounded-md px-2 py-2 text-center text-xs font-black ${
-                index === stepIndex
-                  ? "bg-(--accent) text-(--on-accent)"
-                  : "text-[#5f7f92]"
-              }`}
-            >
-              {entry.label}
-            </div>
-          ))}
+          {steps.map((entry, index) => {
+            const reachable = canGoToStep(entry.key);
+
+            return (
+              <button
+                key={entry.key}
+                onClick={() => goToStep(entry.key)}
+                disabled={!reachable}
+                className={`rounded-md px-2 py-2 text-center text-xs font-black ${
+                  index === stepIndex
+                    ? "bg-(--accent) text-(--on-accent)"
+                    : reachable
+                      ? "text-[#d8d3bd] hover:bg-[#18262f]"
+                      : "text-[#5f7f92] cursor-not-allowed"
+                }`}
+                type="button"
+              >
+                {entry.label}
+              </button>
+            );
+          })}
         </div>
 
         {step === "bid" ? (
@@ -380,6 +455,26 @@ export function RoundModal({
                 <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
                   {t.binokel.meldPoints}
                 </p>
+                <p className="mt-1 text-[#9fc9d5] text-xs">
+                  {t.binokel.meldTensNote}
+                </p>
+
+                <button
+                  onClick={toggleEasyMode}
+                  className={`mt-3 w-full rounded-md border px-3 py-2 text-left text-sm font-bold ${
+                    easyMode
+                      ? "border-(--accent) bg-(--accent)/15 text-(--accent-2)"
+                      : "border-[#f7e7ad]/10 bg-[#101820] text-[#d8d3bd]"
+                  }`}
+                  type="button"
+                >
+                  {easyMode ? "✓ " : ""}
+                  {t.binokel.easyModeLabel}
+                  <span className="block mt-0.5 font-normal text-[#9fc9d5] text-xs">
+                    {t.binokel.easyModeHint}
+                  </span>
+                </button>
+
                 <div className="space-y-2 mt-3">
                   {parties.map((party) => (
                     <div
@@ -395,9 +490,21 @@ export function RoundModal({
                           </span>
                         ) : null}
                       </p>
+                      {easyMode ? (
+                        <button
+                          onClick={() => setCalcPartyId(party.id)}
+                          className="px-3 py-3 border border-(--accent-2)/40 rounded-md font-black text-(--accent-2)"
+                          title={t.binokel.calculatorTitle}
+                          aria-label={t.binokel.calculatorTitle}
+                          type="button"
+                        >
+                          {"🧮"}
+                        </button>
+                      ) : null}
                       <input
                         type="number"
                         inputMode="numeric"
+                        step={10}
                         value={draft.melds[party.id] ?? ""}
                         onChange={(event) =>
                           setPartyValue(
@@ -406,6 +513,17 @@ export function RoundModal({
                             parseNumber(event.target.value),
                           )
                         }
+                        onBlur={() => {
+                          const value = draft.melds[party.id];
+
+                          if (value !== null && value !== undefined) {
+                            setPartyValue(
+                              "melds",
+                              party.id,
+                              Math.max(0, roundToTens(value)),
+                            );
+                          }
+                        }}
                         className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
                       />
                     </div>
@@ -446,44 +564,74 @@ export function RoundModal({
               {t.binokel.includesLastTrick}
             </p>
 
+            <p className="mt-1 text-[#9fc9d5] text-xs">
+              {t.binokel.meldTensNote}
+            </p>
+
             <div className="space-y-2 mt-3">
-              {parties.map((party) => (
-                <div
-                  key={party.id}
-                  className="flex items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
-                  style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
-                >
-                  <p className="flex-1 font-bold truncate">
-                    {party.name}
-                    {draft.bidderPartyId === party.id ? (
-                      <span className="block font-normal text-(--accent) text-xs">
-                        {t.binokel.bidder} · {draft.bid ?? 0}
-                      </span>
-                    ) : null}
-                  </p>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    value={draft.tricks[party.id] ?? ""}
-                    onChange={(event) =>
-                      setPartyValue(
-                        "tricks",
-                        party.id,
-                        parseNumber(event.target.value),
-                      )
-                    }
-                    className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
-                  />
-                </div>
-              ))}
+              {parties.map((party) => {
+                const isLast = party.id === lastPartyId;
+
+                return (
+                  <div
+                    key={party.id}
+                    className="flex items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                    style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
+                  >
+                    <p className="flex-1 font-bold truncate">
+                      {party.name}
+                      {draft.bidderPartyId === party.id ? (
+                        <span className="block font-normal text-(--accent) text-xs">
+                          {t.binokel.bidder} · {draft.bid ?? 0}
+                        </span>
+                      ) : null}
+                    </p>
+                    {isLast ? (
+                      // Ergibt sich automatisch aus 250 − Rest
+                      <div
+                        className={`w-24 rounded-md border px-3 py-3 text-center text-lg font-black ${
+                          tricksValid
+                            ? "border-(--accent-2)/40 bg-[#18262f] text-(--accent-2)"
+                            : "border-[#ef5b2a]/50 bg-[#ef5b2a]/10 text-[#ef5b2a]"
+                        }`}
+                        title="250 − Rest"
+                      >
+                        {computedLastTricks}
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        step={10}
+                        value={draft.tricks[party.id] ?? ""}
+                        onChange={(event) =>
+                          setPartyValue(
+                            "tricks",
+                            party.id,
+                            parseNumber(event.target.value),
+                          )
+                        }
+                        onBlur={() => {
+                          const value = draft.tricks[party.id];
+
+                          if (value !== null && value !== undefined) {
+                            setPartyValue(
+                              "tricks",
+                              party.id,
+                              Math.max(0, roundToTens(value)),
+                            );
+                          }
+                        }}
+                        className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="bg-[#101820] mt-4 p-3 rounded-lg text-sm">
-              <p
-                className={
-                  tricksSum === 250 ? "text-[#2aa6c8]" : "text-(--accent-2)"
-                }
-              >
+              <p className={tricksValid ? "text-[#2aa6c8]" : "text-[#ef5b2a]"}>
                 {format(t.binokel.sumHint, { sum: tricksSum })}
               </p>
               <p className="mt-1 text-[#9fc9d5] text-xs">
@@ -525,6 +673,17 @@ export function RoundModal({
           </button>
         ) : null}
       </div>
+
+      {calcParty ? (
+        <MeldCalculator
+          partyName={calcParty.name}
+          onApply={(sum) => {
+            setPartyValue("melds", calcParty.id, sum);
+            setCalcPartyId(null);
+          }}
+          onClose={() => setCalcPartyId(null)}
+        />
+      ) : null}
     </div>
   );
 }

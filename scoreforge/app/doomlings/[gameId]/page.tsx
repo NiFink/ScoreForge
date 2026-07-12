@@ -12,11 +12,14 @@ import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { StartCounterModal } from "./StartCounterModal";
 import type {
+  DeviceMode,
   DoomlingsScores,
   DoomlingsState,
+  WriteMode,
 } from "../../types/gameTypes";
 import {
   getCountingOrder,
@@ -42,6 +45,7 @@ export default function DoomlingsGame({
   const { t } = useI18n();
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [counterIndexDraft, setCounterIndexDraft] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
 
   const {
     game,
@@ -174,6 +178,69 @@ export default function DoomlingsGame({
     }));
   };
 
+  // --- Host-Einstellungen im laufenden Spiel ---
+
+  const changeWriteMode = (writeMode: WriteMode) => {
+    mutateState((current) => ({ ...current, writeMode }));
+  };
+
+  const changeDeviceMode = (deviceMode: DeviceMode) => {
+    mutateState((current) => ({ ...current, deviceMode }));
+  };
+
+  const backToLobby = () => {
+    setShowSettings(false);
+    mutateState((current) => ({ ...current, phase: "lobby" }));
+  };
+
+  // Startpunkte landen in der Zahlen-Kategorie — dort sichtbar und editierbar
+  const addPlayer = (name: string, color: string, startingPoints: number) => {
+    mutateState((current) => {
+      const newId = `player-${Date.now()}`;
+      const nextPlayers = [
+        ...current.players,
+        { id: newId, name, color, claimedBy: null },
+      ];
+
+      return {
+        ...current,
+        players: nextPlayers,
+        playerCount: nextPlayers.length,
+        scores: {
+          ...current.scores,
+          [newId]: { ...emptyScores(), numbers: startingPoints },
+        },
+      };
+    });
+  };
+
+  const removePlayer = (playerId: string) => {
+    mutateState((current) => {
+      const nextPlayers = current.players.filter(
+        (player) => player.id !== playerId,
+      );
+      const nextScores = Object.fromEntries(
+        Object.entries(current.scores ?? {}).filter(([id]) => id !== playerId),
+      );
+      const nextReady = Object.fromEntries(
+        Object.entries(current.readyPlayers ?? {}).filter(
+          ([id]) => id !== playerId,
+        ),
+      );
+
+      return {
+        ...current,
+        players: nextPlayers,
+        playerCount: nextPlayers.length,
+        scores: nextScores,
+        readyPlayers: nextReady,
+        scoringStartPlayerIndex:
+          (current.scoringStartPlayerIndex ?? 0) %
+          Math.max(1, nextPlayers.length),
+      };
+    });
+  };
+
   if (notFound) {
     return (
       <main style={gameThemes.doomlings.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
@@ -238,10 +305,38 @@ export default function DoomlingsGame({
           {t.common.back}
         </button>
         <div className="flex items-center gap-2">
+          {isHost ? (
+            <button
+              onClick={() => setShowSettings(true)}
+              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+              title={t.settings.openButton}
+              aria-label={t.settings.openButton}
+              type="button"
+            >
+              {"⚙️"}
+            </button>
+          ) : null}
           {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
           <LanguageSwitcher />
         </div>
       </div>
+      {showSettings && isHost ? (
+        <GameSettingsModal
+          state={state}
+          totals={Object.fromEntries(
+            state.players.map((player) => [player.id, getTotal(player.id)]),
+          )}
+          minPlayers={2}
+          maxPlayers={6}
+          allowPlayerChanges
+          onChangeWriteMode={changeWriteMode}
+          onChangeDeviceMode={changeDeviceMode}
+          onBackToLobby={backToLobby}
+          onAddPlayer={addPlayer}
+          onRemovePlayer={removePlayer}
+          onClose={() => setShowSettings(false)}
+        />
+      ) : null}
       <div className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3">
         <div className="flex items-center gap-3">
           <Image

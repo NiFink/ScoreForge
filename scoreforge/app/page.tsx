@@ -30,6 +30,12 @@ export default function Home() {
       theme: gameThemes.binokel,
       description: t.home.binokelDescription,
     },
+    {
+      title: "Universal",
+      href: "/universal/setup",
+      theme: gameThemes.universal,
+      description: t.home.universalDescription,
+    },
   ];
 
   return (
