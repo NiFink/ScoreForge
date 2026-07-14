@@ -46,6 +46,15 @@ export function WizardRules({ activeSpecialCardIds, onClose }: WizardRulesProps)
           </ul>
         </div>
 
+        <div className="bg-[#101820] mt-3 p-4 rounded-lg">
+          <h3 className="font-black">{t.wizard.specialCasesTitle}</h3>
+          <ul className="space-y-2 mt-2 text-[#d8d3bd] text-sm list-disc list-inside">
+            {t.wizard.specialCases.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+
         {activeSpecialCards.length > 0 ? (
           <div className="mt-3">
             <h3 className="font-black">{t.wizard.specialCardsTitle}</h3>

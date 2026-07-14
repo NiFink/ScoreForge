@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { colorOptions } from "@/lib/colors";
 import { format, useI18n } from "@/lib/i18n";
+import { isNameTaken } from "@/lib/playerValidation";
 import type {
   BaseGameState,
   DeviceMode,
@@ -85,10 +86,12 @@ export function GameSettingsModal({
   const selectedColor =
     colorDraft ?? freeColors[0]?.value ?? colorOptions[0].value;
 
+  const nameDraftTaken = isNameTaken(nameDraft, state.players);
   const canAdd =
     allowPlayerChanges &&
     state.players.length < maxPlayers &&
-    nameDraft.trim().length > 0;
+    nameDraft.trim().length > 0 &&
+    !nameDraftTaken;
   const canRemove = allowPlayerChanges && state.players.length > minPlayers;
 
   const addPlayer = () => {
@@ -253,12 +256,21 @@ export function GameSettingsModal({
                   {t.settings.addPlayerTitle}
                 </p>
                 <input
-                  className="bg-[#18262f] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full"
+                  className={`mt-2 w-full rounded-md border bg-[#18262f] px-3 py-3 outline-none ${
+                    nameDraftTaken
+                      ? "border-[#ef5b2a] focus:border-[#ef5b2a]"
+                      : "border-[#f7e7ad]/10 focus:border-(--accent)"
+                  }`}
                   value={nameDraft}
                   onChange={(event) => setNameDraft(event.target.value)}
                   placeholder={t.common.namePlaceholder}
                   maxLength={30}
                 />
+                {nameDraftTaken ? (
+                  <p className="mt-1 text-[#ef5b2a] text-xs">
+                    {t.settings.nameTakenInGame}
+                  </p>
+                ) : null}
 
                 <div className="flex flex-wrap gap-2 mt-3">
                   {colorOptions.map((color) => {
@@ -269,16 +281,29 @@ export function GameSettingsModal({
                         key={color.value}
                         disabled={taken}
                         onClick={() => setColorDraft(color.value)}
-                        className={`h-8 w-8 rounded-md ${
-                          taken ? "opacity-30" : ""
+                        title={taken ? t.common.colorTaken : color.name}
+                        aria-label={taken ? t.common.colorTaken : color.name}
+                        className={`relative h-8 w-8 rounded-md ${
+                          taken
+                            ? "cursor-not-allowed opacity-25"
+                            : "cursor-pointer"
                         } ${
-                          selectedColor === color.value
+                          selectedColor === color.value && !taken
                             ? "ring-2 ring-(--accent) ring-offset-1 ring-offset-[#101820]"
                             : ""
                         }`}
                         style={{ backgroundColor: color.value }}
                         type="button"
-                      />
+                      >
+                        {taken ? (
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-0 flex items-center justify-center text-sm font-black text-[#101820]"
+                          >
+                            {"✕"}
+                          </span>
+                        ) : null}
+                      </button>
                     );
                   })}
                 </div>

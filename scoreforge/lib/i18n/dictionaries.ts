@@ -49,6 +49,9 @@ const de = {
     deleteFailed: "Löschen fehlgeschlagen. Versuch's noch mal.",
     namePlaceholder: "Name",
     fillAllNames: "Bitte gib allen Spielern einen Namen.",
+    duplicateNames: "Jeder Spieler braucht einen eigenen Namen.",
+    nameTaken: "Dieser Name ist schon vergeben.",
+    colorTaken: "Bereits vergeben",
     copyLink: "Link kopieren",
     linkCopied: "Link kopiert!",
   },
@@ -178,6 +181,13 @@ const de = {
       "Wird zuerst ein Zauberer gespielt, gilt für diesen Stich kein Bedienzwang mehr.",
       "Trumpf sticht jede Fehlfarbe; bei zwei gleich hohen Karten gewinnt die zuerst gespielte.",
     ],
+    specialCasesTitle: "Sonderfälle",
+    specialCases: [
+      "Wenn ausschließlich Narren im Stich liegen (die Runde besteht nur aus Narren), bekommt der erste Spieler den Stich.",
+      "Wird zuerst der Narr gespielt und der nächste Spieler eine Farbkarte, gilt ab diesem Moment Bedienzwang auf diese Farbe für den restlichen Stich.",
+      "Wird als Trumpfkarte zu Rundenbeginn Drache, Zauberer, Jongleur, Wolke oder Gestaltenwandler aufgedeckt, bestimmt der Kartengeber den Trumpf für die ganze Runde.",
+      "Wird Bombe, Fee, Narr, Hexe, Vampir oder Werwolf aufgedeckt, gibt es keinen Trumpf — die höchste Karte in der zu bedienenden Farbe gewinnt (außer eine höhere Sonderkarte wie Zauberer oder Drache sticht).",
+    ],
     specialCardsNote:
       "Kurzreferenz — bei Unklarheiten gilt die Anleitung der Jubiläumsausgabe.",
     specialCards: [
@@ -185,55 +195,53 @@ const de = {
         id: "fee",
         name: "Fee",
         description:
-          "Schlägt einen Zauberer, wenn beide im selben Stich liegen — sonst zählt sie wie ein Narr und verliert immer.",
+          "Sie ist die niedrigste Karte, schlägt aber den Drachen, falls dieser im selben Stich liegt.",
       },
       {
         id: "drache",
         name: "Drache",
         description:
-          "Sticht wie ein Zauberer alles — wird aber von der Fee bezwungen, wenn beide im selben Stich liegen.",
+          "Er ist die höchste Karte im Spiel und gewinnt jeden Stich (außer gegen die Fee und die Bombe).",
       },
       {
         id: "jongleur",
         name: "Jongleur",
         description:
-          "Zählt wahlweise als höchste oder niedrigste Karte der angespielten Farbe — der Spieler entscheidet beim Ausspielen.",
+          "Farbe auswählen, Wert 7½. Nach dem Stich gibt jeder Spieler eine Handkarte seiner Wahl verdeckt nach links weiter.",
       },
       {
         id: "wolke",
         name: "Wolke",
         description:
-          "Macht den Stich ungültig: Er zählt für niemanden als gemachter Stich, egal wer die höchste Karte hatte.",
+          "Farbe auswählen, Wert 9¾. Wer den Stich mit der Wolke gewinnt, muss seine Vorhersage um +1 oder -1 ändern.",
       },
       {
         id: "hexe",
         name: "Hexe",
         description:
-          "Zwingt den nächsten Spieler, seine höchste Karte der angespielten Farbe zu spielen, falls möglich.",
+          "Wenn du die Hexe spielst, legst du eine deiner Handkarten in den Stich und nimmst dir stattdessen eine beliebige Karte aus dem Stich auf die Hand. In der Rangfolge ist sie niedriger als ein Narr oder die Fee.",
       },
       {
         id: "vampir",
         name: "Vampir",
         description:
-          "Gewinnt den Stich und raubt zusätzlich einen Stich vom Spieler mit den bisher meisten Stichen.",
+          "Diese Karte kopiert die aktuelle Trumpfkarte. Wenn du einen Stich mit dem Vampir eröffnest, gelten die Regeln der kopierten Karte, und eine eventuelle Änderung der Trumpffarbe bleibt bis zum Ende der Stichrunde bestehen. Beim Werwolf wird eine neue Karte aufgedeckt; diese wird kopiert und gilt in diesem einen Stich als neuer Trumpf.",
       },
       {
         id: "werwolf",
         name: "Werwolf",
         description:
-          "Zählt nur als stärkster Trumpf, wenn er als letzte Karte im Stich gespielt wird — sonst wie eine normale Farbkarte.",
+          "Muss direkt am Anfang der Runde gelegt werden. Der Spieler erhält die Trumpfkarte.",
       },
       {
         id: "gestaltenwandler",
         name: "Gestaltenwandler",
-        description:
-          "Übernimmt die Sonderregel der zuerst gespielten Sonderkarte im selben Stich — ohne andere Sonderkarte zählt er normal.",
+        description: "Er kann entweder als Narr oder als Zauberer ausgespielt werden.",
       },
       {
         id: "bombe",
         name: "Bombe",
-        description:
-          "Beendet den Stich sofort ohne Sieger, sobald sie gespielt wird — dadurch ändert sich die Zahl der noch offenen Stiche.",
+        description: "Der Stich gehört niemandem.",
       },
     ],
   },
@@ -455,6 +463,7 @@ const de = {
     playerChangesUnavailable:
       "Bei Binokel können Spieler während des Spiels nicht geändert werden — die Runden hängen an den festen Teams.",
     removeConfirm: "{name} wirklich entfernen?",
+    nameTakenInGame: "Dieser Name wird schon von einem Spieler benutzt.",
   },
   celebration: {
     victory: "Sieg!",
@@ -522,6 +531,9 @@ const en: typeof de = {
     deleteFailed: "Deletion failed. Please try again.",
     namePlaceholder: "Name",
     fillAllNames: "Please give every player a name.",
+    duplicateNames: "Every player needs a unique name.",
+    nameTaken: "This name is already taken.",
+    colorTaken: "Already taken",
     copyLink: "Copy link",
     linkCopied: "Link copied!",
   },
@@ -648,6 +660,13 @@ const en: typeof de = {
       "If a Wizard is led first, no one has to follow suit in that trick.",
       "Trump beats any plain suit; with two equal cards, the first one played wins.",
     ],
+    specialCasesTitle: "Special cases",
+    specialCases: [
+      "If a trick contains only Fools, the first player to play wins the trick.",
+      "If the Fool is led and the next player plays a suit card, that suit must be followed for the rest of the trick from that point on.",
+      "If the Dragon, Wizard, Juggler, Cloud, or Shapeshifter is turned up as the trump card at the start of the round, the dealer chooses the trump suit for the whole round.",
+      "If the Bomb, Fairy, Fool, Witch, Vampire, or Werewolf is turned up, there is no trump — the highest card in the suit led wins (unless a higher special card such as the Wizard or Dragon beats it).",
+    ],
     specialCardsNote:
       "Quick reference — when in doubt, the Anniversary Edition rulebook applies.",
     specialCards: [
@@ -655,55 +674,53 @@ const en: typeof de = {
         id: "fee",
         name: "Fairy",
         description:
-          "Beats a Wizard if both are played in the same trick — otherwise it counts like a Fool and always loses.",
+          "The lowest card in the game — but it beats the Dragon if both are played in the same trick.",
       },
       {
         id: "drache",
         name: "Dragon",
         description:
-          "Beats everything like a Wizard — but is tamed by the Fairy if both are played in the same trick.",
+          "The highest card in the game — wins every trick (except against the Fairy and the Bomb).",
       },
       {
         id: "jongleur",
         name: "Juggler",
         description:
-          "Counts as either the highest or lowest card of the led suit — the player decides when playing it.",
+          "Choose a suit, value 7½. After the trick, every player passes one hand card of their choice face down to their left.",
       },
       {
         id: "wolke",
         name: "Cloud",
         description:
-          "Voids the trick: no one wins it, no matter who played the highest card.",
+          "Choose a suit, value 9¾. Whoever wins the trick with the Cloud must change their bid by +1 or -1.",
       },
       {
         id: "hexe",
         name: "Witch",
         description:
-          "Forces the next player to play their highest card of the led suit, if they have one.",
+          "When you play the Witch, you place one of your hand cards into the trick and take any card from the trick into your hand instead. In rank it's lower than a Fool or the Fairy.",
       },
       {
         id: "vampir",
         name: "Vampire",
         description:
-          "Wins the trick and also steals one trick from whoever currently has the most tricks.",
+          "This card copies the current trump card. If you lead a trick with the Vampire, the rules of the copied card apply, and any change of trump suit stays in effect until the end of that trick round. With the Werewolf, a new card is revealed; that card is copied and counts as the new trump for this one trick.",
       },
       {
         id: "werwolf",
         name: "Werewolf",
         description:
-          "Only counts as the strongest trump if played as the last card of the trick — otherwise it's a normal suit card.",
+          "Must be played right at the start of the round. The player receives the trump card.",
       },
       {
         id: "gestaltenwandler",
         name: "Shapeshifter",
-        description:
-          "Copies the special rule of the first special card played in the same trick — with none present, it's a normal card.",
+        description: "Can be played as either a Fool or a Wizard.",
       },
       {
         id: "bombe",
         name: "Bomb",
-        description:
-          "Instantly ends the trick with no winner as soon as it's played — this changes how many tricks are still up for grabs.",
+        description: "The trick belongs to no one.",
       },
     ],
   },
@@ -924,6 +941,7 @@ const en: typeof de = {
     playerChangesUnavailable:
       "In Binokel, players can't be changed mid-game — the rounds are tied to the fixed teams.",
     removeConfirm: "Really remove {name}?",
+    nameTakenInGame: "This name is already used by another player.",
   },
   celebration: {
     victory: "Victory!",

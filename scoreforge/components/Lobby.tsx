@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useI18n } from "@/lib/i18n";
+import { isNameTaken } from "@/lib/playerValidation";
 import { CopyLinkField } from "./CopyLinkField";
 import { QrCode } from "./QrCode";
 import type { BaseGameState, GameRecord, Player } from "@/app/types/gameTypes";
@@ -68,6 +69,12 @@ export function Lobby({
   const renderSlot = (player: Player) => {
     const isMine = player.claimedBy === clientId;
     const isTaken = !!player.claimedBy && !isMine;
+    const nameDraftTaken =
+      isMine &&
+      isNameTaken(
+        nameDraft,
+        players.filter((p) => p.id !== player.id),
+      );
 
     return (
       <div
@@ -91,21 +98,32 @@ export function Lobby({
         </div>
 
         {isMine ? (
-          <div className="flex gap-2 mt-3">
-            <input
-              className="bg-[#101820] px-3 py-2 rounded-md w-full"
-              value={nameDraft}
-              onChange={(event) => setNameDraft(event.target.value)}
-              placeholder={t.lobby.yourName}
-            />
-            <button
-              onClick={() => claim(player.id, nameDraft)}
-              disabled={busyPlayerId === player.id}
-              className="bg-(--accent-2) disabled:opacity-50 px-4 py-2 rounded-md font-bold text-(--on-accent) text-sm whitespace-nowrap"
-              type="button"
-            >
-              {t.common.save}
-            </button>
+          <div className="mt-3">
+            <div className="flex gap-2">
+              <input
+                className={`w-full rounded-md border bg-[#101820] px-3 py-2 outline-none ${
+                  nameDraftTaken
+                    ? "border-[#ef5b2a] focus:border-[#ef5b2a]"
+                    : "border-transparent"
+                }`}
+                value={nameDraft}
+                onChange={(event) => setNameDraft(event.target.value)}
+                placeholder={t.lobby.yourName}
+              />
+              <button
+                onClick={() => claim(player.id, nameDraft)}
+                disabled={busyPlayerId === player.id || nameDraftTaken}
+                className="bg-(--accent-2) disabled:opacity-50 px-4 py-2 rounded-md font-bold text-(--on-accent) text-sm whitespace-nowrap"
+                type="button"
+              >
+                {t.common.save}
+              </button>
+            </div>
+            {nameDraftTaken ? (
+              <p className="mt-1 text-[#ef5b2a] text-xs">
+                {t.common.nameTaken}
+              </p>
+            ) : null}
           </div>
         ) : !isTaken ? (
           <button

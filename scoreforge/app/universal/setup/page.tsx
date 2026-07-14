@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { getClientId } from "@/lib/clientId";
 import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
+import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
@@ -43,6 +44,8 @@ export default function UniversalSetup() {
   const [loading, setLoading] = useState(false);
 
   const allNamesFilled = players.every((player) => player.name.trim());
+  const duplicateNames = hasDuplicateNames(players);
+  const canStart = allNamesFilled && !duplicateNames;
 
   const endOptions: {
     value: UniversalEndCondition;
@@ -75,7 +78,7 @@ export default function UniversalSetup() {
   };
 
   const startGame = async () => {
-    if (!allNamesFilled) {
+    if (!canStart) {
       return;
     }
 
@@ -341,7 +344,7 @@ export default function UniversalSetup() {
 
             <button
               onClick={startGame}
-              disabled={loading || !allNamesFilled}
+              disabled={loading || !canStart}
               className="bg-(--accent) disabled:opacity-50 mt-5 px-5 py-4 rounded-lg w-full font-black text-(--on-accent) disabled:cursor-not-allowed"
             >
               {loading ? t.common.creatingGame : t.common.startGame}
@@ -349,6 +352,10 @@ export default function UniversalSetup() {
             {!allNamesFilled ? (
               <p className="mt-2 text-[#9fc9d5] text-xs text-center">
                 {t.common.fillAllNames}
+              </p>
+            ) : duplicateNames ? (
+              <p className="mt-2 text-[#ef5b2a] text-xs text-center">
+                {t.common.duplicateNames}
               </p>
             ) : null}
           </section>
