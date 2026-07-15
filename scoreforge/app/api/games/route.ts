@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getAuthedUser } from "@/lib/supabaseServer";
 import type { BaseGameState } from "@/app/types/gameTypes";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -73,11 +74,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = getSupabaseAdmin();
+  // Eingeloggten Nutzer serverseitig aus den Request-Cookies ermitteln (nie
+  // einer vom Client mitgeschickten ID vertrauen) - rein additiv, das
+  // bestehende clientId/hostId-Schreibrechte-Modell bleibt unverändert.
+  const user = await getAuthedUser();
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const { data, error } = await supabase
       .from("games")
-      .insert({ code: generateCode(), state })
+      .insert({ code: generateCode(), state, user_id: user?.id ?? null })
       .select()
       .single();
 

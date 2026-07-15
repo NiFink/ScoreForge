@@ -49,3 +49,18 @@ begin
     raise notice 'pg_cron ist nicht aktiviert - abgelaufene Spiele werden nur ausgeblendet, nicht geloescht.';
   end if;
 end $$;
+
+-- 5. Spiele optional mit einem Nutzerkonto verknüpfen (Supabase Auth),
+--    damit eingeloggte Nutzer ihre Spiele geräteübergreifend wiederfinden.
+--    Nullable: anonym erstellte Spiele funktionieren unverändert weiter.
+alter table public.games
+  add column if not exists user_id uuid references auth.users(id) on delete set null;
+
+create index if not exists games_user_id_idx on public.games (user_id);
+
+-- 6. user_id ist eine echte Konto-Kennung - im Gegensatz zu den übrigen,
+--    bewusst öffentlichen Spalten (Lobby-Browsing) darf sie NICHT über die
+--    public-read-Policy für anon/authenticated lesbar sein, sonst könnte
+--    jeder mit dem öffentlichen anon-Key direkt per REST alle Spiele eines
+--    Kontos korrelieren. Nur der Service-Role-Key (API-Routes) darf sie lesen.
+revoke select (user_id) on public.games from anon, authenticated;

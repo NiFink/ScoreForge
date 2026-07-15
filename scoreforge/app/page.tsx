@@ -4,39 +4,13 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n";
-import { gameThemes } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AccountButton } from "@/components/AccountButton";
+import { GameTypeGrid } from "@/components/GameTypeGrid";
 
 export default function Home() {
   const router = useRouter();
   const { t } = useI18n();
-
-  const games = [
-    {
-      title: "Wizard",
-      href: "/wizard/setup",
-      theme: gameThemes.wizard,
-      description: t.home.wizardDescription,
-    },
-    {
-      title: "Doomlings",
-      href: "/doomlings/setup",
-      theme: gameThemes.doomlings,
-      description: t.home.doomlingsDescription,
-    },
-    {
-      title: "Binokel",
-      href: "/binokel/setup",
-      theme: gameThemes.binokel,
-      description: t.home.binokelDescription,
-    },
-    {
-      title: "Universal",
-      href: "/universal/setup",
-      theme: gameThemes.universal,
-      description: t.home.universalDescription,
-    },
-  ];
 
   return (
     <main className="bg-[#101820] min-h-screen text-[#fff4c7]">
@@ -62,7 +36,10 @@ export default function Home() {
               </h1>
             </div>
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            <AccountButton />
+            <LanguageSwitcher />
+          </div>
         </header>
 
         <p className="mt-4 max-w-2xl text-[#d8d3bd] text-base leading-7">
@@ -74,28 +51,7 @@ export default function Home() {
           {t.home.gamesTitle}
         </h2>
 
-        <div className="gap-4 grid md:grid-cols-3 mt-4">
-          {games.map((game) => (
-            <button
-              key={game.title}
-              onClick={() => router.push(game.href)}
-              style={game.theme.style}
-              className="group flex flex-col bg-[#14222b]/90 hover:shadow-[0_18px_50px_rgba(0,0,0,0.35)] p-5 border border-(--accent)/25 hover:border-(--accent)/60 rounded-xl text-left transition hover:-translate-y-1"
-              type="button"
-            >
-              <div className={`h-2 rounded-full ${game.theme.gradient}`} />
-              <h3 className="mt-4 font-black text-(--accent) text-2xl">
-                {game.title}
-              </h3>
-              <p className="mt-2 text-[#d8d3bd] text-sm leading-6">
-                {game.description}
-              </p>
-              <span className="inline-block bg-(--accent) group-hover:brightness-110 mt-5 px-4 py-3 rounded-lg font-black text-(--on-accent) text-sm text-center">
-                {t.home.playNow}
-              </span>
-            </button>
-          ))}
-        </div>
+        <GameTypeGrid />
 
         {/* JOIN */}
         <div className="bg-[#14222b]/90 mt-6 p-5 border border-[#2aa6c8]/30 rounded-xl">

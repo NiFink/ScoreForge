@@ -48,6 +48,16 @@ export type LobbySummary = {
   code: string | null;
 };
 
+// Spiele-Übersicht im Konto-Bereich (geräteübergreifend, per user_id).
+export type AccountGameSummary = {
+  id: string;
+  gameType: GameType;
+  phase: string;
+  lobbyName: string | null;
+  playerCount: number;
+  createdAt: string;
+};
+
 // --- Doomlings ---
 
 export type DoomlingsScores = {
