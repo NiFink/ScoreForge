@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { format, useI18n } from "@/lib/i18n";
 import { themeForGameType } from "@/lib/gameThemes";
+import { computeRanks } from "@/lib/ranking";
 import type { GameType } from "@/app/types/gameTypes";
 import {
   renderShareCard,
@@ -49,6 +50,8 @@ export function WinnerCelebration({
   const winner = standings[0] ?? null;
   const isTie =
     standings.length > 1 && standings[0].score === standings[1].score;
+  // Punktgleiche Spieler teilen sich den Platz (1224-Ranking).
+  const ranks = computeRanks(standings.map((entry) => entry.score));
 
   const title = isTie
     ? t.celebration.tieTitle
@@ -91,12 +94,15 @@ export function WinnerCelebration({
       const shareStandings: ShareStanding[] = standings
         .slice(0, 6)
         .map((entry, index) => ({
-          rank: index + 1,
+          rank: ranks[index],
           name: entry.name,
           color: entry.color,
           score: String(entry.score),
           detail: entry.detail,
         }));
+
+      const gameUrl =
+        typeof window !== "undefined" ? window.location.href : undefined;
 
       const blob = await renderShareCard({
         gameLabel,
@@ -108,6 +114,7 @@ export function WinnerCelebration({
           ? `${lobbyName} · ${t.common.code} ${code}`
           : `ScoreForge · ${t.common.code} ${code}`,
         isTie,
+        url: gameUrl,
       });
 
       const shareText = isTie
@@ -116,12 +123,18 @@ export function WinnerCelebration({
             name: winner?.name ?? "",
             game: gameLabel,
           });
+      // Link zusätzlich im Text — viele Apps übernehmen beim Teilen einer
+      // Bilddatei das separate url-Feld nicht.
+      const shareTextWithLink = gameUrl
+        ? `${shareText}\n${gameUrl}`
+        : shareText;
 
       await shareOrDownloadImage(
         blob,
         `scoreforge-${gameType}-${code}.png`,
         title,
-        shareText,
+        shareTextWithLink,
+        gameUrl,
       );
     } catch (error) {
       console.error("Share failed", error);
@@ -183,7 +196,7 @@ export function WinnerCelebration({
               style={{ boxShadow: `inset 4px 0 0 ${entry.color}` }}
             >
               <span className="w-7 font-black text-lg text-center">
-                {index < 3 ? medals[index] : `${index + 1}.`}
+                {ranks[index] <= 3 ? medals[ranks[index] - 1] : `${ranks[index]}.`}
               </span>
               <span className="flex-1 min-w-0 font-bold truncate">
                 {entry.name}

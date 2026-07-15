@@ -21,6 +21,9 @@ export type BaseGameState = {
   // Startpunkte-Ausgleich für nachträglich hinzugefügte Spieler
   // (wird bei der Gesamtwertung aufaddiert)
   scoreAdjustments?: Record<string, number>;
+  // Pausiert: Lobby wird 30 statt 2 Tage aufbewahrt, damit man später
+  // weiterspielen kann, ohne dass sie zwischenzeitlich gelöscht wird.
+  paused?: boolean;
 };
 
 export type GameRecord<S extends BaseGameState = BaseGameState> = {

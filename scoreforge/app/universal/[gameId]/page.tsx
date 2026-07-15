@@ -224,6 +224,18 @@ export default function UniversalGame({
     mutateState((current) => ({ ...current, phase: "lobby" }));
   };
 
+  const pauseGame = () => {
+    mutateState(
+      (current) => ({ ...current, paused: true }),
+      undefined,
+      () => true,
+    );
+  };
+
+  const resumeGame = () => {
+    mutateState((current) => ({ ...current, paused: false }));
+  };
+
   const addPlayer = (name: string, color: string, startingPoints: number) => {
     mutateState((current) => {
       const newId = `player-${Date.now()}`;
@@ -375,9 +387,12 @@ export default function UniversalGame({
           minPlayers={2}
           maxPlayers={8}
           allowPlayerChanges
+          expiresAt={game.expires_at}
           onChangeWriteMode={changeWriteMode}
           onChangeDeviceMode={changeDeviceMode}
           onBackToLobby={backToLobby}
+          onPause={pauseGame}
+          onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
           onClose={() => setShowSettings(false)}

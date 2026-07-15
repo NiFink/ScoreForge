@@ -14,6 +14,7 @@ import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
+import { CurrentRoundCard } from "./CurrentRoundCard";
 import { GameModal } from "./GameModal";
 import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
@@ -59,6 +60,7 @@ export default function WizardGame({
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAllRounds, setShowAllRounds] = useState(false);
 
   const table = useMemo(() => state?.table ?? [], [state]);
 
@@ -141,6 +143,19 @@ export default function WizardGame({
       table.every((round) => isRoundComplete(round, state.players)),
     [state, table],
   );
+
+  // Aktuell zu spielende Runde: die erste noch unvollständige, sonst die letzte.
+  const currentRoundIndex = useMemo(() => {
+    if (!state || table.length === 0) {
+      return 0;
+    }
+
+    const firstIncomplete = table.findIndex(
+      (round) => !isRoundComplete(round, state.players),
+    );
+
+    return firstIncomplete === -1 ? table.length - 1 : firstIncomplete;
+  }, [state, table]);
 
   const celebrationStandings = useMemo(
     () =>
@@ -381,6 +396,18 @@ export default function WizardGame({
     mutateState((current) => ({ ...current, phase: "lobby" }));
   };
 
+  const pauseGame = () => {
+    mutateState(
+      (current) => ({ ...current, paused: true }),
+      undefined,
+      () => true,
+    );
+  };
+
+  const resumeGame = () => {
+    mutateState((current) => ({ ...current, paused: false }));
+  };
+
   const addPlayer = (name: string, color: string, startingPoints: number) => {
     mutateState((current) => {
       const newId = `player-${Date.now()}`;
@@ -578,9 +605,12 @@ export default function WizardGame({
             minPlayers={3}
             maxPlayers={6}
             allowPlayerChanges
+            expiresAt={game.expires_at}
             onChangeWriteMode={changeWriteMode}
             onChangeDeviceMode={changeDeviceMode}
             onBackToLobby={backToLobby}
+            onPause={pauseGame}
+            onResume={resumeGame}
             onAddPlayer={addPlayer}
             onRemovePlayer={removePlayer}
             onClose={() => setShowSettings(false)}
@@ -708,14 +738,40 @@ export default function WizardGame({
           rankings={rankings}
         />
 
-        <RoundTable
+        <CurrentRoundCard
           players={state.players}
-          table={table}
-          totals={totals}
+          round={table[currentRoundIndex]}
+          roundIndex={currentRoundIndex}
+          totalRounds={table.length}
           startPlayerIndex={resolvedStartPlayerIndex}
-          onOpenRound={openRound}
-          onOpenPlayer={openPlayerInCurrentRound}
+          onOpenPlayer={(playerIndex) =>
+            openRound(currentRoundIndex, undefined, playerIndex)
+          }
+          onStart={() => openRound(currentRoundIndex)}
         />
+
+        <button
+          onClick={() => setShowAllRounds((current) => !current)}
+          className="mb-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+          type="button"
+        >
+          {showAllRounds
+            ? t.wizard.hidePreviousRounds
+            : t.wizard.showPreviousRounds}
+        </button>
+
+        {showAllRounds ? (
+          <div className="sf-fade-in mb-4">
+            <RoundTable
+              players={state.players}
+              table={table}
+              totals={totals}
+              startPlayerIndex={resolvedStartPlayerIndex}
+              onOpenRound={openRound}
+              onOpenPlayer={openPlayerInCurrentRound}
+            />
+          </div>
+        ) : null}
 
         <button
           onClick={() => setShowRules(true)}
@@ -787,9 +843,12 @@ export default function WizardGame({
           minPlayers={3}
           maxPlayers={6}
           allowPlayerChanges
+          expiresAt={game.expires_at}
           onChangeWriteMode={changeWriteMode}
           onChangeDeviceMode={changeDeviceMode}
           onBackToLobby={backToLobby}
+          onPause={pauseGame}
+          onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
           onClose={() => setShowSettings(false)}

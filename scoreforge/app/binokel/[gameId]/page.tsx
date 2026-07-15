@@ -188,6 +188,18 @@ export default function BinokelGame({
     mutateState((current) => ({ ...current, phase: "lobby" }));
   };
 
+  const pauseGame = () => {
+    mutateState(
+      (current) => ({ ...current, paused: true }),
+      undefined,
+      () => true,
+    );
+  };
+
+  const resumeGame = () => {
+    mutateState((current) => ({ ...current, paused: false }));
+  };
+
   if (notFound) {
     return (
       <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
@@ -274,9 +286,12 @@ export default function BinokelGame({
           minPlayers={3}
           maxPlayers={4}
           allowPlayerChanges={false}
+          expiresAt={game.expires_at}
           onChangeWriteMode={changeWriteMode}
           onChangeDeviceMode={changeDeviceMode}
           onBackToLobby={backToLobby}
+          onPause={pauseGame}
+          onResume={resumeGame}
           onAddPlayer={() => {}}
           onRemovePlayer={() => {}}
           onClose={() => setShowSettings(false)}

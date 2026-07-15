@@ -152,6 +152,13 @@ export function GameModal({
               points: totals[activePlayer.id] ?? 0,
             })}
           </p>
+          {modalPhase === "actual" ? (
+            <p className="mt-1 font-bold text-(--accent) text-sm">
+              {format(t.wizard.predictedForActual, {
+                bid: currentRound[activePlayer.id]?.bid ?? 0,
+              })}
+            </p>
+          ) : null}
 
           <label className="block mt-5">
             <span className="font-bold text-[#f7e7ad] text-sm">

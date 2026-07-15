@@ -33,10 +33,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { state, clientId, finished } = body as {
+  const { state, clientId, finished, paused } = body as {
     state?: BaseGameState;
     clientId?: string;
     finished?: boolean;
+    paused?: boolean;
   };
 
   if (!state || typeof state !== "object" || !clientId) {
@@ -77,6 +78,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (oneHour < current) {
       update.expires_at = oneHour.toISOString();
+    }
+  }
+
+  // Pausierte Spiele bleiben 30 statt 2 Tage erhalten, damit sie später
+  // einfach weitergespielt werden können, ohne zwischendurch zu verfallen.
+  if (paused === true) {
+    const thirtyDays = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const current = new Date(
+      update.expires_at ?? (existing.expires_at as string),
+    );
+
+    if (thirtyDays > current) {
+      update.expires_at = thirtyDays.toISOString();
     }
   }
 

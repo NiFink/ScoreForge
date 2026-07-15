@@ -88,10 +88,12 @@ export function useGame<S extends BaseGameState>(gameId: string) {
   // Lokale Änderung sofort anzeigen und an den Server schicken;
   // Realtime bestätigt sie danach auf allen Geräten (last-write-wins).
   // isFinished meldet dem Server, dass das Spiel vorbei ist (Lobby läuft
-  // dann nur noch 1 Stunde weiter).
+  // dann nur noch 1 Stunde weiter). isPaused verlängert die Lobby stattdessen
+  // auf 30 Tage, damit pausierte Spiele nicht zwischendurch verschwinden.
   const mutateState = (
     updater: (current: S) => S,
     isFinished?: (next: S) => boolean,
+    isPaused?: (next: S) => boolean,
   ) => {
     const current = gameRef.current;
 
@@ -112,6 +114,7 @@ export function useGame<S extends BaseGameState>(gameId: string) {
         state: nextState,
         clientId,
         finished: isFinished ? isFinished(nextState) : false,
+        paused: isPaused ? isPaused(nextState) : false,
       }),
     });
   };

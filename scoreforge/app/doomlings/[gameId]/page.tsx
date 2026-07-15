@@ -14,6 +14,7 @@ import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
+import { computeRankMap, computeRanks } from "@/lib/ranking";
 import { StartCounterModal } from "./StartCounterModal";
 import type {
   DeviceMode,
@@ -193,6 +194,18 @@ export default function DoomlingsGame({
     mutateState((current) => ({ ...current, phase: "lobby" }));
   };
 
+  const pauseGame = () => {
+    mutateState(
+      (current) => ({ ...current, paused: true }),
+      undefined,
+      () => true,
+    );
+  };
+
+  const resumeGame = () => {
+    mutateState((current) => ({ ...current, paused: false }));
+  };
+
   // Startpunkte landen in der Zahlen-Kategorie — dort sichtbar und editierbar
   const addPlayer = (name: string, color: string, startingPoints: number) => {
     mutateState((current) => {
@@ -329,9 +342,12 @@ export default function DoomlingsGame({
           minPlayers={2}
           maxPlayers={6}
           allowPlayerChanges
+          expiresAt={game.expires_at}
           onChangeWriteMode={changeWriteMode}
           onChangeDeviceMode={changeDeviceMode}
           onBackToLobby={backToLobby}
+          onPause={pauseGame}
+          onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
           onClose={() => setShowSettings(false)}
@@ -543,7 +559,6 @@ export default function DoomlingsGame({
                             <input
                               key={`${key}-${player.id}-${playerScores[key] ?? 0}`}
                               type="number"
-                              inputMode="numeric"
                               defaultValue={playerScores[key] ?? 0}
                               onBlur={(event) => {
                                 const next = Number(event.target.value);
@@ -669,7 +684,6 @@ export default function DoomlingsGame({
                       <input
                         key={`${scoreKey}-${player.id}-${value}`}
                         type="number"
-                        inputMode="numeric"
                         defaultValue={value}
                         onBlur={(event) => {
                           const next = Number(event.target.value);
@@ -737,6 +751,14 @@ export default function DoomlingsGame({
     const revealIndex = Math.min(state.revealIndex ?? 0, revealOrder.length);
     const revealed = revealOrder.slice(0, revealIndex);
     const isDone = revealIndex >= revealOrder.length;
+    // Punktgleiche Spieler teilen sich den Platz — Rang je Spieler-ID aus der
+    // absteigend sortierten Reihenfolge berechnen (revealOrder ist aufsteigend).
+    const revealRankMap = computeRankMap(
+      [...revealOrder].reverse().map((player) => ({
+        id: player.id,
+        score: getScoreTotal(getScores(player.id), scoreKeys),
+      })),
+    );
 
     return (
       <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
@@ -749,9 +771,8 @@ export default function DoomlingsGame({
             </p>
           ) : (
             <div className="space-y-3">
-              {[...revealed].reverse().map((player, reverseIndex) => {
-                const index = revealed.length - 1 - reverseIndex;
-                const rank = revealOrder.length - index;
+              {[...revealed].reverse().map((player) => {
+                const rank = revealRankMap[player.id];
                 const scores = getScores(player.id);
                 const detail = scoreKeys
                   .map((key) => scores[key] ?? 0)
@@ -788,7 +809,9 @@ export default function DoomlingsGame({
               {isDone
                 ? t.doomlings.revealToResults
                 : format(t.doomlings.revealNextLabel, {
-                    rank: revealOrder.length - revealIndex,
+                    rank:
+                      revealRankMap[revealOrder[revealIndex]?.id ?? ""] ??
+                      revealOrder.length - revealIndex,
                   })}
             </button>
           ) : (
@@ -807,6 +830,7 @@ export default function DoomlingsGame({
   const ranked = [...state.players].sort(
     (left, right) => getTotal(right.id) - getTotal(left.id),
   );
+  const finishedRanks = computeRanks(ranked.map((player) => getTotal(player.id)));
   const winner = ranked[0];
   const showCelebration = !!winner && !celebrationDismissed;
   const celebrationStandings = ranked.map((player) => {
@@ -850,7 +874,7 @@ export default function DoomlingsGame({
                 style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
               >
                 <p className="w-8 font-black text-[#9fc9d5] text-xl">
-                  {index + 1}.
+                  {finishedRanks[index]}.
                 </p>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold truncate">{player.name}</p>

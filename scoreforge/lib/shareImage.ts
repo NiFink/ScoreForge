@@ -17,6 +17,9 @@ export type ShareCardData = {
   standings: ShareStanding[];
   footer: string; // z.B. "ScoreForge · Code ABCD"
   isTie?: boolean;
+  // Link zum Spiel — wird zusätzlich mit ins Bild gedruckt, damit er auch
+  // erhalten bleibt, wenn nur das Bild (ohne Begleittext) weitergeleitet wird.
+  url?: string;
 };
 
 const WIDTH = 1080;
@@ -236,7 +239,14 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
   ctx.textAlign = "center";
   ctx.fillStyle = "#5f7f92";
   ctx.font = `600 28px ${FONT}`;
-  ctx.fillText(data.footer, WIDTH / 2, HEIGHT - 48);
+  ctx.fillText(data.footer, WIDTH / 2, data.url ? HEIGHT - 76 : HEIGHT - 48);
+
+  // Link zum Spiel — bleibt so auch am Bild selbst erhalten.
+  if (data.url) {
+    ctx.fillStyle = data.accent2Color;
+    ctx.font = `700 26px ${FONT}`;
+    ctx.fillText(truncate(ctx, data.url, WIDTH - 160), WIDTH / 2, HEIGHT - 38);
+  }
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -251,11 +261,15 @@ export async function renderShareCard(data: ShareCardData): Promise<Blob> {
 
 // Teilt das Bild über die Web-Share-API oder lädt es als Fallback herunter.
 // Gibt true zurück, wenn geteilt wurde, false wenn heruntergeladen.
+// url wird zusätzlich zum Bild mitgegeben (falls die Ziel-App das Feld
+// nutzt); im Fließtext (shareText) sollte der Link zur Sicherheit trotzdem
+// enthalten sein, da viele Apps beim Teilen von Dateien die URL ignorieren.
 export async function shareOrDownloadImage(
   blob: Blob,
   fileName: string,
   shareTitle: string,
   shareText: string,
+  shareUrl?: string,
 ): Promise<boolean> {
   const file = new File([blob], fileName, { type: "image/png" });
 
@@ -269,7 +283,12 @@ export async function shareOrDownloadImage(
     typeof navigator.share === "function"
   ) {
     try {
-      await navigator.share({ files: [file], title: shareTitle, text: shareText });
+      await navigator.share({
+        files: [file],
+        title: shareTitle,
+        text: shareText,
+        ...(shareUrl ? { url: shareUrl } : {}),
+      });
       return true;
     } catch (error) {
       // Abbruch durch den Nutzer -> nicht als Fehler behandeln, kein Download.
@@ -280,13 +299,13 @@ export async function shareOrDownloadImage(
     }
   }
 
-  const url = URL.createObjectURL(blob);
+  const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  anchor.href = url;
+  anchor.href = objectUrl;
   anchor.download = fileName;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   return false;
 }

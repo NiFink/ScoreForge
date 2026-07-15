@@ -21,9 +21,13 @@ type GameSettingsModalProps = {
   maxPlayers: number;
   // Binokel: Runden hängen an festen Teams -> kein Hinzufügen/Entfernen
   allowPlayerChanges: boolean;
+  // Bis wann die Lobby aktuell aufbewahrt wird (game.expires_at)
+  expiresAt?: string;
   onChangeWriteMode: (mode: WriteMode) => void;
   onChangeDeviceMode: (mode: DeviceMode) => void;
   onBackToLobby: () => void;
+  onPause: () => void;
+  onResume: () => void;
   onAddPlayer: (name: string, color: string, startingPoints: number) => void;
   onRemovePlayer: (playerId: string) => void;
   onClose: () => void;
@@ -58,14 +62,17 @@ export function GameSettingsModal({
   minPlayers,
   maxPlayers,
   allowPlayerChanges,
+  expiresAt,
   onChangeWriteMode,
   onChangeDeviceMode,
   onBackToLobby,
+  onPause,
+  onResume,
   onAddPlayer,
   onRemovePlayer,
   onClose,
 }: GameSettingsModalProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [nameDraft, setNameDraft] = useState("");
   const [startMode, setStartMode] = useState<StartingPointsMode>("zero");
   const [colorDraft, setColorDraft] = useState<string | null>(null);
@@ -190,6 +197,47 @@ export function GameSettingsModal({
             </p>
           </div>
         ) : null}
+
+        {/* PAUSE / RESUME */}
+        <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
+          {t.settings.pauseSection}
+        </p>
+        {state.paused ? (
+          <div className="mt-2">
+            <span className="inline-block bg-(--accent)/15 px-2 py-1 rounded-md font-bold text-(--accent-2) text-xs">
+              {t.settings.pausedBadge}
+            </span>
+            {expiresAt ? (
+              <p className="mt-2 text-[#9fc9d5] text-xs">
+                {format(t.settings.pausedUntil, {
+                  date: new Date(expiresAt).toLocaleDateString(
+                    lang === "de" ? "de-DE" : "en-US",
+                  ),
+                })}
+              </p>
+            ) : null}
+            <button
+              onClick={onResume}
+              className="mt-2 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              type="button"
+            >
+              {t.settings.resumeButton}
+            </button>
+          </div>
+        ) : (
+          <div className="mt-2">
+            <button
+              onClick={onPause}
+              className="px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              type="button"
+            >
+              {t.settings.pauseButton}
+            </button>
+            <p className="mt-1 text-[#9fc9d5] text-xs">
+              {t.settings.pauseHint}
+            </p>
+          </div>
+        )}
 
         {/* PLAYERS */}
         <p className="mt-5 font-bold text-[#f7e7ad] text-sm">

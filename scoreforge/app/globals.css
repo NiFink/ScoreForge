@@ -90,10 +90,27 @@ body {
   }
 }
 
+/* Wizard: vorherige Runden blenden beim Aufklappen sanft ein */
+.sf-fade-in {
+  animation: sf-fade-in 0.35s ease-out both;
+}
+
+@keyframes sf-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sf-confetti,
   .sf-trophy,
-  .sf-reveal-pop {
+  .sf-reveal-pop,
+  .sf-fade-in {
     animation: none;
   }
   .sf-confetti {
