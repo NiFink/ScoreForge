@@ -102,9 +102,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
-      });
+      // Kein next-Parameter mehr nötig: der Callback erkennt type=recovery
+      // aus dem E-Mail-Link selbst und leitet auf /auth/reset-password.
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        { redirectTo: `${window.location.origin}/auth/callback` },
+      );
+
+      // Absichtlich nicht verraten, ob die E-Mail überhaupt existiert - aber
+      // echte Fehler (z. B. Rate-Limit) müssen sichtbar bleiben, sonst denkt
+      // der Nutzer, eine Mail sei unterwegs, obwohl der Versand fehlgeschlagen ist.
+      if (resetError && resetError.code !== "user_not_found") {
+        setError(t.auth.genericError);
+        return;
+      }
+
       setInfo(t.auth.resetLinkSent);
     } catch {
       setError(t.auth.genericError);
