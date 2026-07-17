@@ -2,7 +2,7 @@ import type {
   BinokelParty,
   BinokelRound,
   Player,
-} from "../types/gameTypes";
+} from "@/types/gameTypes";
 
 // Bei 4 Spielern spielen Gegenüber zusammen (1+3 gegen 2+4)
 export function getParties(players: Player[]): BinokelParty[] {

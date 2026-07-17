@@ -7,8 +7,8 @@ import type {
   BinokelParty,
   BinokelRound,
   BinokelSpecial,
-} from "../../types/gameTypes";
-import { createEmptyRound, roundToTens } from "../../Utils/binokelUtils";
+} from "@/types/gameTypes";
+import { createEmptyRound, roundToTens } from "@/features/binokel/utils";
 import { MeldCalculator } from "./MeldCalculator";
 
 // Easy Mode ist eine Geräte-Einstellung — jeder Spieler entscheidet selbst.

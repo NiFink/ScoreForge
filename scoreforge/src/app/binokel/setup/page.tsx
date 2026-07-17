@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
+import { createGame } from "@/lib/games/createGame";
 import { colorOptions } from "@/lib/colors";
 import { format, useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
@@ -18,7 +19,7 @@ import type {
   DeviceMode,
   Player,
   WriteMode,
-} from "../../types/gameTypes";
+} from "@/types/gameTypes";
 
 const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -90,18 +91,12 @@ export default function BinokelSetup() {
         rounds: [],
       };
 
-      const response = await fetch("/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ state }),
-      });
+      const game = await createGame(state);
 
-      if (!response.ok) {
-        console.error(await response.json());
+      if (!game) {
         return;
       }
 
-      const { game } = (await response.json()) as { game: { id: string } };
       router.push(`/binokel/${game.id}`);
     } catch (err) {
       console.error(err);

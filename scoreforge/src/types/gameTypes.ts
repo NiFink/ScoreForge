@@ -15,6 +15,9 @@ export type BaseGameState = {
   writeMode: WriteMode;
   playerCount: number;
   players: Player[];
+  // Nicht-autoritativer Hinweis auf das erstellende Gerät. Die Host-Berechtigung
+  // wird NICHT hierüber geprüft (die Spalte ist öffentlich lesbar), sondern
+  // serverseitig über das gehashte Host-Geheimnis - siehe lib/games/hostAuth.
   hostId: string;
   phase: string;
   lobbyName?: string;
@@ -42,9 +45,10 @@ export type LobbySummary = {
   playerCount: number;
   claimedCount: number;
   createdAt: string;
-  // Ob die anfragende Person selbst der Host ist (per clientId erkannt).
+  // isMine/code kommen NICHT von der API (der PIN darf nicht über die
+  // öffentliche Liste leaken), sondern werden clientseitig aus dem lokalen
+  // Host-Store ergänzt (lib/games/hostSession) - siehe join/page.tsx.
   isMine: boolean;
-  // Nur bei isMine gesetzt — der Code ist sonst bewusst der PIN.
   code: string | null;
 };
 

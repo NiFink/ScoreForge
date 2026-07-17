@@ -1,12 +1,12 @@
 "use client";
 
 import { format, useI18n } from "@/lib/i18n";
-import type { ModalPhase, Player, ScoreTable } from "../../types/wizardTypes";
+import type { ModalPhase, Player, ScoreTable } from "@/types/wizardTypes";
 import {
   getRoundScore,
   getRoundStartIndex,
   isRoundUnlocked,
-} from "../../Utils/wizardUtils";
+} from "@/features/wizard/utils";
 
 type RoundTableProps = {
   players: Player[];

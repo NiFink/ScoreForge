@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScoreForge
+
+Punkte-Tracker für Kartenspiele (Wizard, Binokel, Doomlings, Universal) mit
+geteilten Multi-Device-Lobbys in Echtzeit. Next.js (App Router) + Supabase.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Öffne [http://localhost:3000](http://localhost:3000). Einstiegspunkt ist
+`src/app/page.tsx`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment (`.env.local`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Zweck |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase-Projekt-URL (Client + Server) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Öffentlicher Anon/Publishable-Key (nur Lesen via RLS) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Nur serverseitig.** Umgeht RLS – niemals ins Client-Bundle |
 
-## Learn More
+Datenbank-Setup: `supabase/setup.sql` im Supabase-SQL-Editor ausführen
+(idempotent, kann wiederholt werden).
 
-To learn more about Next.js, take a look at the following resources:
+## Projektstruktur
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Der gesamte Anwendungscode liegt unter `src/`; Konfigurationsdateien bleiben
+im Projekt-Root. Der Import-Alias `@/*` zeigt auf `src/*`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/              # NUR Routing: Pages, Layouts, Route Handler (API)
+    api/            #   Server-Endpunkte (Autorisierung + Service-Role-Zugriff)
+    <spiel>/        #   Route + kolokierte, route-spezifische UI-Komponenten
+  components/        # Global geteilte UI-Komponenten
+  features/          # Domänenlogik je Spiel (Scoring), framework-unabhängig
+    wizard/ binokel/ doomlings/
+  lib/
+    supabase/        # admin (Service-Role) / server (Cookie-Session) / client (Browser)
+    games/           # Datenzugriff-Helfer (öffentliche Spalten, Limits)
+    i18n/            # Übersetzungen
+    *.ts             # ranking, colors, gameThemes, useGame, playerValidation …
+  types/             # Geteilte Domänen-Typen
+  proxy.ts           # Middleware (in Next 16 „Proxy"): frischt Auth-Cookies auf
+```
 
-## Deploy on Vercel
+Route-spezifische Komponenten liegen bewusst kolokiert bei ihrer Route
+(App-Router-Idiom); nur wiederverwendbare bzw. spielübergreifende Logik wandert
+nach `features/`, `lib/` oder `components/`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sicherheitsmodell (Kurzfassung)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **RLS an, Schreiben nur über API.** Der Browser (Anon-Key) darf nur lesen;
+  alle Mutationen laufen über Route Handler mit dem Service-Role-Key.
+- **`user_id` bleibt privat.** In der DB per `REVOKE` vor Anon/Authenticated
+  verborgen. Da die API den Service-Role-Key nutzt (umgeht Grants), geben die
+  Routes **nie** `select("*")` zurück, sondern nur `GAME_CLIENT_COLUMNS`
+  (siehe `src/lib/games/records.ts`).
+- **Größen-/Längenlimits** auf `state` und Spielernamen, da der Service-Role-
+  Client RLS umgeht.
+- **Verifizierte Sessions** via `supabase.auth.getUser()` (nicht `getSession()`)
+  für Autorisierungsentscheidungen; Auth-Redirects sind auf interne Pfade
+  beschränkt (kein Open-Redirect).
+
+> Bekannte Restrisiken sind im Code an den betroffenen Stellen kommentiert
+> (z. B. dass `hostId`/`code` in der öffentlich lesbaren `state`-Spalte liegen).
+
+## Scripts
+
+| Script | Wirkung |
+| --- | --- |
+| `npm run dev` | Dev-Server |
+| `npm run build` | Produktions-Build (inkl. TypeScript-Check) |
+| `npm run lint` | ESLint |

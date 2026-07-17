@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { GAME_CLIENT_COLUMNS } from "@/lib/games/records";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   if (gameId) {
     const { data, error } = await supabase
       .from("games")
-      .select("*")
+      .select(GAME_CLIENT_COLUMNS)
       .eq("id", gameId)
       .gt("expires_at", nowIso)
       .maybeSingle();
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("games")
-    .select("*")
+    .select(GAME_CLIENT_COLUMNS)
     .eq("code", normalizedCode)
     .gt("expires_at", nowIso)
     .maybeSingle();

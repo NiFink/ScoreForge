@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import type { Player } from "../../types/wizardTypes";
+import type { Player } from "@/types/wizardTypes";
 
 type StartPlayerModalProps = {
   players: Player[];

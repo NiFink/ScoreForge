@@ -20,8 +20,8 @@ import { StartPlayerModal } from "./StartPlayerModal";
 import { RoundTable } from "./RoundTable";
 import { ScoreSummary } from "./ScoreSummary";
 import { WizardRules } from "./WizardRules";
-import type { GameState, ModalPhase, RoundEntry } from "../../types/wizardTypes";
-import type { DeviceMode, WriteMode } from "../../types/gameTypes";
+import type { GameState, ModalPhase, RoundEntry } from "@/types/wizardTypes";
+import type { DeviceMode, WriteMode } from "@/types/gameTypes";
 import {
   getRoundScore,
   getActualRoundOptions,
@@ -30,7 +30,7 @@ import {
   isRoundPhaseComplete,
   isRoundUnlocked,
   rankPlayers,
-} from "../../Utils/wizardUtils";
+} from "@/features/wizard/utils";
 
 export default function WizardGame({
   params,

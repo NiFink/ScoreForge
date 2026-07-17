@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
 import { getClientId } from "@/lib/clientId";
-import type { BaseGameState, GameRecord } from "@/app/types/gameTypes";
+import { forgetHostGame, getHostSession } from "@/lib/games/hostSession";
+import type { BaseGameState, GameRecord } from "@/types/gameTypes";
 
 const subscribeToNothing = () => () => {};
 const getServerClientId = () => "";
@@ -19,6 +20,16 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     subscribeToNothing,
     getClientId,
     getServerClientId,
+  );
+
+  // Host ist, wer für dieses Spiel lokal ein Host-Geheimnis hat (nur auf dem
+  // erstellenden Gerät). Rein clientseitiger UI-Hinweis - die eigentliche
+  // Durchsetzung passiert serverseitig über den Hash-Abgleich (hostAuth).
+  // Wie clientId SSR-sicher über useSyncExternalStore (Server: kein Host).
+  const hasHostSecret = useSyncExternalStore(
+    subscribeToNothing,
+    () => getHostSession(gameId) !== null,
+    () => false,
   );
 
   // Spielstand initial laden
@@ -69,7 +80,20 @@ export function useGame<S extends BaseGameState>(gameId: string) {
           filter: `id=eq.${gameId}`,
         },
         (payload) => {
-          const next = payload.new as GameRecord<S>;
+          const incoming = payload.new as Partial<GameRecord<S>>;
+          const previous = gameRef.current;
+
+          // Nur den Spielstand (state) und expires_at aktualisieren. code/id
+          // sind unveränderlich und kommen nach dem code-REVOKE (siehe
+          // setup.sql) evtl. nicht mehr in der Realtime-Payload mit - deshalb
+          // den bereits bekannten Wert beibehalten.
+          const next = {
+            ...(previous ?? {}),
+            ...incoming,
+            id: previous?.id ?? (incoming.id as string),
+            code: previous?.code ?? (incoming.code as string) ?? "",
+          } as GameRecord<S>;
+
           gameRef.current = next;
           setGame(next);
         },
@@ -82,7 +106,13 @@ export function useGame<S extends BaseGameState>(gameId: string) {
   }, [gameId]);
 
   const state = game?.state ?? null;
-  const isHost = !!state && !!clientId && state.hostId === clientId;
+  // Legacy-Brücke: Spiele, die vor der host_secret-Migration erstellt wurden,
+  // haben keinen lokalen Host-Store-Eintrag. Damit ihre Hosts nicht die
+  // Host-UI (und im "host"-Modus das Schreiben) verlieren, hier zusätzlich der
+  // alte clientId/hostId-Abgleich. Rein UI - der Server autorisiert weiterhin
+  // pro Spiel korrekt (neue Spiele verlangen das Geheimnis, siehe hostAuth).
+  const isHost =
+    hasHostSecret || (!!clientId && !!state && state.hostId === clientId);
   const canWrite = isHost || state?.writeMode === "all";
 
   // Lokale Änderung sofort anzeigen und an den Server schicken;
@@ -113,6 +143,9 @@ export function useGame<S extends BaseGameState>(gameId: string) {
       body: JSON.stringify({
         state: nextState,
         clientId,
+        // Host-Geheimnis beweist die Berechtigung im "host"-Modus (null bei
+        // Nicht-Hosts, die nur im "all"-Modus schreiben dürfen).
+        hostSecret: getHostSession(current.id)?.secret ?? null,
         finished: isFinished ? isFinished(nextState) : false,
         paused: isPaused ? isPaused(nextState) : false,
       }),
@@ -157,8 +190,16 @@ export function useGame<S extends BaseGameState>(gameId: string) {
       const response = await fetch(`/api/games/${current.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId }),
+        body: JSON.stringify({
+          clientId,
+          hostSecret: getHostSession(current.id)?.secret ?? null,
+        }),
       });
+
+      if (response.ok) {
+        // Lokalen Host-Nachweis aufräumen - das Spiel gibt es nicht mehr.
+        forgetHostGame(current.id);
+      }
 
       return response.ok;
     } catch {

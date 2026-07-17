@@ -3,7 +3,7 @@ import type {
   RoundData,
   RoundEntry,
   ScoreTable,
-} from "../types/wizardTypes";
+} from "@/types/wizardTypes";
 
 const emptyEntry = (): RoundEntry => ({ bid: null, actual: null });
 

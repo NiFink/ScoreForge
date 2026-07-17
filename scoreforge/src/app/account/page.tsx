@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { format, useI18n } from "@/lib/i18n";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
 import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { GameTypeGrid } from "@/components/GameTypeGrid";
-import type { AccountGameSummary } from "@/app/types/gameTypes";
+import type { AccountGameSummary } from "@/types/gameTypes";
 
 export default function AccountPage() {
   const router = useRouter();

@@ -21,13 +21,13 @@ import type {
   BinokelState,
   DeviceMode,
   WriteMode,
-} from "../../types/gameTypes";
+} from "@/types/gameTypes";
 import {
   getBinokelTotals,
   getParties,
   isRoundComplete,
   scoreBinokelRound,
-} from "../../Utils/binokelUtils";
+} from "@/features/binokel/utils";
 
 export default function BinokelGame({
   params,

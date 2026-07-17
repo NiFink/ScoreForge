@@ -1,8 +1,8 @@
 "use client";
 
 import { format, useI18n } from "@/lib/i18n";
-import type { Player, ScoreTable } from "../../types/wizardTypes";
-import { getRoundScore, getRoundStartIndex } from "../../Utils/wizardUtils";
+import type { Player, ScoreTable } from "@/types/wizardTypes";
+import { getRoundScore, getRoundStartIndex } from "@/features/wizard/utils";
 
 type CurrentRoundCardProps = {
   players: Player[];

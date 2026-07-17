@@ -6,7 +6,7 @@ import type {
   Player,
   RoundEntry,
   ScoreTable,
-} from "../../types/wizardTypes";
+} from "@/types/wizardTypes";
 
 type GameModalProps = {
   activePlayer: Player;

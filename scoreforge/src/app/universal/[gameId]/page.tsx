@@ -20,7 +20,7 @@ import type {
   UniversalRound,
   UniversalState,
   WriteMode,
-} from "../../types/gameTypes";
+} from "@/types/gameTypes";
 
 function getTotals(
   rounds: UniversalRound[],

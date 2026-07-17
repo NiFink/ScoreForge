@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import type { DeviceMode, WriteMode } from "@/app/types/gameTypes";
+import type { DeviceMode, WriteMode } from "@/types/gameTypes";
 
 type SetupModesProps = {
   deviceMode: DeviceMode;

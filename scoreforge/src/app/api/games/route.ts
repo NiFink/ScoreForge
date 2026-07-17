@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { getAuthedUser } from "@/lib/supabaseServer";
-import type { BaseGameState } from "@/app/types/gameTypes";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthedUser } from "@/lib/supabase/server";
+import { GAME_CLIENT_COLUMNS, isStateWithinLimit } from "@/lib/games/records";
+import { hashHostSecret } from "@/lib/games/hostAuth";
+import type { BaseGameState } from "@/types/gameTypes";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
@@ -15,15 +17,16 @@ function generateCode() {
   ).join("");
 }
 
-// Öffentliche Lobby-Übersicht - der Code (= PIN) wird nur an den Ersteller
-// selbst herausgegeben (per clientId-Abgleich mit dem gespeicherten hostId).
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const clientId = searchParams.get("clientId")?.trim() || null;
-
+// Öffentliche Lobby-Übersicht. Bewusst OHNE `code` und ohne "isMine": der PIN
+// wird nicht mehr über die Liste herausgegeben (sonst könnte man ihn für jede
+// gelistete Lobby abgreifen). Ob eine Lobby dem Betrachter gehört und wie ihr
+// Code lautet, weiß der Client selbst aus seinem lokalen Host-Store
+// (lib/games/hostSession) - siehe join/page.tsx.
+export async function GET() {
   const { data, error } = await getSupabaseAdmin()
     .from("games")
-    .select("id, code, created_at, expires_at, state")
+    // kein `code`: die Liste ist öffentlich, der PIN darf hier nicht auftauchen
+    .select("id, created_at, state")
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(30);
@@ -35,24 +38,15 @@ export async function GET(request: Request) {
   const lobbies = (data ?? [])
     .map((row) => ({ ...row, state: row.state as BaseGameState }))
     .filter((row) => row.state?.deviceMode === "multi")
-    .map((row) => {
-      const isMine = !!clientId && row.state.hostId === clientId;
-
-      return {
-        id: row.id,
-        name: row.state.lobbyName?.trim() || null,
-        gameType: row.state.gameType ?? "wizard",
-        phase: row.state.phase ?? "playing",
-        playerCount: row.state.playerCount ?? row.state.players?.length ?? 0,
-        claimedCount: (row.state.players ?? []).filter((p) => p?.claimedBy)
-          .length,
-        createdAt: row.created_at,
-        isMine,
-        code: isMine ? (row.code as string) : null,
-      };
-    })
-    // Eigene Lobbies zuerst, sonst bleibt die Reihenfolge nach Erstellzeit.
-    .sort((left, right) => Number(right.isMine) - Number(left.isMine));
+    .map((row) => ({
+      id: row.id,
+      name: row.state.lobbyName?.trim() || null,
+      gameType: row.state.gameType ?? "wizard",
+      phase: row.state.phase ?? "playing",
+      playerCount: row.state.playerCount ?? row.state.players?.length ?? 0,
+      claimedCount: (row.state.players ?? []).filter((p) => p?.claimedBy).length,
+      createdAt: row.created_at,
+    }));
 
   return NextResponse.json({ lobbies });
 }
@@ -67,23 +61,43 @@ export async function POST(request: Request) {
     );
   }
 
-  const { state } = body as { state?: unknown };
+  const { state, hostSecret } = body as {
+    state?: unknown;
+    hostSecret?: string;
+  };
 
   if (!state || typeof state !== "object") {
     return NextResponse.json({ error: "Missing state." }, { status: 400 });
   }
 
+  // Größenlimit (Service-Role umgeht RLS, siehe records.ts).
+  if (!isStateWithinLimit(state)) {
+    return NextResponse.json({ error: "State too large." }, { status: 413 });
+  }
+
   const supabase = getSupabaseAdmin();
   // Eingeloggten Nutzer serverseitig aus den Request-Cookies ermitteln (nie
-  // einer vom Client mitgeschickten ID vertrauen) - rein additiv, das
-  // bestehende clientId/hostId-Schreibrechte-Modell bleibt unverändert.
+  // einer vom Client mitgeschickten ID vertrauen).
   const user = await getAuthedUser();
+
+  // Nur den Hash des Host-Geheimnisses speichern (siehe hostAuth) - das
+  // Rohgeheimnis behält allein der Ersteller lokal.
+  const hostSecretHash =
+    typeof hostSecret === "string" && hostSecret
+      ? await hashHostSecret(hostSecret)
+      : null;
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const { data, error } = await supabase
       .from("games")
-      .insert({ code: generateCode(), state, user_id: user?.id ?? null })
-      .select()
+      .insert({
+        code: generateCode(),
+        state,
+        user_id: user?.id ?? null,
+        host_secret_hash: hostSecretHash,
+      })
+      // Kein user_id/host_secret_hash im Response (GAME_CLIENT_COLUMNS).
+      .select(GAME_CLIENT_COLUMNS)
       .single();
 
     if (!error) {

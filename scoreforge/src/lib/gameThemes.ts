@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import type { GameType } from "@/app/types/gameTypes";
+import type { GameType } from "@/types/gameTypes";
 
 export type GameThemeKey = GameType | "forge";
 

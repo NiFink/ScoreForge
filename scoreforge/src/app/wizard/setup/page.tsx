@@ -7,15 +7,16 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
+import { createGame } from "@/lib/games/createGame";
 import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
-import { createScoreTable } from "../../Utils/wizardUtils";
-import type { GameState, WizardMode } from "../../types/wizardTypes";
-import type { DeviceMode, Player, WriteMode } from "../../types/gameTypes";
+import { createScoreTable } from "@/features/wizard/utils";
+import type { GameState, WizardMode } from "@/types/wizardTypes";
+import type { DeviceMode, Player, WriteMode } from "@/types/gameTypes";
 
 const roundMap: Record<number, number> = {
   3: 20,
@@ -97,20 +98,12 @@ export default function WizardSetup() {
         specialCards: mode === "anniversary" ? specialCards : [],
       };
 
-      const response = await fetch("/api/games", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ state }),
-      });
+      const game = await createGame(state);
 
-      if (!response.ok) {
-        console.error(await response.json());
+      if (!game) {
         return;
       }
 
-      const { game } = (await response.json()) as { game: { id: string } };
       router.push(`/wizard/${game.id}`);
     } catch (err) {
       console.error(err);

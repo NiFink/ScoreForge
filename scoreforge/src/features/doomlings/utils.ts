@@ -1,4 +1,4 @@
-import type { DoomlingsScores, Player } from "../types/gameTypes";
+import type { DoomlingsScores, Player } from "@/types/gameTypes";
 
 export const MEANING_OF_LIFE_ADDON = "The Meaning of Life";
 

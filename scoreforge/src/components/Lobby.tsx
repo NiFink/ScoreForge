@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { isNameTaken } from "@/lib/playerValidation";
 import { CopyLinkField } from "./CopyLinkField";
 import { QrCode } from "./QrCode";
-import type { BaseGameState, GameRecord, Player } from "@/app/types/gameTypes";
+import type { BaseGameState, GameRecord, Player } from "@/types/gameTypes";
 
 export type LobbyGroup = {
   title: string;

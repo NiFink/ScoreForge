@@ -21,13 +21,13 @@ import type {
   DoomlingsScores,
   DoomlingsState,
   WriteMode,
-} from "../../types/gameTypes";
+} from "@/types/gameTypes";
 import {
   getCountingOrder,
   getRevealOrder,
   getScoreKeys,
   getScoreTotal,
-} from "../../Utils/doomlingsUtils";
+} from "@/features/doomlings/utils";
 
 const emptyScores = (): DoomlingsScores => ({
   numbers: 0,

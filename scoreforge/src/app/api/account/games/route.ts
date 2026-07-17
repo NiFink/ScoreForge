@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { getAuthedUser } from "@/lib/supabaseServer";
-import type { AccountGameSummary, BaseGameState } from "@/app/types/gameTypes";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthedUser } from "@/lib/supabase/server";
+import type { AccountGameSummary, BaseGameState } from "@/types/gameTypes";
 
 // Liste der Spiele des eingeloggten Nutzers (geräteübergreifend, per
 // user_id) - für den Konto-Bereich. user_id ist über die public-read-Policy

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import type { GameState } from "@/app/types/wizardTypes";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import {
+  GAME_CLIENT_COLUMNS,
+  MAX_PLAYER_NAME_LENGTH,
+} from "@/lib/games/records";
+import type { GameState } from "@/types/wizardTypes";
 
 type RouteParams = { params: Promise<{ gameId: string }> };
 
@@ -55,7 +59,9 @@ export async function POST(request: Request, { params }: RouteParams) {
     );
   }
 
-  const trimmedName = name?.trim();
+  // Namen kappen: ein Client könnte sonst beliebig lange Strings in den
+  // gemeinsam sichtbaren Spielstand schreiben.
+  const trimmedName = name?.trim().slice(0, MAX_PLAYER_NAME_LENGTH);
 
   const nextState: GameState = {
     ...state,
@@ -81,7 +87,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     .from("games")
     .update({ state: nextState })
     .eq("id", gameId)
-    .select()
+    .select(GAME_CLIENT_COLUMNS)
     .single();
 
   if (error) {

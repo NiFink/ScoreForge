@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { format, useI18n } from "@/lib/i18n";
-import type { Player, UniversalRound } from "../../types/gameTypes";
+import type { Player, UniversalRound } from "@/types/gameTypes";
 
 type RoundModalProps = {
   players: Player[];

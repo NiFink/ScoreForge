@@ -3,7 +3,7 @@
 import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { findDuplicateNamePlayerIds } from "@/lib/playerValidation";
-import type { Player } from "@/app/types/gameTypes";
+import type { Player } from "@/types/gameTypes";
 
 type PlayerEditorProps = {
   players: Player[];

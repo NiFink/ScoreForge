@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { format, useI18n } from "@/lib/i18n";
 import { themeForGameType } from "@/lib/gameThemes";
 import { computeRanks } from "@/lib/ranking";
-import type { GameType } from "@/app/types/gameTypes";
+import type { GameType } from "@/types/gameTypes";
 import {
   renderShareCard,
   shareOrDownloadImage,

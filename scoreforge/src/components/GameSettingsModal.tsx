@@ -9,7 +9,7 @@ import type {
   BaseGameState,
   DeviceMode,
   WriteMode,
-} from "@/app/types/gameTypes";
+} from "@/types/gameTypes";
 
 export type StartingPointsMode = "zero" | "median" | "average";
 

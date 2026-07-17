@@ -64,3 +64,25 @@ create index if not exists games_user_id_idx on public.games (user_id);
 --    jeder mit dem öffentlichen anon-Key direkt per REST alle Spiele eines
 --    Kontos korrelieren. Nur der Service-Role-Key (API-Routes) darf sie lesen.
 revoke select (user_id) on public.games from anon, authenticated;
+
+-- 7. Host-Berechtigung über ein Geheimnis statt über die (öffentlich lesbare)
+--    hostId in `state`. In der DB liegt nur der SHA-256-Hash; das Rohgeheimnis
+--    kennt allein das erstellende Gerät (localStorage). So kann niemand durch
+--    Auslesen öffentlicher Daten Host-Rechte übernehmen oder ein Spiel löschen.
+--    Nullable: vor der Migration erstellte Spiele nutzen weiter den alten
+--    clientId/hostId-Abgleich (Legacy-Fallback in der API).
+alter table public.games
+  add column if not exists host_secret_hash text;
+
+-- Wie user_id NICHT über die public-read-Policy lesbar machen. Defense-in-depth:
+-- der gespeicherte Wert ist ohnehin nur ein Hash.
+revoke select (host_secret_hash) on public.games from anon, authenticated;
+
+-- 8. Beitritts-Code (PIN) vor direktem Auslesen schützen: sonst könnte jeder
+--    mit dem öffentlichen anon-Key per REST oder Realtime ALLE PINs auf einmal
+--    abgreifen und jeder Lobby beitreten. Der Code wird nur noch über die API
+--    an Berechtigte herausgegeben (der Ersteller kennt ihn lokal, Beitretende
+--    liefern ihn beim Join selbst). Der eingeloggte Browser-Client nutzt die
+--    games-Tabelle nur für Realtime-Updates des Spielstands - er braucht dort
+--    keinen Code (useGame hält den bekannten Code über Updates hinweg stabil).
+revoke select (code) on public.games from anon, authenticated;

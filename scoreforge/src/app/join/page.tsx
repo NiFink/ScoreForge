@@ -5,14 +5,14 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n";
-import { getClientId } from "@/lib/clientId";
+import { getHostSession } from "@/lib/games/hostSession";
 import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type {
   BaseGameState,
   GameRecord,
   LobbySummary,
-} from "@/app/types/gameTypes";
+} from "@/types/gameTypes";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -31,10 +31,13 @@ export default function JoinPage() {
 
   const loadLobbies = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/games?clientId=${encodeURIComponent(getClientId())}`,
-      );
-      const data = (await response.json()) as { lobbies?: LobbySummary[] };
+      const response = await fetch("/api/games");
+      // Die API liefert bewusst keinen Code und kein "isMine" (der PIN darf
+      // nicht über die öffentliche Liste leaken). Beides ergänzen wir lokal
+      // aus dem Host-Store: nur das erstellende Gerät kennt Code + Geheimnis.
+      const data = (await response.json()) as {
+        lobbies?: Omit<LobbySummary, "isMine" | "code">[];
+      };
 
       if (!response.ok || !data.lobbies) {
         setListError(t.join.connectionFailed);
@@ -43,7 +46,17 @@ export default function JoinPage() {
       }
 
       setListError(null);
-      setLobbies(data.lobbies);
+      setLobbies(
+        data.lobbies.map((lobby) => {
+          const session = getHostSession(lobby.id);
+
+          return {
+            ...lobby,
+            isMine: session !== null,
+            code: session?.code ?? null,
+          };
+        }),
+      );
     } catch {
       setListError(t.join.connectionFailed);
       setLobbies([]);
