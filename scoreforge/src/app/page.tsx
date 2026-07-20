@@ -17,8 +17,8 @@ export default function Home() {
     <main className="bg-(--sf-bg) min-h-screen text-(--sf-text-strong)">
       <section className="flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full max-w-6xl min-h-screen">
         {/* HERO */}
-        <header className="flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
+        <header className="flex flex-wrap justify-between items-center gap-x-4 gap-y-3">
+          <div className="flex items-center gap-3 min-w-0">
             <Image
               src="/Logo.png"
               alt="ScoreForge Logo"
@@ -28,7 +28,7 @@ export default function Home() {
               loading="eager"
               className="shadow-[0_0_28px_rgba(245,158,34,0.28)] border border-[#f59e22]/40 rounded-lg w-14 sm:w-16 h-14 sm:h-16 object-cover"
             />
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold text-[#f59e22] text-xs uppercase tracking-[0.18em]">
                 {t.home.brand}
               </p>
@@ -37,7 +37,7 @@ export default function Home() {
               </h1>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-none items-center gap-2">
             <AccountButton />
             <LanguageSwitcher />
             <ThemeToggle />

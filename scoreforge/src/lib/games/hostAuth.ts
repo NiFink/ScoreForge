@@ -38,7 +38,10 @@ export function hashesEqual(
 }
 
 // Prüft, ob der Aufrufer als Host autorisiert ist.
-//  - Neue Spiele: SHA-256(providedSecret) muss zum gespeicherten Hash passen.
+//  - Eingeloggter Ersteller: das Spiel gehört (per user_id) zum authentifizierten
+//    Konto - geräteunabhängig, dadurch bleibt man auch nach Geräte-/Browserwechsel
+//    Host, solange man mit demselben Konto angemeldet ist.
+//  - Neue Spiele: sonst muss SHA-256(providedSecret) zum gespeicherten Hash passen.
 //  - Legacy-Spiele (vor der Migration, storedHash == null): Fallback auf den
 //    alten clientId/hostId-Abgleich, damit bereits laufende Spiele nicht
 //    ausgesperrt werden. Solche Spiele verfallen ohnehin nach spätestens 2 Tagen.
@@ -47,7 +50,12 @@ export async function isHostAuthorized(
   providedSecret: string | undefined,
   legacyHostId: string | undefined,
   clientId: string | undefined,
+  isOwner = false,
 ): Promise<boolean> {
+  if (isOwner) {
+    return true;
+  }
+
   if (storedHash) {
     if (typeof providedSecret !== "string" || !providedSecret) {
       return false;

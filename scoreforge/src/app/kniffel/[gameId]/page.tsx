@@ -20,11 +20,13 @@ import {
   type CelebrationStanding,
 } from "@/components/WinnerCelebration";
 import { CategoryModal } from "./CategoryModal";
+import { StartPlayerModal } from "./StartPlayerModal";
 import {
   LOWER_CATEGORIES,
   UPPER_CATEGORIES,
   createEmptyScores,
   getGrandTotal,
+  getNextPlayerIndex,
   getUpperBonus,
   getUpperSum,
   getYahtzeeBonusTotal,
@@ -76,6 +78,7 @@ export default function KniffelGame({
   } | null>(null);
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [startPlayerIndexDraft, setStartPlayerIndexDraft] = useState(0);
 
   const totals = useMemo(() => {
     if (!state) {
@@ -108,6 +111,20 @@ export default function KniffelGame({
   const leader = rankedPlayers[0] ?? null;
   const showCelebration = gameOver && !celebrationDismissed && !!leader;
 
+  // Bei nur einem Spieler gibt es nichts zu wählen/hervorzuheben - der
+  // Startspieler-Dialog und die "Am Zug"-Markierung sind dann übersprungen.
+  const isStartPlayerModalOpen =
+    !!state &&
+    state.phase === "playing" &&
+    state.players.length > 1 &&
+    !state.startPlayerChosen &&
+    isHost;
+  const currentPlayerId =
+    state && state.startPlayerChosen && state.players.length > 1 && !gameOver
+      ? state.players[state.currentPlayerIndex ?? state.startPlayerIndex ?? 0]
+          ?.id
+      : undefined;
+
   const celebrationStandings: CelebrationStanding[] = rankedPlayers.map(
     (player) => ({
       id: player.id,
@@ -131,20 +148,44 @@ export default function KniffelGame({
     value: number | null,
   ) => {
     mutateState(
-      (current) => ({
-        ...current,
-        scores: {
+      (current) => {
+        const nextScores = {
           ...current.scores,
           [playerId]: {
             ...(current.scores[playerId] ?? createEmptyScores()),
             [category]: value,
           },
-        },
-      }),
+        };
+
+        // Zug geht nur weiter, wenn der aktuell an der Reihe stehende
+        // Spieler eingetragen hat - Korrekturen bei anderen Spielern lassen
+        // den Zug unangetastet.
+        const currentIndex = current.currentPlayerIndex ?? current.startPlayerIndex ?? 0;
+        const currentTurnPlayer = current.players[currentIndex];
+        const nextCurrentPlayerIndex =
+          current.startPlayerChosen && currentTurnPlayer?.id === playerId
+            ? getNextPlayerIndex(current.players, nextScores, currentIndex)
+            : current.currentPlayerIndex;
+
+        return {
+          ...current,
+          scores: nextScores,
+          currentPlayerIndex: nextCurrentPlayerIndex,
+        };
+      },
       (next) => isGameOver(next),
     );
 
     setSelectedCell(null);
+  };
+
+  const confirmStartPlayer = () => {
+    mutateState((current) => ({
+      ...current,
+      startPlayerIndex: startPlayerIndexDraft,
+      startPlayerChosen: true,
+      currentPlayerIndex: startPlayerIndexDraft,
+    }));
   };
 
   const changeYahtzeeBonus = (playerId: string, delta: number) => {
@@ -393,6 +434,9 @@ export default function KniffelGame({
 
   const renderCategoryCell = (playerId: string, category: KniffelCategory) => {
     const value = state.scores[playerId]?.[category] ?? null;
+    // 0 = bewusst gestrichen -> als Kreuz statt "0" anzeigen, damit es sich
+    // klar von noch nicht eingetragenen Zellen ("–") unterscheidet.
+    const display = value === null ? "–" : value === 0 ? "✕" : value;
 
     return (
       <td key={playerId} className="py-1 pr-2">
@@ -402,11 +446,11 @@ export default function KniffelGame({
             className="bg-(--sf-bg) hover:bg-(--accent)/15 px-2 py-2.5 border border-(--sf-text)/10 rounded-md w-full font-black text-right transition"
             type="button"
           >
-            {value ?? "–"}
+            {display}
           </button>
         ) : (
           <div className="px-2 py-2.5 font-black text-right">
-            {value ?? "–"}
+            {display}
           </div>
         )}
       </td>
@@ -463,21 +507,36 @@ export default function KniffelGame({
 
         {/* TOTALS */}
         <section className="gap-2 grid grid-cols-2 sm:grid-cols-4 mb-4">
-          {rankedPlayers.map((player) => (
-            <div
-              key={player.id}
-              className="bg-(--sf-surface-2)/90 p-3 border border-(--sf-text)/10 rounded-lg min-w-0"
-              style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
-            >
-              <p className="flex items-center gap-1.5 text-(--sf-text-muted) text-sm truncate">
-                <PlayerAvatar color={player.color} size="sm" />
-                {player.name}
-              </p>
-              <p className="mt-1 font-black text-2xl">
-                {totals[player.id] ?? 0}
-              </p>
-            </div>
-          ))}
+          {rankedPlayers.map((player) => {
+            const isCurrentTurn = player.id === currentPlayerId;
+
+            return (
+              <div
+                key={player.id}
+                className={`bg-(--sf-surface-2)/90 p-3 border rounded-lg min-w-0 ${
+                  isCurrentTurn
+                    ? "border-(--accent) ring-2 ring-(--accent)/50"
+                    : "border-(--sf-text)/10"
+                }`}
+                style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
+              >
+                <div className="flex justify-between items-center gap-2">
+                  <p className="flex items-center gap-1.5 min-w-0 text-(--sf-text-muted) text-sm truncate">
+                    <PlayerAvatar color={player.color} size="sm" />
+                    {player.name}
+                  </p>
+                  {isCurrentTurn ? (
+                    <span className="flex-none bg-(--accent)/15 px-1.5 py-0.5 rounded font-black text-(--accent) text-[10px] uppercase tracking-wide">
+                      {t.kniffel.yourTurn}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 font-black text-2xl">
+                  {totals[player.id] ?? 0}
+                </p>
+              </div>
+            );
+          })}
         </section>
 
         {/* SCORESHEET */}
@@ -489,10 +548,18 @@ export default function KniffelGame({
                   {t.kniffel.scoreTable}
                 </th>
                 {state.players.map((player) => (
-                  <th key={player.id} className="py-2 pr-2 font-semibold text-right">
+                  <th
+                    key={player.id}
+                    className={`py-2 pr-2 font-semibold text-right ${
+                      player.id === currentPlayerId ? "text-(--accent)" : ""
+                    }`}
+                  >
                     <span className="inline-flex justify-end items-center gap-1.5">
                       <PlayerAvatar color={player.color} size="sm" />
                       {player.name}
+                      {player.id === currentPlayerId ? (
+                        <span aria-hidden="true">{"▶"}</span>
+                      ) : null}
                     </span>
                   </th>
                 ))}
@@ -628,6 +695,15 @@ export default function KniffelGame({
           lobbyName={state.lobbyName}
           scoreUnit={t.celebration.pointsLabel}
           onClose={() => setCelebrationDismissed(true)}
+        />
+      ) : null}
+
+      {isStartPlayerModalOpen ? (
+        <StartPlayerModal
+          players={state.players}
+          selectedPlayerIndex={startPlayerIndexDraft}
+          onChange={setStartPlayerIndexDraft}
+          onConfirm={confirmStartPlayer}
         />
       ) : null}
     </main>

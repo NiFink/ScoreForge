@@ -182,4 +182,9 @@ export type KniffelState = BaseGameState & {
   phase: "lobby" | "playing" | "finished";
   scores: Record<string, KniffelScores>; // playerId -> Kategorie-Werte
   yahtzeeBonus: Record<string, number>; // playerId -> Anzahl zusätzlicher Kniffel (je +50)
+  // Startspieler-Auswahl (analog zu Wizard) + wer aktuell am Zug ist - rein
+  // organisatorisch, hat keinen Einfluss auf die Punkte.
+  startPlayerIndex?: number;
+  startPlayerChosen?: boolean;
+  currentPlayerIndex?: number;
 };

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthedUser } from "@/lib/supabase/server";
 import { GAME_CLIENT_COLUMNS, isStateWithinLimit } from "@/lib/games/records";
 import { isHostAuthorized } from "@/lib/games/hostAuth";
 import type { BaseGameState } from "@/types/gameTypes";
@@ -10,10 +11,11 @@ type RouteParams = { params: Promise<{ gameId: string }> };
 export async function GET(_request: Request, { params }: RouteParams) {
   const { gameId } = await params;
 
-  // GAME_CLIENT_COLUMNS statt "*": gibt bewusst kein user_id an den Client.
+  // user_id zusätzlich laden, um "isOwner" zu bestimmen - wird unten aus der
+  // Antwort entfernt und NIE an den Client durchgereicht (siehe records.ts).
   const { data, error } = await getSupabaseAdmin()
     .from("games")
-    .select(GAME_CLIENT_COLUMNS)
+    .select(`${GAME_CLIENT_COLUMNS}, user_id`)
     .eq("id", gameId)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -22,7 +24,16 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Game not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ game: data });
+  const { user_id, ...game } = data as typeof data & {
+    user_id: string | null;
+  };
+  // Eingeloggtes Konto, das dieses Spiel erstellt hat -> Host-Rechte auch auf
+  // einem neuen Gerät (siehe hostAuth). Der reine Boolean geht an den Client,
+  // die user_id selbst nie.
+  const user = await getAuthedUser();
+  const isOwner = !!user && !!user_id && user.id === user_id;
+
+  return NextResponse.json({ game, isOwner });
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
@@ -61,7 +72,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const { data: existing, error: fetchError } = await supabase
     .from("games")
-    .select("state, expires_at, host_secret_hash")
+    .select("state, expires_at, host_secret_hash, user_id")
     .eq("id", gameId)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -71,10 +82,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   }
 
   const currentState = existing.state as BaseGameState;
+  const user = await getAuthedUser();
+  const isOwner = !!user && !!existing.user_id && user.id === existing.user_id;
 
   // Im "host"-Modus dürfen nur Host-Aktionen den Spielstand ändern. Die
-  // Berechtigung hängt am Host-Geheimnis (Hash-Abgleich), NICHT mehr an der
-  // öffentlich lesbaren hostId - siehe hostAuth. (Legacy-Fallback inklusive.)
+  // Berechtigung hängt am Host-Geheimnis (Hash-Abgleich) ODER am eingeloggten
+  // Ersteller-Konto (geräteunabhängig) - NICHT mehr an der öffentlich lesbaren
+  // hostId - siehe hostAuth. (Legacy-Fallback inklusive.)
   if (
     currentState.writeMode === "host" &&
     !(await isHostAuthorized(
@@ -82,6 +96,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       hostSecret,
       currentState.hostId,
       clientId,
+      isOwner,
     ))
   ) {
     return NextResponse.json(
@@ -129,8 +144,9 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   return NextResponse.json({ game: data });
 }
 
-// Nur der Host darf das Spiel + die Lobby endgültig löschen (Host-Geheimnis,
-// mit Legacy-Fallback auf clientId/hostId - siehe hostAuth).
+// Nur der Host darf das Spiel + die Lobby endgültig löschen (Host-Geheimnis
+// oder eingeloggtes Ersteller-Konto, mit Legacy-Fallback auf clientId/hostId -
+// siehe hostAuth).
 export async function DELETE(request: Request, { params }: RouteParams) {
   const { gameId } = await params;
   const body = await request.json().catch(() => null);
@@ -150,7 +166,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
   const { data: existing, error: fetchError } = await supabase
     .from("games")
-    .select("state, host_secret_hash")
+    .select("state, host_secret_hash, user_id")
     .eq("id", gameId)
     .maybeSingle();
 
@@ -159,6 +175,8 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   }
 
   const currentState = existing.state as BaseGameState;
+  const user = await getAuthedUser();
+  const isOwner = !!user && !!existing.user_id && user.id === existing.user_id;
 
   if (
     !(await isHostAuthorized(
@@ -166,6 +184,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       hostSecret,
       currentState.hostId,
       clientId,
+      isOwner,
     ))
   ) {
     return NextResponse.json(

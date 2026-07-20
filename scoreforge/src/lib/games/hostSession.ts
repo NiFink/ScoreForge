@@ -8,8 +8,10 @@
 //    kommt bewusst NICHT mehr über die öffentliche Lobby-Liste zurück, damit
 //    PINs nicht massenhaft abgegriffen werden können.
 //
-// Folge: Host-Rechte sind (wie schon im alten Modell) an das erstellende Gerät
-// gebunden. Auf einem anderen Gerät ist man nicht Host - das ist beabsichtigt.
+// Folge: ohne eingeloggtes Konto sind Host-Rechte an das erstellende Gerät
+// gebunden. War man beim Erstellen eingeloggt, erkennt der Server einen
+// Geräte-/Browserwechsel zusätzlich über das Konto (user_id-Abgleich, siehe
+// hostAuth) - dieser lokale Store ist dann nur noch ein zusätzlicher Nachweis.
 
 const STORAGE_KEY = "scoreforge:hostGames";
 

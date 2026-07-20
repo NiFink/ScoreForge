@@ -5,6 +5,7 @@ import { useState } from "react";
 import { format, useI18n } from "@/lib/i18n";
 import {
   FIXED_CATEGORY_VALUES,
+  getAchievableValues,
   isFixedCategory,
 } from "@/features/kniffel/utils";
 import type { KniffelCategory } from "@/types/gameTypes";
@@ -15,15 +16,6 @@ type CategoryModalProps = {
   currentValue: number | null;
   onSave: (value: number | null) => void;
   onClose: () => void;
-};
-
-const parseNumber = (value: string): number | null => {
-  if (value.trim() === "") {
-    return null;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? Math.max(0, parsed) : null;
 };
 
 export function CategoryModal({
@@ -39,6 +31,10 @@ export function CategoryModal({
 
   const categoryLabel = t.kniffel.categories[category];
   const fixedValue = FIXED_CATEGORY_VALUES[category] ?? 0;
+  // Nur die mit 5 Würfeln tatsächlich erreichbaren Werte zur Auswahl - keine
+  // Tippfehler mehr möglich (z. B. 6er: 0, 6, 12, 18, 24, 30).
+  const achievableValues = getAchievableValues(category);
+  const hasZeroOption = achievableValues[0] === 0;
 
   return (
     <div className="z-40 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
@@ -82,15 +78,25 @@ export function CategoryModal({
               <label className="font-bold text-(--sf-text) text-sm">
                 {t.kniffel.enterValuePrompt}
               </label>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
+              <select
                 autoFocus
                 value={draft ?? ""}
-                onChange={(event) => setDraft(parseNumber(event.target.value))}
-                className="bg-(--sf-bg) mt-2 px-3 py-4 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-2xl text-center"
-              />
+                onChange={(event) =>
+                  setDraft(
+                    event.target.value === "" ? null : Number(event.target.value),
+                  )
+                }
+                className="bg-(--sf-bg) mt-2 px-3 py-4 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-2xl text-center appearance-none"
+              >
+                <option value="" disabled>
+                  {t.kniffel.selectValuePlaceholder}
+                </option>
+                {achievableValues.map((value) => (
+                  <option key={value} value={value}>
+                    {value === 0 ? t.kniffel.crossedOut : value}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <button
@@ -102,13 +108,15 @@ export function CategoryModal({
               {t.kniffel.saveValue}
             </button>
 
-            <button
-              onClick={() => onSave(0)}
-              className="px-4 py-3 border border-(--sf-text)/15 rounded-md w-full font-bold text-(--sf-text-muted) text-sm"
-              type="button"
-            >
-              {t.kniffel.strike}
-            </button>
+            {!hasZeroOption ? (
+              <button
+                onClick={() => onSave(0)}
+                className="px-4 py-3 border border-(--sf-text)/15 rounded-md w-full font-bold text-(--sf-text-muted) text-sm"
+                type="button"
+              >
+                {t.kniffel.strike}
+              </button>
+            ) : null}
           </div>
         )}
       </div>

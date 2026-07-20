@@ -13,6 +13,9 @@ const getServerClientId = () => "";
 export function useGame<S extends BaseGameState>(gameId: string) {
   const [game, setGame] = useState<GameRecord<S> | null>(null);
   const [notFound, setNotFound] = useState(false);
+  // Kommt vom Server (siehe GET /api/games/[gameId]): true, wenn das
+  // eingeloggte Konto dieses Spiel erstellt hat - geräteunabhängig.
+  const [isOwner, setIsOwner] = useState(false);
   const gameRef = useRef<GameRecord<S> | null>(null);
 
   // Auf dem Server "" liefern, im Browser die stabile Geräte-ID
@@ -47,11 +50,15 @@ export function useGame<S extends BaseGameState>(gameId: string) {
           return;
         }
 
-        const data = (await response.json()) as { game: GameRecord<S> };
+        const data = (await response.json()) as {
+          game: GameRecord<S>;
+          isOwner?: boolean;
+        };
 
         if (!cancelled) {
           gameRef.current = data.game;
           setGame(data.game);
+          setIsOwner(!!data.isOwner);
         }
       } catch {
         if (!cancelled) {
@@ -111,8 +118,12 @@ export function useGame<S extends BaseGameState>(gameId: string) {
   // Host-UI (und im "host"-Modus das Schreiben) verlieren, hier zusätzlich der
   // alte clientId/hostId-Abgleich. Rein UI - der Server autorisiert weiterhin
   // pro Spiel korrekt (neue Spiele verlangen das Geheimnis, siehe hostAuth).
+  // isOwner kommt vom Server: das eingeloggte Konto hat das Spiel erstellt -
+  // dadurch bleibt man auch nach einem Geräte-/Browserwechsel Host.
   const isHost =
-    hasHostSecret || (!!clientId && !!state && state.hostId === clientId);
+    hasHostSecret ||
+    isOwner ||
+    (!!clientId && !!state && state.hostId === clientId);
   const canWrite = isHost || state?.writeMode === "all";
 
   // Lokale Änderung sofort anzeigen und an den Server schicken;

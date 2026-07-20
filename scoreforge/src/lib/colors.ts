@@ -17,3 +17,21 @@ const emojiByColor = new Map(
 export function getPlayerEmoji(color: string): string {
   return emojiByColor.get(color) ?? "🐾";
 }
+
+// Etwas dunklere Variante der Spielerfarbe - als Avatar-Hintergrund, damit
+// sich das (oft helle) Tier-Emoji besser davon abhebt als auf der reinen,
+// oft sehr hellen Spielerfarbe.
+export function getAvatarBackground(color: string, amount = 0.28): string {
+  const clean = color.replace("#", "");
+  const value = parseInt(clean, 16);
+  const darken = (channel: number) =>
+    Math.round(channel * (1 - amount))
+      .toString(16)
+      .padStart(2, "0");
+
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+
+  return `#${darken(r)}${darken(g)}${darken(b)}`;
+}
