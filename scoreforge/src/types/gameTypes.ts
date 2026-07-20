@@ -7,7 +7,12 @@ export type Player = {
 
 export type DeviceMode = "single" | "multi";
 export type WriteMode = "host" | "all";
-export type GameType = "wizard" | "doomlings" | "binokel" | "universal";
+export type GameType =
+  | "wizard"
+  | "doomlings"
+  | "binokel"
+  | "universal"
+  | "kniffel";
 
 export type BaseGameState = {
   gameType?: GameType;
@@ -60,6 +65,11 @@ export type AccountGameSummary = {
   lobbyName: string | null;
   playerCount: number;
   createdAt: string;
+  // Inhaltlich abgeschlossen (alle Kategorien/Runden gespielt) - Basis für
+  // die Statistiken im Konto-Bereich, siehe lib/stats/gameStats.
+  finished: boolean;
+  // Höchste erreichte Punktzahl, nur gesetzt wenn finished true ist.
+  topScore: number | null;
 };
 
 // --- Doomlings ---
@@ -145,4 +155,31 @@ export type UniversalState = BaseGameState & {
   targetScore?: number;
   maxRounds?: number;
   rounds: UniversalRound[];
+};
+
+// --- Kniffel (deutsche Yahtzee-Variante) ---
+
+export type KniffelCategory =
+  | "ones"
+  | "twos"
+  | "threes"
+  | "fours"
+  | "fives"
+  | "sixes"
+  | "threeOfAKind"
+  | "fourOfAKind"
+  | "fullHouse"
+  | "smallStraight"
+  | "largeStraight"
+  | "yahtzee"
+  | "chance";
+
+// null = noch nicht eingetragen, 0 = bewusst gestrichen (kein Wert erzielt)
+export type KniffelScores = Record<KniffelCategory, number | null>;
+
+export type KniffelState = BaseGameState & {
+  gameType: "kniffel";
+  phase: "lobby" | "playing" | "finished";
+  scores: Record<string, KniffelScores>; // playerId -> Kategorie-Werte
+  yahtzeeBonus: Record<string, number>; // playerId -> Anzahl zusätzlicher Kniffel (je +50)
 };

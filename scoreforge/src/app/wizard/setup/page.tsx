@@ -12,6 +12,7 @@ import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
 import { createScoreTable } from "@/features/wizard/utils";
@@ -113,18 +114,19 @@ export default function WizardSetup() {
   };
 
   return (
-    <main style={gameThemes.wizard.style} className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.wizard.style} className="bg-(--sf-bg) px-4 sm:px-6 py-5 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-5xl">
         {/* BACK */}
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.common.back}
           </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         {/* HEADER */}
@@ -149,9 +151,9 @@ export default function WizardSetup() {
 
         <div className="gap-4 grid lg:grid-cols-[0.85fr_1.15fr]">
           {/* LEFT */}
-          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
+          <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
             {/* PLAYER COUNT */}
-            <label className="font-bold text-[#f7e7ad] text-sm">
+            <label className="font-bold text-(--sf-text) text-sm">
               {t.common.playerCount}
             </label>
 
@@ -177,7 +179,7 @@ export default function WizardSetup() {
                   className={`rounded-md px-3 py-3 font-black ${
                     playerCount === count
                       ? "bg-(--accent) text-(--on-accent)"
-                      : "bg-[#18262f] text-[#d8d3bd]"
+                      : "bg-(--sf-surface) text-(--sf-text-muted)"
                   }`}
                   type="button"
                 >
@@ -187,25 +189,33 @@ export default function WizardSetup() {
             </div>
 
             {/* ROUNDS */}
-            <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-              <p className="text-[#9fc9d5] text-sm">{t.common.rounds}</p>
+            <div className="bg-(--sf-surface) mt-5 p-4 rounded-lg">
+              <p className="text-(--sf-text-subtle) text-sm">{t.common.rounds}</p>
               <p className="mt-1 font-black text-4xl">{rounds}</p>
             </div>
 
             {/* GAME MODE */}
             <div className="mt-5">
-              <label className="font-bold text-[#f7e7ad] text-sm">
+              <label className="font-bold text-(--sf-text) text-sm">
                 {t.wizard.modeLabel}
               </label>
               <div className="gap-2 grid grid-cols-2 mt-2">
                 {(["standard", "anniversary"] as const).map((option) => (
                   <button
                     key={option}
-                    onClick={() => setMode(option)}
+                    onClick={() => {
+                      setMode(option);
+
+                      if (option === "anniversary") {
+                        setSpecialCards(
+                          t.wizard.specialCards.map((card) => card.id),
+                        );
+                      }
+                    }}
                     className={`rounded-md px-3 py-3 font-black ${
                       mode === option
                         ? "bg-(--accent) text-(--on-accent)"
-                        : "bg-[#18262f] text-[#d8d3bd]"
+                        : "bg-(--sf-surface) text-(--sf-text-muted)"
                     }`}
                     type="button"
                   >
@@ -218,13 +228,13 @@ export default function WizardSetup() {
 
               {mode === "anniversary" ? (
                 <>
-                  <p className="mt-2 text-[#9fc9d5] text-xs">
+                  <p className="mt-2 text-(--sf-text-subtle) text-xs">
                     {t.wizard.modeAnniversaryHint}
                   </p>
-                  <p className="mt-4 font-bold text-[#f7e7ad] text-sm">
+                  <p className="mt-4 font-bold text-(--sf-text) text-sm">
                     {t.wizard.specialCardsTitle}
                   </p>
-                  <p className="mt-1 text-[#9fc9d5] text-xs">
+                  <p className="mt-1 text-(--sf-text-subtle) text-xs">
                     {t.wizard.specialCardsHint}
                   </p>
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -238,7 +248,7 @@ export default function WizardSetup() {
                           className={`rounded-md px-3 py-2 text-sm font-bold ${
                             active
                               ? "bg-(--accent-2) text-(--on-accent)"
-                              : "bg-[#18262f] text-[#d8d3bd]"
+                              : "bg-(--sf-surface) text-(--sf-text-muted)"
                           }`}
                           type="button"
                         >
@@ -263,11 +273,11 @@ export default function WizardSetup() {
 
             {deviceMode === "multi" ? (
               <div className="mt-5">
-                <label className="font-bold text-[#f7e7ad] text-sm">
+                <label className="font-bold text-(--sf-text) text-sm">
                   {t.common.lobbyName}
                 </label>
                 <input
-                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full"
+                  className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full"
                   value={lobbyName}
                   onChange={(event) => setLobbyName(event.target.value)}
                   placeholder={t.common.lobbyNamePlaceholder}
@@ -278,10 +288,10 @@ export default function WizardSetup() {
           </section>
 
           {/* RIGHT */}
-          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
+          <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
             <div className="flex justify-between mb-4">
               <h2 className="font-black text-xl">{t.common.players}</h2>
-              <span className="text-[#9fc9d5] text-sm">
+              <span className="text-(--sf-text-subtle) text-sm">
                 {t.common.nameAndColor}
               </span>
             </div>
@@ -297,7 +307,7 @@ export default function WizardSetup() {
               {loading ? t.common.creatingGame : t.common.startGame}
             </button>
             {!allNamesFilled ? (
-              <p className="mt-2 text-[#9fc9d5] text-xs text-center">
+              <p className="mt-2 text-(--sf-text-subtle) text-xs text-center">
                 {t.common.fillAllNames}
               </p>
             ) : duplicateNames ? (

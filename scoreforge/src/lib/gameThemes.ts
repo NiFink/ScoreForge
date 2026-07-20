@@ -65,6 +65,14 @@ export const gameThemes: Record<GameThemeKey, GameTheme> = {
     hex2: "#fbbf24",
     gradient: "bg-linear-to-r from-[#2563eb] to-[#93c5fd]",
   },
+  // Kniffel: Rubinrot/Gold — Würfelspiel-Assoziation
+  kniffel: {
+    label: "Kniffel",
+    style: makeStyle("#e11d48", "#fbbf24"),
+    hex: "#e11d48",
+    hex2: "#fbbf24",
+    gradient: "bg-linear-to-r from-[#be123c] to-[#fde68a]",
+  },
 };
 
 export function themeForGameType(gameType: string | undefined): GameTheme {

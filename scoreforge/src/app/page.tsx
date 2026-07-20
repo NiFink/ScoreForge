@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccountButton } from "@/components/AccountButton";
 import { GameTypeGrid } from "@/components/GameTypeGrid";
 
@@ -13,7 +14,7 @@ export default function Home() {
   const { t } = useI18n();
 
   return (
-    <main className="bg-[#101820] min-h-screen text-[#fff4c7]">
+    <main className="bg-(--sf-bg) min-h-screen text-(--sf-text-strong)">
       <section className="flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-5 w-full max-w-6xl min-h-screen">
         {/* HERO */}
         <header className="flex justify-between items-center gap-4">
@@ -39,26 +40,27 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <AccountButton />
             <LanguageSwitcher />
+            <ThemeToggle />
           </div>
         </header>
 
-        <p className="mt-4 max-w-2xl text-[#d8d3bd] text-base leading-7">
+        <p className="mt-4 max-w-2xl text-(--sf-text-muted) text-base leading-7">
           {t.home.description}
         </p>
 
         {/* GAMES */}
-        <h2 className="mt-8 font-black text-[#f7e7ad] text-xl sm:text-2xl">
+        <h2 className="mt-8 font-black text-(--sf-text) text-xl sm:text-2xl">
           {t.home.gamesTitle}
         </h2>
 
         <GameTypeGrid />
 
         {/* JOIN */}
-        <div className="bg-[#14222b]/90 mt-6 p-5 border border-[#2aa6c8]/30 rounded-xl">
+        <div className="bg-(--sf-surface-2)/90 mt-6 p-5 border border-[#2aa6c8]/30 rounded-xl">
           <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3">
             <div>
               <h2 className="font-black text-xl">{t.home.joinTitle}</h2>
-              <p className="mt-1 text-[#d8d3bd] text-sm">{t.home.joinHint}</p>
+              <p className="mt-1 text-(--sf-text-muted) text-sm">{t.home.joinHint}</p>
             </div>
             <button
               onClick={() => router.push("/join")}

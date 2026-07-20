@@ -54,7 +54,7 @@ export function RoundModal({
 
   return (
     <div className="z-40 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-(--sf-surface) shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-3 mb-4">
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
@@ -66,7 +66,7 @@ export function RoundModal({
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
@@ -77,7 +77,7 @@ export function RoundModal({
           {players.map((player) => (
             <div
               key={player.id}
-              className="flex items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
+              className="flex items-center gap-3 bg-(--sf-bg) p-3 border border-(--sf-text)/10 rounded-lg"
               style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
             >
               <p className="flex-1 font-bold truncate">{player.name}</p>
@@ -88,7 +88,7 @@ export function RoundModal({
                 onChange={(event) =>
                   setValue(player.id, parseNumber(event.target.value))
                 }
-                className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
+                className="bg-(--sf-surface) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
               />
             </div>
           ))}

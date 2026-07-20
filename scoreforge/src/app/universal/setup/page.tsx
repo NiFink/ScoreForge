@@ -12,6 +12,7 @@ import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
 import type {
@@ -125,18 +126,19 @@ export default function UniversalSetup() {
   return (
     <main
       style={gameThemes.universal.style}
-      className="bg-[#101820] px-4 sm:px-6 py-5 min-h-screen text-[#fff4c7]"
+      className="bg-(--sf-bg) px-4 sm:px-6 py-5 min-h-screen text-(--sf-text-strong)"
     >
       <div className="mx-auto max-w-5xl">
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.common.back}
           </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         <header className="flex items-center gap-4 mb-6">
@@ -160,8 +162,8 @@ export default function UniversalSetup() {
 
         <div className="gap-4 grid lg:grid-cols-[0.85fr_1.15fr]">
           {/* LEFT */}
-          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
-            <label className="font-bold text-[#f7e7ad] text-sm">
+          <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
+            <label className="font-bold text-(--sf-text) text-sm">
               {t.common.playerCount}
             </label>
 
@@ -187,7 +189,7 @@ export default function UniversalSetup() {
                   className={`rounded-md px-3 py-3 font-black ${
                     playerCount === count
                       ? "bg-(--accent) text-(--on-accent)"
-                      : "bg-[#18262f] text-[#d8d3bd]"
+                      : "bg-(--sf-surface) text-(--sf-text-muted)"
                   }`}
                   type="button"
                 >
@@ -198,7 +200,7 @@ export default function UniversalSetup() {
 
             {/* END CONDITION */}
             <div className="mt-5">
-              <label className="font-bold text-[#f7e7ad] text-sm">
+              <label className="font-bold text-(--sf-text) text-sm">
                 {t.universal.endConditionLabel}
               </label>
               <div className="space-y-2 mt-2">
@@ -209,12 +211,12 @@ export default function UniversalSetup() {
                     className={`w-full rounded-lg border px-4 py-3 text-left ${
                       endCondition === option.value
                         ? "border-(--accent) bg-(--accent)/15"
-                        : "border-[#f7e7ad]/10 bg-[#18262f]"
+                        : "border-(--sf-text)/10 bg-(--sf-surface)"
                     }`}
                     type="button"
                   >
                     <span className="block font-bold">{option.label}</span>
-                    <span className="block mt-0.5 text-[#9fc9d5] text-xs">
+                    <span className="block mt-0.5 text-(--sf-text-subtle) text-xs">
                       {option.hint}
                     </span>
                   </button>
@@ -223,7 +225,7 @@ export default function UniversalSetup() {
 
               {endCondition === "target" ? (
                 <div className="mt-3">
-                  <label className="font-bold text-[#f7e7ad] text-sm">
+                  <label className="font-bold text-(--sf-text) text-sm">
                     {t.universal.targetScore}
                   </label>
                   <div className="flex items-center gap-2 mt-2">
@@ -231,7 +233,7 @@ export default function UniversalSetup() {
                       onClick={() =>
                         setTargetScore((current) => Math.max(1, current - 10))
                       }
-                      className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                      className="bg-(--sf-surface) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                       type="button"
                     >
                       -10
@@ -247,11 +249,11 @@ export default function UniversalSetup() {
                           Number.isFinite(next) ? Math.max(1, next) : 100,
                         );
                       }}
-                      className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center"
+                      className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center"
                     />
                     <button
                       onClick={() => setTargetScore((current) => current + 10)}
-                      className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                      className="bg-(--sf-surface) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                       type="button"
                     >
                       +10
@@ -262,7 +264,7 @@ export default function UniversalSetup() {
 
               {endCondition === "rounds" ? (
                 <div className="mt-3">
-                  <label className="font-bold text-[#f7e7ad] text-sm">
+                  <label className="font-bold text-(--sf-text) text-sm">
                     {t.universal.roundCount}
                   </label>
                   <div className="flex items-center gap-2 mt-2">
@@ -270,7 +272,7 @@ export default function UniversalSetup() {
                       onClick={() =>
                         setMaxRounds((current) => Math.max(1, current - 1))
                       }
-                      className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                      className="bg-(--sf-surface) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                       type="button"
                     >
                       -1
@@ -286,11 +288,11 @@ export default function UniversalSetup() {
                           Number.isFinite(next) ? Math.max(1, next) : 10,
                         );
                       }}
-                      className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center"
+                      className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center"
                     />
                     <button
                       onClick={() => setMaxRounds((current) => current + 1)}
-                      className="bg-[#18262f] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                      className="bg-(--sf-surface) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                       type="button"
                     >
                       +1
@@ -312,11 +314,11 @@ export default function UniversalSetup() {
 
             {deviceMode === "multi" ? (
               <div className="mt-5">
-                <label className="font-bold text-[#f7e7ad] text-sm">
+                <label className="font-bold text-(--sf-text) text-sm">
                   {t.common.lobbyName}
                 </label>
                 <input
-                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full"
+                  className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full"
                   value={lobbyName}
                   onChange={(event) => setLobbyName(event.target.value)}
                   placeholder={t.common.lobbyNamePlaceholder}
@@ -327,10 +329,10 @@ export default function UniversalSetup() {
           </section>
 
           {/* RIGHT */}
-          <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
+          <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
             <div className="flex justify-between mb-4">
               <h2 className="font-black text-xl">{t.common.players}</h2>
-              <span className="text-[#9fc9d5] text-sm">
+              <span className="text-(--sf-text-subtle) text-sm">
                 {t.common.nameAndColor}
               </span>
             </div>
@@ -345,7 +347,7 @@ export default function UniversalSetup() {
               {loading ? t.common.creatingGame : t.common.startGame}
             </button>
             {!allNamesFilled ? (
-              <p className="mt-2 text-[#9fc9d5] text-xs text-center">
+              <p className="mt-2 text-(--sf-text-subtle) text-xs text-center">
                 {t.common.fillAllNames}
               </p>
             ) : duplicateNames ? (

@@ -32,11 +32,11 @@ export function RoundTable({
   const { t } = useI18n();
 
   return (
-    <div className="bg-[#14222b]/80 border border-(--accent)/20 rounded-lg overflow-x-auto">
+    <div className="bg-(--sf-surface-2)/80 border border-(--accent)/20 rounded-lg overflow-x-auto">
       <table className="min-w-230 text-sm border-collapse">
         <thead>
           <tr>
-            <th className="left-0 z-10 sticky bg-[#18262f] px-3 py-3 text-left">
+            <th className="left-0 z-10 sticky bg-(--sf-surface) px-3 py-3 text-left">
               {t.common.players}
             </th>
             {table.map((_, roundIndex) => {
@@ -51,7 +51,7 @@ export function RoundTable({
               return (
                 <th
                   key={roundIndex}
-                  className="px-3 py-3 border-[#f7e7ad]/10 border-l min-w-40 text-center"
+                  className="px-3 py-3 border-(--sf-text)/10 border-l min-w-40 text-center"
                 >
                   <div className="flex flex-col justify-center items-center gap-2">
                     <button
@@ -60,7 +60,7 @@ export function RoundTable({
                       className={`rounded-md px-3 py-2 font-black ${
                         unlocked
                           ? "bg-(--accent) text-(--on-accent)"
-                          : "cursor-not-allowed bg-[#18262f] text-[#5f7f92]"
+                          : "cursor-not-allowed bg-(--sf-surface) text-(--sf-disabled)"
                       }`}
                       title={
                         unlocked
@@ -71,7 +71,7 @@ export function RoundTable({
                     >
                       {unlocked ? t.common.round : "\u{1f512}"} {roundIndex + 1}
                     </button>
-                    <span className="inline-flex items-center gap-1 bg-[#101820] px-2 py-1 rounded-full text-[#9fc9d5] text-[11px] leading-none">
+                    <span className="inline-flex items-center gap-1 bg-(--sf-bg) px-2 py-1 rounded-full text-(--sf-text-subtle) text-[11px] leading-none">
                       <span
                         className="inline-block rounded-full w-2 h-2"
                         style={{ backgroundColor: roundStartPlayer?.color }}
@@ -90,7 +90,7 @@ export function RoundTable({
           {players.map((player, playerIndex) => (
             <tr key={player.id}>
               <th
-                className="left-0 z-10 sticky bg-[#18262f] px-3 py-3 border-[#f7e7ad]/10 border-t text-left"
+                className="left-0 z-10 sticky bg-(--sf-surface) px-3 py-3 border-(--sf-text)/10 border-t text-left"
                 style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
               >
                 <button
@@ -99,7 +99,7 @@ export function RoundTable({
                   type="button"
                 >
                   <span className="block max-w-32 truncate">{player.name}</span>
-                  <span className="text-[#9fc9d5] text-xs">
+                  <span className="text-(--sf-text-subtle) text-xs">
                     {format(t.wizard.scoreShort, {
                       points: totals[player.id] ?? 0,
                     })}
@@ -113,7 +113,7 @@ export function RoundTable({
                 return (
                   <td
                     key={`${player.id}-${roundIndex}`}
-                    className="px-3 py-3 border-[#f7e7ad]/10 border-t border-l min-w-32 text-center"
+                    className="px-3 py-3 border-(--sf-text)/10 border-t border-l min-w-32 text-center"
                     style={{ background: `${player.color}14` }}
                   >
                     <button

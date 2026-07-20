@@ -42,7 +42,7 @@ export function CurrentRoundCard({
   const roundStartPlayer = players[roundStartIndex];
 
   return (
-    <section className="bg-[#14222b]/90 mb-4 p-4 border border-(--accent)/30 rounded-lg">
+    <section className="bg-(--sf-surface-2)/90 mb-4 p-4 border border-(--accent)/30 rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <div>
           <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
@@ -56,7 +56,7 @@ export function CurrentRoundCard({
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 bg-[#101820] px-2 py-1 rounded-full text-[#9fc9d5] text-[11px] leading-none">
+          <span className="inline-flex items-center gap-1 bg-(--sf-bg) px-2 py-1 rounded-full text-(--sf-text-subtle) text-[11px] leading-none">
             <span
               className="inline-block rounded-full w-2 h-2"
               style={{ backgroundColor: roundStartPlayer?.color }}
@@ -85,7 +85,7 @@ export function CurrentRoundCard({
             <button
               key={player.id}
               onClick={() => onOpenPlayer(playerIndex)}
-              className="flex items-center gap-3 bg-[#101820] hover:bg-[#18232c] p-3 border border-[#f7e7ad]/10 rounded-lg w-full text-left transition"
+              className="flex items-center gap-3 bg-(--sf-bg) hover:bg-(--sf-surface-2) p-3 border border-(--sf-text)/10 rounded-lg w-full text-left transition"
               style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
               type="button"
             >
@@ -94,7 +94,7 @@ export function CurrentRoundCard({
               </p>
 
               <div className="text-right">
-                <p className="text-[#9fc9d5] text-[10px] uppercase tracking-wide">
+                <p className="text-(--sf-text-subtle) text-[10px] uppercase tracking-wide">
                   {t.wizard.predicted}
                 </p>
                 <p className="font-black text-(--accent) text-2xl leading-none">
@@ -103,10 +103,10 @@ export function CurrentRoundCard({
               </div>
 
               <div className="w-12 text-right">
-                <p className="text-[#9fc9d5] text-[10px] uppercase tracking-wide">
+                <p className="text-(--sf-text-subtle) text-[10px] uppercase tracking-wide">
                   {t.wizard.actual}
                 </p>
-                <p className="font-bold text-[#d8d3bd] text-lg leading-none">
+                <p className="font-bold text-(--sf-text-muted) text-lg leading-none">
                   {entry.actual ?? "–"}
                 </p>
               </div>
@@ -114,7 +114,7 @@ export function CurrentRoundCard({
               <p
                 className={`w-12 text-right font-black text-lg ${
                   !hasActual
-                    ? "text-[#5f7f92]"
+                    ? "text-(--sf-disabled)"
                     : points >= 0
                       ? "text-[#2aa6c8]"
                       : "text-[#ef5b2a]"

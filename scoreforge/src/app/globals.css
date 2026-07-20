@@ -1,12 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #101820;
-  --foreground: #fff4c7;
+  /* Struktur-Token (Hintergrund/Fläche/Text) - Standard ist Dark Mode */
+  --sf-bg: #101820;
+  --sf-surface: #18262f;
+  --sf-surface-2: #14222b;
+  --sf-text: #f7e7ad;
+  --sf-text-strong: #fff4c7;
+  --sf-text-muted: #d8d3bd;
+  --sf-text-subtle: #9fc9d5;
+  --sf-disabled: #5f7f92;
+  color-scheme: dark;
+
+  --background: var(--sf-bg);
+  --foreground: var(--sf-text-strong);
   /* Spiel-Akzentfarben - werden pro Spielseite per Inline-Style überschrieben */
   --accent: #f59e22;
   --accent-2: #2aa6c8;
   --on-accent: #101820;
+}
+
+:root[data-theme="light"] {
+  --sf-bg: #faf5e8;
+  --sf-surface: #ffffff;
+  --sf-surface-2: #f1e9d6;
+  --sf-text: #2a2115;
+  --sf-text-strong: #16110a;
+  --sf-text-muted: #6b6250;
+  --sf-text-subtle: #476070;
+  --sf-disabled: #9aa0a6;
+  color-scheme: light;
+
+  --background: var(--sf-bg);
+  --foreground: var(--sf-text-strong);
 }
 
 @theme inline {
@@ -16,17 +42,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Siegerehrung: fallendes Konfetti */

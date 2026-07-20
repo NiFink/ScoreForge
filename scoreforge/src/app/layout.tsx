@@ -28,6 +28,15 @@ export default function RootLayout({
       lang="de"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          // Setzt das Theme synchron vor dem ersten Paint, damit im Light
+          // Mode kein dunkler Flash beim Laden auftritt.
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("scoreforge:theme");if(t==="light"){document.documentElement.dataset.theme="light";}}catch(e){}`,
+          }}
+        />
+      </head>
       <body className="flex flex-col min-h-full">
         {children}
         {/* <Analytics /> */}

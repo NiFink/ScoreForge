@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { isNameTaken } from "@/lib/playerValidation";
 import { CopyLinkField } from "./CopyLinkField";
+import { PlayerAvatar } from "./PlayerAvatar";
 import { QrCode } from "./QrCode";
 import type { BaseGameState, GameRecord, Player } from "@/types/gameTypes";
 
@@ -79,18 +80,21 @@ export function Lobby({
     return (
       <div
         key={player.id}
-        className="bg-[#18262f] p-3 border border-[#f7e7ad]/10 rounded-lg"
+        className="bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg"
         style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
       >
         <div className="flex justify-between items-center gap-3">
-          <p className="font-bold">{player.name}</p>
+          <p className="flex items-center gap-2 font-bold">
+            <PlayerAvatar color={player.color} />
+            {player.name}
+          </p>
           <span
             className={`rounded-md px-2 py-1 text-xs font-bold ${
               isMine
                 ? "bg-(--accent) text-(--on-accent)"
                 : isTaken
-                  ? "bg-(--accent-2)/20 text-[#9fc9d5]"
-                  : "bg-[#f7e7ad]/10 text-[#d8d3bd]"
+                  ? "bg-(--accent-2)/20 text-(--sf-text-subtle)"
+                  : "bg-(--sf-text)/10 text-(--sf-text-muted)"
             }`}
           >
             {isMine ? t.lobby.you : isTaken ? t.lobby.taken : t.lobby.free}
@@ -101,7 +105,7 @@ export function Lobby({
           <div className="mt-3">
             <div className="flex gap-2">
               <input
-                className={`w-full rounded-md border bg-[#101820] px-3 py-2 outline-none ${
+                className={`w-full rounded-md border bg-(--sf-bg) px-3 py-2 outline-none ${
                   nameDraftTaken
                     ? "border-[#ef5b2a] focus:border-[#ef5b2a]"
                     : "border-transparent"
@@ -129,7 +133,7 @@ export function Lobby({
           <button
             onClick={() => claim(player.id)}
             disabled={busyPlayerId === player.id}
-            className="disabled:opacity-50 mt-3 px-4 py-2 border border-[#f7e7ad]/15 rounded-md w-full font-bold text-[#d8d3bd] text-sm"
+            className="disabled:opacity-50 mt-3 px-4 py-2 border border-(--sf-text)/15 rounded-md w-full font-bold text-(--sf-text-muted) text-sm"
             type="button"
           >
             {busyPlayerId === player.id ? t.lobby.claiming : t.lobby.claimSlot}
@@ -142,28 +146,28 @@ export function Lobby({
   return (
     <div className="gap-4 grid lg:grid-cols-[0.9fr_1.1fr]">
       {/* CODE + STATUS */}
-      <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
-        <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
+      <section className="bg-(--sf-surface-2)/90 p-5 border border-(--accent)/20 rounded-lg">
+        <p className="font-semibold text-(--sf-text-subtle) text-sm uppercase tracking-[0.16em]">
           {t.lobby.joinCode}
         </p>
-        <p className="bg-[#101820] mt-3 py-5 rounded-lg font-black text-(--accent) text-5xl text-center tracking-[0.35em]">
+        <p className="bg-(--sf-bg) mt-3 py-5 rounded-lg font-black text-(--accent) text-5xl text-center tracking-[0.35em]">
           {game.code}
         </p>
 
         {typeof window !== "undefined" ? (
           <div className="flex flex-col items-center mt-4">
             <QrCode value={window.location.href} size={180} />
-            <p className="mt-2 text-[#9fc9d5] text-xs">{t.common.scanToJoin}</p>
+            <p className="mt-2 text-(--sf-text-subtle) text-xs">{t.common.scanToJoin}</p>
             <div className="mt-3 w-full">
               <CopyLinkField url={window.location.href} />
             </div>
           </div>
         ) : null}
 
-        <p className="mt-3 text-[#d8d3bd] text-sm">{t.lobby.shareHint}</p>
+        <p className="mt-3 text-(--sf-text-muted) text-sm">{t.lobby.shareHint}</p>
 
-        <div className="bg-[#18262f] mt-5 p-4 rounded-lg">
-          <p className="text-[#9fc9d5] text-sm">{t.lobby.claimedSlots}</p>
+        <div className="bg-(--sf-surface) mt-5 p-4 rounded-lg">
+          <p className="text-(--sf-text-subtle) text-sm">{t.lobby.claimedSlots}</p>
           <p className="mt-1 font-black text-4xl">
             {claimedCount}/{players.length}
           </p>
@@ -178,17 +182,17 @@ export function Lobby({
             {t.common.startGame}
           </button>
         ) : (
-          <p className="mt-5 py-4 text-[#9fc9d5] text-sm text-center animate-pulse">
+          <p className="mt-5 py-4 text-(--sf-text-subtle) text-sm text-center animate-pulse">
             {t.lobby.waitingForHost}
           </p>
         )}
       </section>
 
       {/* SLOTS */}
-      <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
+      <section className="bg-(--sf-surface-2)/90 p-5 border border-(--accent)/20 rounded-lg">
         <div className="flex justify-between mb-4">
           <h2 className="font-black text-xl">{t.lobby.slotsTitle}</h2>
-          <span className="text-[#9fc9d5] text-sm">{t.lobby.chooseSlot}</span>
+          <span className="text-(--sf-text-subtle) text-sm">{t.lobby.chooseSlot}</span>
         </div>
 
         {error ? <p className="mb-3 text-[#ef5b2a] text-sm">{error}</p> : null}

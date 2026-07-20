@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase/client";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -134,17 +135,18 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="bg-[#101820] px-4 py-5 min-h-screen text-[#fff4c7]">
+    <main className="bg-(--sf-bg) px-4 py-5 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-md">
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.common.back}
           </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         <header className="flex items-center gap-4 mb-6">
@@ -160,7 +162,7 @@ export default function LoginPage() {
           </h1>
         </header>
 
-        <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 p-5 border border-[#f59e22]/20 rounded-lg">
           {mode !== "forgot" ? (
             <>
               <form
@@ -168,7 +170,7 @@ export default function LoginPage() {
                 className="space-y-3"
               >
                 <div>
-                  <label className="font-bold text-[#f7e7ad] text-sm">
+                  <label className="font-bold text-(--sf-text) text-sm">
                     {t.auth.email}
                   </label>
                   <input
@@ -177,12 +179,12 @@ export default function LoginPage() {
                     autoComplete="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                    className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-[#f7e7ad] text-sm">
+                  <label className="font-bold text-(--sf-text) text-sm">
                     {t.auth.password}
                   </label>
                   <input
@@ -194,13 +196,13 @@ export default function LoginPage() {
                     }
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                    className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                   />
                 </div>
 
                 {mode === "signup" ? (
                   <div>
-                    <label className="font-bold text-[#f7e7ad] text-sm">
+                    <label className="font-bold text-(--sf-text) text-sm">
                       {t.auth.confirmPassword}
                     </label>
                     <input
@@ -212,7 +214,7 @@ export default function LoginPage() {
                       onChange={(event) =>
                         setConfirmPassword(event.target.value)
                       }
-                      className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                      className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                     />
                   </div>
                 ) : null}
@@ -220,7 +222,7 @@ export default function LoginPage() {
                 {mode === "login" ? (
                   <button
                     onClick={() => switchMode("forgot")}
-                    className="text-[#9fc9d5] text-sm underline"
+                    className="text-(--sf-text-subtle) text-sm underline"
                     type="button"
                   >
                     {t.auth.forgotPassword}
@@ -249,7 +251,7 @@ export default function LoginPage() {
 
               <button
                 onClick={() => switchMode(mode === "signup" ? "login" : "signup")}
-                className="mt-4 w-full text-[#9fc9d5] text-sm text-center underline"
+                className="mt-4 w-full text-(--sf-text-subtle) text-sm text-center underline"
                 type="button"
               >
                 {mode === "signup"
@@ -262,12 +264,12 @@ export default function LoginPage() {
               <h2 className="font-black text-xl">
                 {t.auth.forgotPasswordTitle}
               </h2>
-              <p className="text-[#d8d3bd] text-sm">
+              <p className="text-(--sf-text-muted) text-sm">
                 {t.auth.forgotPasswordPrompt}
               </p>
 
               <div>
-                <label className="font-bold text-[#f7e7ad] text-sm">
+                <label className="font-bold text-(--sf-text) text-sm">
                   {t.auth.email}
                 </label>
                 <input
@@ -276,7 +278,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                  className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                 />
               </div>
 
@@ -293,7 +295,7 @@ export default function LoginPage() {
 
               <button
                 onClick={() => switchMode("login")}
-                className="w-full text-[#9fc9d5] text-sm text-center underline"
+                className="w-full text-(--sf-text-subtle) text-sm text-center underline"
                 type="button"
               >
                 {t.auth.backToLogin}

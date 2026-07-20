@@ -10,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
@@ -473,7 +474,7 @@ export default function WizardGame({
 
   if (notFound) {
     return (
-      <main style={gameThemes.wizard.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -484,7 +485,7 @@ export default function WizardGame({
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
           <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
-          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
+          <p className="mt-2 text-(--sf-text-muted)">{t.common.invalidLink}</p>
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
@@ -495,7 +496,7 @@ export default function WizardGame({
             </button>
             <button
               onClick={() => router.push("/")}
-              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted)"
               type="button"
             >
               {t.common.toHome}
@@ -508,7 +509,7 @@ export default function WizardGame({
 
   if (!game || !state) {
     return (
-      <main style={gameThemes.wizard.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -518,7 +519,7 @@ export default function WizardGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <p className="text-[#d8d3bd]">{t.wizard.loadingGame}</p>
+          <p className="text-(--sf-text-muted)">{t.wizard.loadingGame}</p>
         </div>
       </main>
     );
@@ -526,13 +527,13 @@ export default function WizardGame({
 
   if (state.phase === "lobby") {
     return (
-      <main style={gameThemes.wizard.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.wizard.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-5xl">
           <header className="mb-5">
             <div className="flex justify-between items-center mb-3">
               <button
                 onClick={() => router.push("/")}
-                className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+                className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
                 type="button"
               >
                 {t.common.back}
@@ -541,7 +542,7 @@ export default function WizardGame({
                 {isHost ? (
                   <button
                     onClick={() => setShowSettings(true)}
-                    className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+                    className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
                     title={t.settings.openButton}
                     aria-label={t.settings.openButton}
                     type="button"
@@ -551,6 +552,7 @@ export default function WizardGame({
                 ) : null}
                 {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
                 <LanguageSwitcher />
+                <ThemeToggle />
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -579,7 +581,7 @@ export default function WizardGame({
                   return card ? (
                     <span
                       key={id}
-                      className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
+                      className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-xs"
                     >
                       {card.name}
                     </span>
@@ -621,14 +623,14 @@ export default function WizardGame({
   }
 
   return (
-    <main style={gameThemes.wizard.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.wizard.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-7xl">
         <header className="flex sm:flex-row flex-col sm:justify-between sm:items-end gap-3 mb-4">
           <div>
             <div className="flex justify-between items-center mb-3">
               <button
                 onClick={() => router.push("/")}
-                className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+                className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
                 type="button"
               >
                 {t.common.back}
@@ -637,7 +639,7 @@ export default function WizardGame({
                 {isHost ? (
                   <button
                     onClick={() => setShowSettings(true)}
-                    className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+                    className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
                     title={t.settings.openButton}
                     aria-label={t.settings.openButton}
                     type="button"
@@ -648,6 +650,7 @@ export default function WizardGame({
                 {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
                 <span className="sm:hidden">
                   <LanguageSwitcher />
+                  <ThemeToggle />
                 </span>
               </div>
             </div>
@@ -673,19 +676,20 @@ export default function WizardGame({
           <div className="flex flex-col items-end gap-2">
             <span className="hidden sm:block">
               <LanguageSwitcher />
+              <ThemeToggle />
             </span>
             <div className="gap-2 grid grid-cols-4 text-sm text-center">
               <CodeBadge code={game.code} />
-              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-                <p className="text-[#9fc9d5]">{t.common.players}</p>
+              <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+                <p className="text-(--sf-text-subtle)">{t.common.players}</p>
                 <p className="font-black">{state.playerCount}</p>
               </div>
-              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-                <p className="text-[#9fc9d5]">{t.common.rounds}</p>
+              <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+                <p className="text-(--sf-text-subtle)">{t.common.rounds}</p>
                 <p className="font-black">{state.rounds}</p>
               </div>
-              <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-                <p className="text-[#9fc9d5]">{t.common.mode}</p>
+              <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+                <p className="text-(--sf-text-subtle)">{t.common.mode}</p>
                 <p className="font-black">
                   {state.writeMode === "host"
                     ? t.common.modeHost
@@ -706,7 +710,7 @@ export default function WizardGame({
               return card ? (
                 <span
                   key={id}
-                  className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
+                  className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-xs"
                 >
                   {card.name}
                 </span>
@@ -716,7 +720,7 @@ export default function WizardGame({
         ) : null}
 
         {!canWrite ? (
-          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
+          <p className="bg-(--sf-surface) mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-sm">
             {t.common.hostOnlyBanner}
           </p>
         ) : null}
@@ -752,7 +756,7 @@ export default function WizardGame({
 
         <button
           onClick={() => setShowAllRounds((current) => !current)}
-          className="mb-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+          className="mb-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
           type="button"
         >
           {showAllRounds
@@ -775,7 +779,7 @@ export default function WizardGame({
 
         <button
           onClick={() => setShowRules(true)}
-          className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+          className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
           type="button"
         >
           {t.wizard.rulesReferenceButton}

@@ -10,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
@@ -202,7 +203,7 @@ export default function BinokelGame({
 
   if (notFound) {
     return (
-      <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -213,7 +214,7 @@ export default function BinokelGame({
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
           <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
-          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
+          <p className="mt-2 text-(--sf-text-muted)">{t.common.invalidLink}</p>
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
@@ -224,7 +225,7 @@ export default function BinokelGame({
             </button>
             <button
               onClick={() => router.push("/")}
-              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted)"
               type="button"
             >
               {t.common.toHome}
@@ -237,7 +238,7 @@ export default function BinokelGame({
 
   if (!game || !state) {
     return (
-      <main style={gameThemes.binokel.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -247,7 +248,7 @@ export default function BinokelGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <p className="text-[#d8d3bd]">{t.binokel.loadingGame}</p>
+          <p className="text-(--sf-text-muted)">{t.binokel.loadingGame}</p>
         </div>
       </main>
     );
@@ -258,7 +259,7 @@ export default function BinokelGame({
       <div className="flex justify-between items-center mb-3">
         <button
           onClick={() => router.push("/")}
-          className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+          className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
           type="button"
         >
           {t.common.back}
@@ -267,7 +268,7 @@ export default function BinokelGame({
           {isHost ? (
             <button
               onClick={() => setShowSettings(true)}
-              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+              className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
               title={t.settings.openButton}
               aria-label={t.settings.openButton}
               type="button"
@@ -277,6 +278,7 @@ export default function BinokelGame({
           ) : null}
           {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
       </div>
       {showSettings && isHost ? (
@@ -316,12 +318,12 @@ export default function BinokelGame({
         </div>
         <div className="gap-2 grid grid-cols-3 text-sm text-center">
           <CodeBadge code={game.code} />
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.binokel.target}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{t.binokel.target}</p>
             <p className="font-black">{state.targetScore}</p>
           </div>
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.mode}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{t.common.mode}</p>
             <p className="font-black">
               {state.writeMode === "host" ? t.common.modeHost : t.common.modeAll}
             </p>
@@ -333,7 +335,7 @@ export default function BinokelGame({
 
   if (state.phase === "lobby") {
     return (
-      <main style={gameThemes.binokel.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.binokel.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-5xl">
           {header(t.binokel.lobbyTag, t.lobby.header)}
           <Lobby
@@ -359,12 +361,12 @@ export default function BinokelGame({
   }
 
   return (
-    <main style={gameThemes.binokel.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.binokel.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-5xl">
         {header(t.binokel.tag, t.wizard.scoreTable)}
 
         {!canWrite ? (
-          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
+          <p className="bg-(--sf-surface) mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-sm">
             {t.common.hostOnlyBanner}
           </p>
         ) : null}
@@ -377,7 +379,7 @@ export default function BinokelGame({
           >
             {"\u{1F3C6} "}
             {format(t.binokel.targetReached, { name: leader.name })}
-            <span className="block mt-0.5 font-semibold text-[#9fc9d5] text-xs">
+            <span className="block mt-0.5 font-semibold text-(--sf-text-subtle) text-xs">
               {t.celebration.showResult}
             </span>
           </button>
@@ -392,10 +394,10 @@ export default function BinokelGame({
           {parties.map((party) => (
             <div
               key={party.id}
-              className="bg-[#14222b]/90 p-3 border border-[#f7e7ad]/10 rounded-lg min-w-0"
+              className="bg-(--sf-surface-2)/90 p-3 border border-(--sf-text)/10 rounded-lg min-w-0"
               style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
             >
-              <p className="text-[#d8d3bd] text-sm truncate">{party.name}</p>
+              <p className="text-(--sf-text-muted) text-sm truncate">{party.name}</p>
               <p className="mt-1 font-black text-2xl">
                 {totals[party.id] ?? 0}
               </p>
@@ -404,7 +406,7 @@ export default function BinokelGame({
         </section>
 
         {/* ROUNDS */}
-        <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-black text-xl">{t.binokel.roundsHeader}</h2>
             {canWrite ? (
@@ -419,14 +421,14 @@ export default function BinokelGame({
           </div>
 
           {rounds.length === 0 ? (
-            <p className="py-6 text-[#9fc9d5] text-sm text-center">
+            <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
               {t.binokel.noRounds}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="text-[#9fc9d5] text-left">
+                  <tr className="text-(--sf-text-subtle) text-left">
                     <th className="py-2 pr-3 font-semibold">#</th>
                     <th className="py-2 pr-3 font-semibold">
                       {t.binokel.bidder}
@@ -471,8 +473,8 @@ export default function BinokelGame({
                       <Fragment key={index}>
                       <tr
                         onClick={() => openExistingRound(index)}
-                        className={`border-t border-[#f7e7ad]/10 ${
-                          canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
+                        className={`border-t border-(--sf-text)/10 ${
+                          canWrite ? "cursor-pointer hover:bg-(--sf-surface)" : ""
                         }`}
                       >
                         <td className="py-3 pr-3 font-black">{index + 1}</td>
@@ -482,7 +484,7 @@ export default function BinokelGame({
                               <span className="font-bold">
                                 {bidderParty.name}
                               </span>
-                              <span className="text-[#9fc9d5]">
+                              <span className="text-(--sf-text-subtle)">
                                 {" "}
                                 ·{" "}
                                 {round.special
@@ -521,7 +523,7 @@ export default function BinokelGame({
                               ) : null}
                             </>
                           ) : (
-                            <span className="text-[#9fc9d5]">
+                            <span className="text-(--sf-text-subtle)">
                               {t.binokel.inProgress}
                             </span>
                           )}
@@ -550,8 +552,8 @@ export default function BinokelGame({
                       {/* ZWISCHENSTAND: Meldung + Stiche der Runde, kumulierter Stand */}
                       <tr
                         onClick={() => openExistingRound(index)}
-                        className={`text-xs text-[#9fc9d5] ${
-                          canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
+                        className={`text-xs text-(--sf-text-subtle) ${
+                          canWrite ? "cursor-pointer hover:bg-(--sf-surface)" : ""
                         }`}
                       >
                         <td className="pb-3 pr-3" />
@@ -578,7 +580,7 @@ export default function BinokelGame({
                                 })}
                               </span>
                             ) : null}
-                            <span className="block font-bold text-[#d8d3bd]">
+                            <span className="block font-bold text-(--sf-text-muted)">
                               {format(t.binokel.runningTotalShort, {
                                 total: runningTotals[index]?.[party.id] ?? 0,
                               })}
@@ -596,7 +598,7 @@ export default function BinokelGame({
 
           <button
             onClick={() => setShowMelds(true)}
-            className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+            className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
             type="button"
           >
             {t.binokel.showMelds}

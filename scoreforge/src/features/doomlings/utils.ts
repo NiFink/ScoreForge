@@ -17,6 +17,16 @@ export function getScoreKeys(addons: string[]): (keyof DoomlingsScores)[] {
     : BASE_SCORE_KEYS;
 }
 
+// Symbole wie auf den Trait-Karten im Original: Tropfen (nicht Kreuz!) und
+// Sichel sind die beiden Karten-Symbole, World's End und Zahlen ergänzen sie.
+export const SCORE_KEY_ICONS: Record<keyof DoomlingsScores, string> = {
+  worldsEnd: "🌍",
+  sickle: "🌙",
+  numbers: "🔢",
+  cross: "💧",
+  secretGoals: "🤫",
+};
+
 const DEFAULT_SCORES: DoomlingsScores = {
   numbers: 0,
   cross: 0,

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { colorOptions } from "@/lib/colors";
 import { format, useI18n } from "@/lib/i18n";
 import { isNameTaken } from "@/lib/playerValidation";
+import { PlayerAvatar } from "./PlayerAvatar";
 import type {
   BaseGameState,
   DeviceMode,
@@ -119,12 +120,12 @@ export function GameSettingsModal({
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/75 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-(--sf-surface) shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-3 mb-4">
           <h2 className="font-black text-2xl">{t.settings.title}</h2>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
@@ -132,7 +133,7 @@ export function GameSettingsModal({
         </div>
 
         {/* WRITE MODE */}
-        <p className="font-bold text-[#f7e7ad] text-sm">
+        <p className="font-bold text-(--sf-text) text-sm">
           {t.common.writeQuestion}
         </p>
         <div className="gap-2 grid grid-cols-2 mt-2">
@@ -148,7 +149,7 @@ export function GameSettingsModal({
               className={`rounded-md px-3 py-3 font-black ${
                 state.writeMode === mode
                   ? "bg-(--accent) text-(--on-accent)"
-                  : "bg-[#101820] text-[#d8d3bd]"
+                  : "bg-(--sf-bg) text-(--sf-text-muted)"
               }`}
               type="button"
             >
@@ -158,7 +159,7 @@ export function GameSettingsModal({
         </div>
 
         {/* DEVICE MODE / LOBBY */}
-        <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
+        <p className="mt-5 font-bold text-(--sf-text) text-sm">
           {t.settings.lobbySection}
         </p>
         <div className="gap-2 grid grid-cols-2 mt-2">
@@ -174,7 +175,7 @@ export function GameSettingsModal({
               className={`rounded-md px-3 py-3 font-black ${
                 state.deviceMode === mode
                   ? "bg-(--accent) text-(--on-accent)"
-                  : "bg-[#101820] text-[#d8d3bd]"
+                  : "bg-(--sf-bg) text-(--sf-text-muted)"
               }`}
               type="button"
             >
@@ -187,19 +188,19 @@ export function GameSettingsModal({
           <div className="mt-3">
             <button
               onClick={onBackToLobby}
-              className="px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              className="px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
               type="button"
             >
               {t.settings.backToLobby}
             </button>
-            <p className="mt-1 text-[#9fc9d5] text-xs">
+            <p className="mt-1 text-(--sf-text-subtle) text-xs">
               {t.settings.backToLobbyHint}
             </p>
           </div>
         ) : null}
 
         {/* PAUSE / RESUME */}
-        <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
+        <p className="mt-5 font-bold text-(--sf-text) text-sm">
           {t.settings.pauseSection}
         </p>
         {state.paused ? (
@@ -208,7 +209,7 @@ export function GameSettingsModal({
               {t.settings.pausedBadge}
             </span>
             {expiresAt ? (
-              <p className="mt-2 text-[#9fc9d5] text-xs">
+              <p className="mt-2 text-(--sf-text-subtle) text-xs">
                 {format(t.settings.pausedUntil, {
                   date: new Date(expiresAt).toLocaleDateString(
                     lang === "de" ? "de-DE" : "en-US",
@@ -218,7 +219,7 @@ export function GameSettingsModal({
             ) : null}
             <button
               onClick={onResume}
-              className="mt-2 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              className="mt-2 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
               type="button"
             >
               {t.settings.resumeButton}
@@ -228,24 +229,24 @@ export function GameSettingsModal({
           <div className="mt-2">
             <button
               onClick={onPause}
-              className="px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              className="px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
               type="button"
             >
               {t.settings.pauseButton}
             </button>
-            <p className="mt-1 text-[#9fc9d5] text-xs">
+            <p className="mt-1 text-(--sf-text-subtle) text-xs">
               {t.settings.pauseHint}
             </p>
           </div>
         )}
 
         {/* PLAYERS */}
-        <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
+        <p className="mt-5 font-bold text-(--sf-text) text-sm">
           {t.settings.playersSection}
         </p>
 
         {!allowPlayerChanges ? (
-          <p className="bg-[#101820] mt-2 p-3 rounded-lg text-[#9fc9d5] text-xs">
+          <p className="bg-(--sf-bg) mt-2 p-3 rounded-lg text-(--sf-text-subtle) text-xs">
             {t.settings.playerChangesUnavailable}
           </p>
         ) : (
@@ -254,14 +255,17 @@ export function GameSettingsModal({
               {state.players.map((player) => (
                 <div
                   key={player.id}
-                  className="flex justify-between items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                  className="flex justify-between items-center gap-3 bg-(--sf-bg) p-3 border border-(--sf-text)/10 rounded-lg"
                   style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
                 >
-                  <div className="min-w-0">
-                    <p className="font-bold truncate">{player.name}</p>
-                    <p className="text-[#9fc9d5] text-xs">
-                      {totals[player.id] ?? 0} {t.common.points}
-                    </p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <PlayerAvatar color={player.color} size="lg" />
+                    <div className="min-w-0">
+                      <p className="font-bold truncate">{player.name}</p>
+                      <p className="text-(--sf-text-subtle) text-xs">
+                        {totals[player.id] ?? 0} {t.common.points}
+                      </p>
+                    </div>
                   </div>
                   {canRemove ? (
                     pendingRemoveId === player.id ? (
@@ -292,22 +296,22 @@ export function GameSettingsModal({
             </div>
 
             {!canRemove ? (
-              <p className="mt-2 text-[#9fc9d5] text-xs">
+              <p className="mt-2 text-(--sf-text-subtle) text-xs">
                 {format(t.settings.minPlayersNote, { n: minPlayers })}
               </p>
             ) : null}
 
             {/* ADD PLAYER */}
             {state.players.length < maxPlayers ? (
-              <div className="bg-[#101820] mt-4 p-3 rounded-lg">
-                <p className="font-bold text-[#f7e7ad] text-sm">
+              <div className="bg-(--sf-bg) mt-4 p-3 rounded-lg">
+                <p className="font-bold text-(--sf-text) text-sm">
                   {t.settings.addPlayerTitle}
                 </p>
                 <input
-                  className={`mt-2 w-full rounded-md border bg-[#18262f] px-3 py-3 outline-none ${
+                  className={`mt-2 w-full rounded-md border bg-(--sf-surface) px-3 py-3 outline-none ${
                     nameDraftTaken
                       ? "border-[#ef5b2a] focus:border-[#ef5b2a]"
-                      : "border-[#f7e7ad]/10 focus:border-(--accent)"
+                      : "border-(--sf-text)/10 focus:border-(--accent)"
                   }`}
                   value={nameDraft}
                   onChange={(event) => setNameDraft(event.target.value)}
@@ -331,32 +335,34 @@ export function GameSettingsModal({
                         onClick={() => setColorDraft(color.value)}
                         title={taken ? t.common.colorTaken : color.name}
                         aria-label={taken ? t.common.colorTaken : color.name}
-                        className={`relative h-8 w-8 rounded-md ${
+                        className={`relative flex h-9 w-9 items-center justify-center rounded-md text-lg ${
                           taken
                             ? "cursor-not-allowed opacity-25"
                             : "cursor-pointer"
                         } ${
                           selectedColor === color.value && !taken
-                            ? "ring-2 ring-(--accent) ring-offset-1 ring-offset-[#101820]"
+                            ? "ring-2 ring-(--accent) ring-offset-1 ring-offset-(--sf-bg)"
                             : ""
                         }`}
-                        style={{ backgroundColor: color.value }}
+                        style={{ backgroundColor: `${color.value}26` }}
                         type="button"
                       >
                         {taken ? (
                           <span
                             aria-hidden="true"
-                            className="absolute inset-0 flex items-center justify-center text-sm font-black text-[#101820]"
+                            className="absolute inset-0 flex items-center justify-center text-sm font-black text-(--sf-text)"
                           >
                             {"✕"}
                           </span>
-                        ) : null}
+                        ) : (
+                          <span aria-hidden="true">{color.emoji}</span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                <p className="mt-3 font-bold text-[#f7e7ad] text-sm">
+                <p className="mt-3 font-bold text-(--sf-text) text-sm">
                   {t.settings.startingPoints}
                 </p>
                 <div className="gap-2 grid grid-cols-3 mt-2">
@@ -367,7 +373,7 @@ export function GameSettingsModal({
                       className={`rounded-md px-2 py-2 text-xs font-black ${
                         startMode === option.value
                           ? "bg-(--accent) text-(--on-accent)"
-                          : "bg-[#18262f] text-[#d8d3bd]"
+                          : "bg-(--sf-surface) text-(--sf-text-muted)"
                       }`}
                       type="button"
                     >
@@ -375,7 +381,7 @@ export function GameSettingsModal({
                     </button>
                   ))}
                 </div>
-                <p className="mt-2 text-[#9fc9d5] text-xs">
+                <p className="mt-2 text-(--sf-text-subtle) text-xs">
                   {format(t.settings.startPreview, { points: startValue })}
                 </p>
 
@@ -389,7 +395,7 @@ export function GameSettingsModal({
                 </button>
               </div>
             ) : (
-              <p className="mt-2 text-[#9fc9d5] text-xs">
+              <p className="mt-2 text-(--sf-text-subtle) text-xs">
                 {format(t.settings.maxPlayersNote, { n: maxPlayers })}
               </p>
             )}

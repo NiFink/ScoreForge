@@ -62,13 +62,13 @@ export function GameModal({
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md">
+      <div className="bg-(--sf-surface) shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md">
         <div className="flex justify-between items-start gap-3 mb-4">
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
               {format(t.wizard.roundLabel, { n: roundNumber })}
             </p>
-            <p className="mt-1 text-[#9fc9d5] text-xs">
+            <p className="mt-1 text-(--sf-text-subtle) text-xs">
               {format(t.wizard.startPlayerShort, {
                 n: roundStartPlayerIndex + 1,
               })}
@@ -79,14 +79,14 @@ export function GameModal({
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
           </button>
         </div>
 
-        <div className="gap-2 grid grid-cols-2 bg-[#101820] mb-4 p-1 rounded-lg">
+        <div className="gap-2 grid grid-cols-2 bg-(--sf-bg) mb-4 p-1 rounded-lg">
           {[
             ["bid", t.wizard.predicted],
             ["actual", t.wizard.actual],
@@ -112,8 +112,8 @@ export function GameModal({
                   ? "bg-(--accent) text-(--on-accent)"
                   : (phase === "actual" && !activeRoundBidsDone) ||
                       (phase === "bid" && bidTabLocked)
-                    ? "cursor-not-allowed text-[#5f7f92]"
-                    : "text-[#d8d3bd]"
+                    ? "cursor-not-allowed text-(--sf-disabled)"
+                    : "text-(--sf-text-muted)"
               }`}
               title={
                 phase === "actual" && !activeRoundBidsDone
@@ -142,12 +142,12 @@ export function GameModal({
 
         <div
           key={`${modalPhase}-${activePlayer.id}`}
-          className="bg-[#101820] p-4 rounded-lg transition"
+          className="bg-(--sf-bg) p-4 rounded-lg transition"
           style={{ boxShadow: `inset 4px 0 0 ${activePlayer.color}` }}
         >
-          <p className="text-[#9fc9d5] text-sm">{t.wizard.activePlayer}</p>
+          <p className="text-(--sf-text-subtle) text-sm">{t.wizard.activePlayer}</p>
           <p className="mt-1 font-black text-2xl">{activePlayer.name}</p>
-          <p className="mt-1 text-[#d8d3bd] text-sm">
+          <p className="mt-1 text-(--sf-text-muted) text-sm">
             {format(t.wizard.pointsLabel, {
               points: totals[activePlayer.id] ?? 0,
             })}
@@ -161,11 +161,11 @@ export function GameModal({
           ) : null}
 
           <label className="block mt-5">
-            <span className="font-bold text-[#f7e7ad] text-sm">
+            <span className="font-bold text-(--sf-text) text-sm">
               {modalPhase === "bid" ? t.wizard.prediction : t.wizard.tricks}
             </span>
             <select
-              className="bg-[#18262f] mt-2 px-3 py-4 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg"
+              className="bg-(--sf-surface) mt-2 px-3 py-4 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg"
               value={
                 modalPhase === "bid"
                   ? (currentRound[activePlayer.id].bid ?? "")
@@ -213,7 +213,7 @@ export function GameModal({
           <button
             onClick={onMovePrevious}
             disabled={previousDisabled}
-            className="disabled:opacity-35 px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd] disabled:cursor-not-allowed"
+            className="disabled:opacity-35 px-4 py-3 border border-(--sf-text)/15 rounded-md font-black text-(--sf-text-muted) disabled:cursor-not-allowed"
             type="button"
           >
             {t.common.previous}

@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { getHostSession } from "@/lib/games/hostSession";
 import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type {
   BaseGameState,
   GameRecord,
@@ -132,17 +133,18 @@ export default function JoinPage() {
   };
 
   return (
-    <main className="bg-[#101820] px-4 py-5 min-h-screen text-[#fff4c7]">
+    <main className="bg-(--sf-bg) px-4 py-5 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-2xl">
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.common.back}
           </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         <header className="flex items-center gap-4 mb-6">
@@ -162,12 +164,12 @@ export default function JoinPage() {
         </header>
 
         {/* OPEN LOBBIES */}
-        <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 p-5 border border-(--accent)/20 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-black text-xl">{t.join.openLobbies}</h2>
             <button
               onClick={loadLobbies}
-              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+              className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
               type="button"
             >
               {t.join.refresh}
@@ -179,11 +181,11 @@ export default function JoinPage() {
           ) : null}
 
           {lobbies === null ? (
-            <p className="py-6 text-[#9fc9d5] text-sm text-center">
+            <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
               {t.join.loadingLobbies}
             </p>
           ) : lobbies.length === 0 ? (
-            <p className="py-6 text-[#9fc9d5] text-sm text-center">
+            <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
               {t.join.noLobbies}
             </p>
           ) : (
@@ -195,7 +197,7 @@ export default function JoinPage() {
                 return (
                   <div
                     key={lobby.id}
-                    className="bg-[#18262f] border border-[#f7e7ad]/10 rounded-lg overflow-hidden"
+                    className="bg-(--sf-surface) border border-(--sf-text)/10 rounded-lg overflow-hidden"
                     style={{ boxShadow: `inset 4px 0 0 ${theme.hex}` }}
                   >
                     <button
@@ -208,7 +210,7 @@ export default function JoinPage() {
                         <p className="font-bold truncate">
                           {lobby.name ?? theme.label}
                         </p>
-                        <p className="mt-0.5 text-[#9fc9d5] text-xs">
+                        <p className="mt-0.5 text-(--sf-text-subtle) text-xs">
                           <span
                             className="inline-block mr-1 rounded-full w-2 h-2 align-middle"
                             style={{ backgroundColor: theme.hex }}
@@ -253,12 +255,12 @@ export default function JoinPage() {
                           join(pin, lobby.id);
                         }}
                       >
-                        <p className="mb-2 text-[#9fc9d5] text-xs">
+                        <p className="mb-2 text-(--sf-text-subtle) text-xs">
                           {t.join.pinPrompt}
                         </p>
                         <div className="flex gap-2">
                           <input
-                            className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center uppercase tracking-[0.3em]"
+                            className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-lg text-center uppercase tracking-[0.3em]"
                             value={pin}
                             onChange={(event) => {
                               setPin(event.target.value.toUpperCase());
@@ -291,9 +293,9 @@ export default function JoinPage() {
         </section>
 
         {/* JOIN BY CODE */}
-        <section className="bg-[#14222b]/90 mt-4 p-5 border border-(--accent)/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 mt-4 p-5 border border-(--accent)/20 rounded-lg">
           <h2 className="font-black text-xl">{t.join.joinByCode}</h2>
-          <p className="mt-2 text-[#d8d3bd] text-sm">{t.join.prompt}</p>
+          <p className="mt-2 text-(--sf-text-muted) text-sm">{t.join.prompt}</p>
 
           <form
             onSubmit={(event) => {
@@ -304,7 +306,7 @@ export default function JoinPage() {
             }}
           >
             <input
-              className="bg-[#101820] mt-4 px-3 py-4 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-2xl text-center uppercase tracking-[0.4em]"
+              className="bg-(--sf-bg) mt-4 px-3 py-4 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-2xl text-center uppercase tracking-[0.4em]"
               value={code}
               onChange={(event) => {
                 setCode(event.target.value.toUpperCase());

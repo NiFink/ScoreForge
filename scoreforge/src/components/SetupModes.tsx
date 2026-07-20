@@ -21,7 +21,7 @@ export function SetupModes({
   return (
     <div className="space-y-4">
       <fieldset>
-        <legend className="font-bold text-[#f7e7ad] text-sm">
+        <legend className="font-bold text-(--sf-text) text-sm">
           {t.common.deviceQuestion}
         </legend>
 
@@ -38,7 +38,7 @@ export function SetupModes({
               className={`rounded-md px-3 py-3 text-sm font-bold ${
                 deviceMode === value
                   ? "bg-(--accent-2) text-(--on-accent)"
-                  : "bg-[#18262f] text-[#d8d3bd]"
+                  : "bg-(--sf-surface) text-(--sf-text-muted)"
               }`}
               type="button"
             >
@@ -50,7 +50,7 @@ export function SetupModes({
 
       {deviceMode === "multi" && (
         <fieldset>
-          <legend className="font-bold text-[#f7e7ad] text-sm">
+          <legend className="font-bold text-(--sf-text) text-sm">
             {t.common.writeQuestion}
           </legend>
 
@@ -67,7 +67,7 @@ export function SetupModes({
                 className={`rounded-md px-3 py-3 text-sm font-bold ${
                   writeMode === value
                     ? "bg-(--accent-2) text-(--on-accent)"
-                    : "bg-[#18262f] text-[#d8d3bd]"
+                    : "bg-(--sf-surface) text-(--sf-text-muted)"
                 }`}
                 type="button"
               >

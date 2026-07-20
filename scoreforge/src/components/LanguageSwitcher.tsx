@@ -9,7 +9,7 @@ export function LanguageSwitcher() {
   const { lang, setLanguage } = useI18n();
 
   return (
-    <div className="inline-flex bg-[#18262f] p-1 border border-[#f7e7ad]/15 rounded-md">
+    <div className="inline-flex bg-(--sf-surface) p-1 border border-(--sf-text)/15 rounded-md">
       {languages.map((option) => (
         <button
           key={option}
@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
           className={`rounded px-2 py-1 text-xs font-black uppercase ${
             lang === option
               ? "bg-(--accent) text-(--on-accent)"
-              : "text-[#d8d3bd]"
+              : "text-(--sf-text-muted)"
           }`}
           type="button"
         >

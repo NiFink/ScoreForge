@@ -43,10 +43,10 @@ export function CodeBadge({ code }: CodeBadgeProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="bg-[#18262f] hover:border-(--accent)/50 px-3 py-2 border border-[#f7e7ad]/10 rounded-md text-center transition"
+        className="bg-(--sf-surface) hover:border-(--accent)/50 px-3 py-2 border border-(--sf-text)/10 rounded-md text-center transition"
         type="button"
       >
-        <p className="flex justify-center items-center gap-1 text-[#9fc9d5]">
+        <p className="flex justify-center items-center gap-1 text-(--sf-text-subtle)">
           <QrIcon />
           {t.common.code}
         </p>
@@ -59,10 +59,10 @@ export function CodeBadge({ code }: CodeBadgeProps) {
           onClick={() => setOpen(false)}
         >
           <div
-            className="bg-[#18262f] shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-xs text-center"
+            className="bg-(--sf-surface) shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-xs text-center"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="font-semibold text-[#9fc9d5] text-sm uppercase tracking-[0.16em]">
+            <p className="font-semibold text-(--sf-text-subtle) text-sm uppercase tracking-[0.16em]">
               {t.lobby.joinCode}
             </p>
             <p className="mt-2 font-black text-(--accent) text-4xl tracking-[0.3em]">
@@ -75,7 +75,7 @@ export function CodeBadge({ code }: CodeBadgeProps) {
               />
             </div>
 
-            <p className="mt-3 text-[#d8d3bd] text-sm">{t.common.scanToJoin}</p>
+            <p className="mt-3 text-(--sf-text-muted) text-sm">{t.common.scanToJoin}</p>
 
             {typeof window !== "undefined" ? (
               <div className="mt-4">
@@ -85,7 +85,7 @@ export function CodeBadge({ code }: CodeBadgeProps) {
 
             <button
               onClick={() => setOpen(false)}
-              className="mt-4 px-4 py-3 border border-[#f7e7ad]/15 rounded-md w-full font-black text-[#d8d3bd]"
+              className="mt-4 px-4 py-3 border border-(--sf-text)/15 rounded-md w-full font-black text-(--sf-text-muted)"
               type="button"
             >
               {t.common.close}

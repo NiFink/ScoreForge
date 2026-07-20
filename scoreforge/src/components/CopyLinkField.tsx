@@ -43,11 +43,11 @@ export function CopyLinkField({ url }: CopyLinkFieldProps) {
         readOnly
         value={url}
         onFocus={(event) => event.target.select()}
-        className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 rounded-md outline-none w-full text-[#d8d3bd] text-xs truncate"
+        className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 rounded-md outline-none w-full text-(--sf-text-muted) text-xs truncate"
       />
       <button
         onClick={copy}
-        className="bg-[#101820] px-4 py-3 border border-(--accent-2)/40 rounded-md font-bold text-(--accent-2) text-sm whitespace-nowrap"
+        className="bg-(--sf-bg) px-4 py-3 border border-(--accent-2)/40 rounded-md font-bold text-(--accent-2) text-sm whitespace-nowrap"
         type="button"
       >
         {copied ? t.common.linkCopied : t.common.copyLink}

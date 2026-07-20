@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { format, useI18n } from "@/lib/i18n";
 import { themeForGameType } from "@/lib/gameThemes";
 import { computeRanks } from "@/lib/ranking";
+import { PlayerAvatar } from "./PlayerAvatar";
 import type { GameType } from "@/types/gameTypes";
 import {
   renderShareCard,
@@ -167,7 +168,7 @@ export function WinnerCelebration({
         ))}
       </div>
 
-      <div className="relative bg-[#101820]/95 shadow-2xl p-6 border border-(--accent)/30 rounded-2xl w-full max-w-md max-h-[92vh] overflow-y-auto text-[#fff4c7] text-center">
+      <div className="relative bg-(--sf-bg)/95 shadow-2xl p-6 border border-(--accent)/30 rounded-2xl w-full max-w-md max-h-[92vh] overflow-y-auto text-(--sf-text-strong) text-center">
         <p className="font-black text-(--accent) text-sm uppercase tracking-[0.3em]">
           {t.celebration.victory}
         </p>
@@ -186,25 +187,28 @@ export function WinnerCelebration({
 
         {/* Endstand */}
         <div className="space-y-2 mt-6 text-left">
-          <p className="font-semibold text-[#9fc9d5] text-xs uppercase tracking-[0.18em]">
+          <p className="font-semibold text-(--sf-text-subtle) text-xs uppercase tracking-[0.18em]">
             {t.celebration.finalStandings}
           </p>
           {standings.slice(0, 8).map((entry, index) => (
             <div
               key={entry.id}
-              className="flex items-center gap-3 bg-[#14222b]/90 px-3 py-2.5 border border-[#f7e7ad]/10 rounded-lg"
+              className="flex items-center gap-3 bg-(--sf-surface-2)/90 px-3 py-2.5 border border-(--sf-text)/10 rounded-lg"
               style={{ boxShadow: `inset 4px 0 0 ${entry.color}` }}
             >
               <span className="w-7 font-black text-lg text-center">
                 {ranks[index] <= 3 ? medals[ranks[index] - 1] : `${ranks[index]}.`}
               </span>
-              <span className="flex-1 min-w-0 font-bold truncate">
-                {entry.name}
-                {entry.detail ? (
-                  <span className="block font-normal text-[#9fc9d5] text-xs truncate">
-                    {entry.detail}
-                  </span>
-                ) : null}
+              <span className="flex items-center gap-1.5 flex-1 min-w-0">
+                <PlayerAvatar color={entry.color} size="sm" />
+                <span className="min-w-0 font-bold truncate">
+                  {entry.name}
+                  {entry.detail ? (
+                    <span className="block font-normal text-(--sf-text-subtle) text-xs truncate">
+                      {entry.detail}
+                    </span>
+                  ) : null}
+                </span>
               </span>
               <span className="font-black text-xl">{entry.score}</span>
             </div>
@@ -222,7 +226,7 @@ export function WinnerCelebration({
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-3 border border-[#f7e7ad]/15 rounded-lg font-bold text-[#d8d3bd]"
+            className="px-4 py-3 border border-(--sf-text)/15 rounded-lg font-bold text-(--sf-text-muted)"
             type="button"
           >
             {t.celebration.close}

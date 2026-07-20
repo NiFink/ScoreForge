@@ -240,7 +240,7 @@ export function RoundModal({
 
   return (
     <div className="z-40 fixed inset-0 place-items-end sm:place-items-center grid bg-black/70 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-(--sf-surface) shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-3 mb-4">
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
@@ -250,7 +250,7 @@ export function RoundModal({
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
@@ -258,7 +258,7 @@ export function RoundModal({
         </div>
 
         {/* STEP INDICATOR — anklickbar, wenn der Schritt erreichbar ist */}
-        <div className="gap-2 grid grid-cols-3 bg-[#101820] mb-4 p-1 rounded-lg">
+        <div className="gap-2 grid grid-cols-3 bg-(--sf-bg) mb-4 p-1 rounded-lg">
           {steps.map((entry, index) => {
             const reachable = canGoToStep(entry.key);
 
@@ -271,8 +271,8 @@ export function RoundModal({
                   index === stepIndex
                     ? "bg-(--accent) text-(--on-accent)"
                     : reachable
-                      ? "text-[#d8d3bd] hover:bg-[#18262f]"
-                      : "text-[#5f7f92] cursor-not-allowed"
+                      ? "text-(--sf-text-muted) hover:bg-(--sf-surface)"
+                      : "text-(--sf-disabled) cursor-not-allowed"
                 }`}
                 type="button"
               >
@@ -284,7 +284,7 @@ export function RoundModal({
 
         {step === "bid" ? (
           <div>
-            <p className="font-bold text-[#f7e7ad] text-sm">
+            <p className="font-bold text-(--sf-text) text-sm">
               {t.binokel.bidderQuestion}
             </p>
             <div className="space-y-2 mt-3">
@@ -301,7 +301,7 @@ export function RoundModal({
                   className={`w-full rounded-lg border px-4 py-3 text-left font-bold ${
                     draft.bidderPartyId === party.id
                       ? "border-(--accent) bg-(--accent)/15"
-                      : "border-[#f7e7ad]/10 bg-[#101820]"
+                      : "border-(--sf-text)/10 bg-(--sf-bg)"
                   }`}
                   style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
                   type="button"
@@ -311,13 +311,13 @@ export function RoundModal({
               ))}
             </div>
 
-            <label className="block mt-5 font-bold text-[#f7e7ad] text-sm">
+            <label className="block mt-5 font-bold text-(--sf-text) text-sm">
               {t.binokel.bid}
             </label>
             <div className="flex items-center gap-2 mt-2">
               <button
                 onClick={() => setBid((draft.bid ?? 150) - 10)}
-                className="bg-[#101820] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                className="bg-(--sf-bg) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                 type="button"
               >
                 -10
@@ -338,23 +338,23 @@ export function RoundModal({
                     setBid(draft.bid);
                   }
                 }}
-                className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-xl text-center"
+                className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-xl text-center"
               />
               <button
                 onClick={() => setBid((draft.bid ?? 150) + 10)}
-                className="bg-[#101820] px-4 py-3 rounded-md font-black text-[#d8d3bd]"
+                className="bg-(--sf-bg) px-4 py-3 rounded-md font-black text-(--sf-text-muted)"
                 type="button"
               >
                 +10
               </button>
             </div>
-            <p className="mt-2 text-[#9fc9d5] text-xs">
+            <p className="mt-2 text-(--sf-text-subtle) text-xs">
               {t.binokel.bidTensNote}
             </p>
           </div>
         ) : step === "special" ? (
           <div>
-            <p className="font-bold text-[#f7e7ad] text-sm">
+            <p className="font-bold text-(--sf-text) text-sm">
               {format(t.binokel.allTricksQuestion, {
                 name: bidderParty?.name ?? "",
                 value: draft.special ?? 0,
@@ -368,12 +368,12 @@ export function RoundModal({
                 className={`w-full rounded-lg border px-4 py-4 text-left font-black ${
                   draft.specialMade === true
                     ? "border-(--accent) bg-(--accent)/15 text-(--accent-2)"
-                    : "border-[#f7e7ad]/10 bg-[#101820]"
+                    : "border-(--sf-text)/10 bg-(--sf-bg)"
                 }`}
                 type="button"
               >
                 {t.binokel.allTricksMade}
-                <span className="block mt-0.5 font-bold text-[#9fc9d5] text-xs">
+                <span className="block mt-0.5 font-bold text-(--sf-text-subtle) text-xs">
                   +{draft.special}
                 </span>
               </button>
@@ -384,24 +384,24 @@ export function RoundModal({
                 className={`w-full rounded-lg border px-4 py-4 text-left font-black ${
                   draft.specialMade === false
                     ? "border-[#ef5b2a] bg-[#ef5b2a]/15 text-[#ef5b2a]"
-                    : "border-[#f7e7ad]/10 bg-[#101820]"
+                    : "border-(--sf-text)/10 bg-(--sf-bg)"
                 }`}
                 type="button"
               >
                 {t.binokel.allTricksFailed}
-                <span className="block mt-0.5 font-bold text-[#9fc9d5] text-xs">
+                <span className="block mt-0.5 font-bold text-(--sf-text-subtle) text-xs">
                   -{draft.special}
                 </span>
               </button>
             </div>
-            <p className="mt-4 text-[#9fc9d5] text-xs">
+            <p className="mt-4 text-(--sf-text-subtle) text-xs">
               {t.binokel.specialOthersNote}
             </p>
           </div>
         ) : step === "melds" ? (
           <div>
             {/* SPIELART: erst hier entscheidet sich Normal / 1000 / 1500 */}
-            <p className="font-bold text-[#f7e7ad] text-sm">
+            <p className="font-bold text-(--sf-text) text-sm">
               {t.binokel.bidType}
             </p>
             <div className="space-y-2 mt-3">
@@ -433,12 +433,12 @@ export function RoundModal({
                     className={`w-full rounded-lg border px-4 py-3 text-left ${
                       active
                         ? "border-(--accent) bg-(--accent)/15"
-                        : "border-[#f7e7ad]/10 bg-[#101820]"
+                        : "border-(--sf-text)/10 bg-(--sf-bg)"
                     }`}
                     type="button"
                   >
                     <span className="block font-bold">{option.label}</span>
-                    <span className="block mt-0.5 text-[#9fc9d5] text-xs">
+                    <span className="block mt-0.5 text-(--sf-text-subtle) text-xs">
                       {option.hint}
                     </span>
                   </button>
@@ -447,15 +447,15 @@ export function RoundModal({
             </div>
 
             {isSpecial ? (
-              <p className="bg-[#101820] mt-4 p-3 rounded-lg text-[#9fc9d5] text-xs">
+              <p className="bg-(--sf-bg) mt-4 p-3 rounded-lg text-(--sf-text-subtle) text-xs">
                 {t.binokel.specialOthersNote}
               </p>
             ) : (
               <>
-                <p className="mt-5 font-bold text-[#f7e7ad] text-sm">
+                <p className="mt-5 font-bold text-(--sf-text) text-sm">
                   {t.binokel.meldPoints}
                 </p>
-                <p className="mt-1 text-[#9fc9d5] text-xs">
+                <p className="mt-1 text-(--sf-text-subtle) text-xs">
                   {t.binokel.meldTensNote}
                 </p>
 
@@ -464,13 +464,13 @@ export function RoundModal({
                   className={`mt-3 w-full rounded-md border px-3 py-2 text-left text-sm font-bold ${
                     easyMode
                       ? "border-(--accent) bg-(--accent)/15 text-(--accent-2)"
-                      : "border-[#f7e7ad]/10 bg-[#101820] text-[#d8d3bd]"
+                      : "border-(--sf-text)/10 bg-(--sf-bg) text-(--sf-text-muted)"
                   }`}
                   type="button"
                 >
                   {easyMode ? "✓ " : ""}
                   {t.binokel.easyModeLabel}
-                  <span className="block mt-0.5 font-normal text-[#9fc9d5] text-xs">
+                  <span className="block mt-0.5 font-normal text-(--sf-text-subtle) text-xs">
                     {t.binokel.easyModeHint}
                   </span>
                 </button>
@@ -479,7 +479,7 @@ export function RoundModal({
                   {parties.map((party) => (
                     <div
                       key={party.id}
-                      className="flex items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                      className="flex items-center gap-3 bg-(--sf-bg) p-3 border border-(--sf-text)/10 rounded-lg"
                       style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
                     >
                       <p className="flex-1 font-bold truncate">
@@ -524,7 +524,7 @@ export function RoundModal({
                             );
                           }
                         }}
-                        className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
+                        className="bg-(--sf-surface) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
                       />
                     </div>
                   ))}
@@ -532,14 +532,14 @@ export function RoundModal({
 
                 <button
                   onClick={onShowMelds}
-                  className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+                  className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
                   type="button"
                 >
                   {t.binokel.showMelds}
                 </button>
 
                 {draft.bidderPartyId ? (
-                  <div className="mt-4 pt-4 border-[#f7e7ad]/10 border-t">
+                  <div className="mt-4 pt-4 border-(--sf-text)/10 border-t">
                     <button
                       onClick={concede}
                       className="px-4 py-3 border border-[#ef5b2a]/40 rounded-md w-full font-black text-[#ef5b2a] text-sm"
@@ -547,7 +547,7 @@ export function RoundModal({
                     >
                       {t.binokel.concedeButton}
                     </button>
-                    <p className="mt-2 text-[#9fc9d5] text-xs">
+                    <p className="mt-2 text-(--sf-text-subtle) text-xs">
                       {t.binokel.concedeNote}
                     </p>
                   </div>
@@ -557,14 +557,14 @@ export function RoundModal({
           </div>
         ) : (
           <div>
-            <p className="font-bold text-[#f7e7ad] text-sm">
+            <p className="font-bold text-(--sf-text) text-sm">
               {t.binokel.tricksPoints}
             </p>
-            <p className="mt-1 text-[#9fc9d5] text-xs">
+            <p className="mt-1 text-(--sf-text-subtle) text-xs">
               {t.binokel.includesLastTrick}
             </p>
 
-            <p className="mt-1 text-[#9fc9d5] text-xs">
+            <p className="mt-1 text-(--sf-text-subtle) text-xs">
               {t.binokel.meldTensNote}
             </p>
 
@@ -575,7 +575,7 @@ export function RoundModal({
                 return (
                   <div
                     key={party.id}
-                    className="flex items-center gap-3 bg-[#101820] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                    className="flex items-center gap-3 bg-(--sf-bg) p-3 border border-(--sf-text)/10 rounded-lg"
                     style={{ boxShadow: `inset 4px 0 0 ${party.color}` }}
                   >
                     <p className="flex-1 font-bold truncate">
@@ -591,7 +591,7 @@ export function RoundModal({
                       <div
                         className={`w-24 rounded-md border px-3 py-3 text-center text-lg font-black ${
                           tricksValid
-                            ? "border-(--accent-2)/40 bg-[#18262f] text-(--accent-2)"
+                            ? "border-(--accent-2)/40 bg-(--sf-surface) text-(--accent-2)"
                             : "border-[#ef5b2a]/50 bg-[#ef5b2a]/10 text-[#ef5b2a]"
                         }`}
                         title="250 − Rest"
@@ -622,7 +622,7 @@ export function RoundModal({
                             );
                           }
                         }}
-                        className="bg-[#18262f] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
+                        className="bg-(--sf-surface) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
                       />
                     )}
                   </div>
@@ -630,14 +630,14 @@ export function RoundModal({
               })}
             </div>
 
-            <div className="bg-[#101820] mt-4 p-3 rounded-lg text-sm">
+            <div className="bg-(--sf-bg) mt-4 p-3 rounded-lg text-sm">
               <p className={tricksValid ? "text-[#2aa6c8]" : "text-[#ef5b2a]"}>
                 {format(t.binokel.sumHint, { sum: tricksSum })}
               </p>
-              <p className="mt-1 text-[#9fc9d5] text-xs">
+              <p className="mt-1 text-(--sf-text-subtle) text-xs">
                 {t.binokel.exactCountNote}
               </p>
-              <p className="mt-1 text-[#9fc9d5] text-xs">
+              <p className="mt-1 text-(--sf-text-subtle) text-xs">
                 {t.binokel.noTricksNote}
               </p>
             </div>
@@ -648,7 +648,7 @@ export function RoundModal({
           <button
             onClick={goPrevious}
             disabled={step === "bid"}
-            className="disabled:opacity-35 px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd] disabled:cursor-not-allowed"
+            className="disabled:opacity-35 px-4 py-3 border border-(--sf-text)/15 rounded-md font-black text-(--sf-text-muted) disabled:cursor-not-allowed"
             type="button"
           >
             {t.common.previous}

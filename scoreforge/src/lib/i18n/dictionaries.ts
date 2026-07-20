@@ -69,11 +69,13 @@ const de = {
     wizardDescription:
       "Vorhersagen, Stiche und Punkte für jede Runde schnell eintragen.",
     doomlingsDescription:
-      "Geführte Endwertung: Zahlen, Kreuz, Sichel und World's End.",
+      "Geführte Endwertung: Zahlen, Tropfen, Sichel und World's End.",
     binokelDescription:
       "Steigern, Melden und Stiche — die Punkte rechnet ScoreForge aus.",
     universalDescription:
       "Freies Punkteboard für jedes Spiel: Runden eintragen, ScoreForge zählt zusammen.",
+    kniffelDescription:
+      "Der digitale Kniffel-Block: alle Kategorien, Bonus und Gesamtsumme automatisch berechnet.",
     startWizard: "Wizard starten",
     joinLobby: "Lobby beitreten",
     gamesTitle: "Welches Spiel spielt ihr?",
@@ -272,9 +274,9 @@ const de = {
     stepNumbersTitle: "Zahlen-Karten",
     stepNumbersHint:
       "Zählt jetzt alle Zahlenwerte eurer Eigenschaften zusammen (auch negative).",
-    stepCrossTitle: "Kreuz-Karten",
+    stepCrossTitle: "Tropfen-Karten",
     stepCrossHint:
-      "Wertet zuletzt alle Karten mit dem Kreuz-Symbol und tragt die Punkte ein.",
+      "Wertet zuletzt alle Karten mit dem Tropfen-Symbol und tragt die Punkte ein.",
     stepSecretGoalsTitle: "Geheime Ziele",
     stepSecretGoalsHint:
       "Wertet zum Schluss die geheimen Ziele (The Meaning of Life) jedes Spielers aus.",
@@ -448,6 +450,41 @@ const de = {
     targetReached: "{name} hat das Ziel erreicht!",
     allRoundsPlayed: "Alle Runden gespielt!",
   },
+  kniffel: {
+    setupTag: "Kniffel Setup",
+    tag: "Kniffel",
+    lobbyTag: "Kniffel Lobby",
+    loadingGame: "Kniffel wird geladen...",
+    scoreTable: "Kniffel-Zettel",
+    upperSection: "Oberer Bereich",
+    lowerSection: "Unterer Bereich",
+    bonusRow: "Bonus (ab 63)",
+    bonusHint: "{sum}/63",
+    yahtzeeBonusRow: "Kniffel-Bonus",
+    totalRow: "Gesamt",
+    categories: {
+      ones: "Einser",
+      twos: "Zweier",
+      threes: "Dreier",
+      fours: "Vierer",
+      fives: "Fünfer",
+      sixes: "Sechser",
+      threeOfAKind: "Dreierpasch",
+      fourOfAKind: "Viererpasch",
+      fullHouse: "Full House",
+      smallStraight: "Kleine Straße",
+      largeStraight: "Große Straße",
+      yahtzee: "Kniffel",
+      chance: "Chance",
+    },
+    scored: "Erzielt",
+    notScored: "Nicht erzielt (streichen)",
+    scoredValue: "Erzielt ({points} Punkte)",
+    strike: "Streichen (0 Punkte)",
+    enterValuePrompt: "Punkte eintragen",
+    saveValue: "Speichern",
+    allDone: "Alle Kategorien ausgefüllt!",
+  },
   settings: {
     title: "Spieleinstellungen",
     openButton: "Einstellungen",
@@ -538,6 +575,11 @@ const de = {
     noGames: "Du hast noch keine Spiele erstellt.",
     loadingGames: "Lade deine Spiele...",
     createNew: "Neues Spiel erstellen",
+    statsTitle: "Deine Statistiken",
+    statsNone: "Sobald du ein Spiel zu Ende gespielt hast, siehst du hier deine Statistiken.",
+    statsGamesPlayed: "{n} gespielt",
+    statsAvgScore: "Ø {score} Punkte",
+    statsBestScore: "Beste: {score} Punkte",
   },
 };
 
@@ -609,10 +651,12 @@ const en: typeof de = {
     statusSoon: "Soon",
     wizardDescription: "Quickly enter bids, tricks and points for every round.",
     doomlingsDescription:
-      "Guided final scoring: numbers, cross, sickle and World's End.",
+      "Guided final scoring: numbers, drop, sickle and World's End.",
     binokelDescription: "Bidding, melds and tricks — ScoreForge does the math.",
     universalDescription:
       "Free-form score board for any game: enter rounds, ScoreForge adds them up.",
+    kniffelDescription:
+      "The digital Kniffel scorepad: every category, bonus and total calculated automatically.",
     startWizard: "Start Wizard",
     joinLobby: "Join lobby",
     gamesTitle: "Which game are you playing?",
@@ -810,9 +854,9 @@ const en: typeof de = {
     stepNumbersTitle: "Number cards",
     stepNumbersHint:
       "Now add up all number values of your traits (including negatives).",
-    stepCrossTitle: "Cross cards",
+    stepCrossTitle: "Drop cards",
     stepCrossHint:
-      "Finally, score all cards with the cross symbol and enter the points.",
+      "Finally, score all cards with the drop symbol and enter the points.",
     stepSecretGoalsTitle: "Secret goals",
     stepSecretGoalsHint:
       "Finally, score each player's secret goal (The Meaning of Life).",
@@ -985,6 +1029,41 @@ const en: typeof de = {
     targetReached: "{name} reached the target!",
     allRoundsPlayed: "All rounds played!",
   },
+  kniffel: {
+    setupTag: "Kniffel setup",
+    tag: "Kniffel",
+    lobbyTag: "Kniffel lobby",
+    loadingGame: "Loading Kniffel...",
+    scoreTable: "Kniffel scorepad",
+    upperSection: "Upper section",
+    lowerSection: "Lower section",
+    bonusRow: "Bonus (63+)",
+    bonusHint: "{sum}/63",
+    yahtzeeBonusRow: "Yahtzee Bonus",
+    totalRow: "Total",
+    categories: {
+      ones: "Ones",
+      twos: "Twos",
+      threes: "Threes",
+      fours: "Fours",
+      fives: "Fives",
+      sixes: "Sixes",
+      threeOfAKind: "Three of a Kind",
+      fourOfAKind: "Four of a Kind",
+      fullHouse: "Full House",
+      smallStraight: "Small Straight",
+      largeStraight: "Large Straight",
+      yahtzee: "Yahtzee",
+      chance: "Chance",
+    },
+    scored: "Scored",
+    notScored: "Not scored (strike)",
+    scoredValue: "Scored ({points} points)",
+    strike: "Strike (0 points)",
+    enterValuePrompt: "Enter points",
+    saveValue: "Save",
+    allDone: "All categories filled in!",
+  },
   settings: {
     title: "Game settings",
     openButton: "Settings",
@@ -1075,6 +1154,11 @@ const en: typeof de = {
     noGames: "You haven't created any games yet.",
     loadingGames: "Loading your games...",
     createNew: "Create a new game",
+    statsTitle: "Your statistics",
+    statsNone: "Finish a game and your statistics will show up here.",
+    statsGamesPlayed: "{n} played",
+    statsAvgScore: "Avg. {score} points",
+    statsBestScore: "Best: {score} points",
   },
 };
 

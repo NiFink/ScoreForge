@@ -10,6 +10,7 @@ import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
@@ -27,6 +28,7 @@ import {
   getRevealOrder,
   getScoreKeys,
   getScoreTotal,
+  SCORE_KEY_ICONS,
 } from "@/features/doomlings/utils";
 
 const emptyScores = (): DoomlingsScores => ({
@@ -256,7 +258,7 @@ export default function DoomlingsGame({
 
   if (notFound) {
     return (
-      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -267,7 +269,7 @@ export default function DoomlingsGame({
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
           <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
-          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
+          <p className="mt-2 text-(--sf-text-muted)">{t.common.invalidLink}</p>
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
@@ -278,7 +280,7 @@ export default function DoomlingsGame({
             </button>
             <button
               onClick={() => router.push("/")}
-              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted)"
               type="button"
             >
               {t.common.toHome}
@@ -291,7 +293,7 @@ export default function DoomlingsGame({
 
   if (!game || !state) {
     return (
-      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)">
         <div className="text-center">
           <Image
             src="/Logo.png"
@@ -301,7 +303,7 @@ export default function DoomlingsGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <p className="text-[#d8d3bd]">{t.doomlings.loadingGame}</p>
+          <p className="text-(--sf-text-muted)">{t.doomlings.loadingGame}</p>
         </div>
       </main>
     );
@@ -312,7 +314,7 @@ export default function DoomlingsGame({
       <div className="flex justify-between items-center mb-3">
         <button
           onClick={() => router.push("/")}
-          className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+          className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
           type="button"
         >
           {t.common.back}
@@ -321,7 +323,7 @@ export default function DoomlingsGame({
           {isHost ? (
             <button
               onClick={() => setShowSettings(true)}
-              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+              className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
               title={t.settings.openButton}
               aria-label={t.settings.openButton}
               type="button"
@@ -331,6 +333,7 @@ export default function DoomlingsGame({
           ) : null}
           {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
       </div>
       {showSettings && isHost ? (
@@ -372,12 +375,12 @@ export default function DoomlingsGame({
         </div>
         <div className="gap-2 grid grid-cols-3 text-sm text-center">
           <CodeBadge code={game.code} />
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.players}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{t.common.players}</p>
             <p className="font-black">{state.playerCount}</p>
           </div>
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.mode}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{t.common.mode}</p>
             <p className="font-black">
               {state.writeMode === "host" ? t.common.modeHost : t.common.modeAll}
             </p>
@@ -389,7 +392,7 @@ export default function DoomlingsGame({
           {state.addons.map((addon) => (
             <span
               key={addon}
-              className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-xs"
+              className="bg-(--accent-2)/10 px-2 py-1 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-xs"
             >
               {addon}
             </span>
@@ -401,7 +404,7 @@ export default function DoomlingsGame({
 
   if (state.phase === "lobby") {
     return (
-      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-5xl">
           {header(t.doomlings.lobbyTag, t.lobby.header)}
           <Lobby
@@ -418,18 +421,18 @@ export default function DoomlingsGame({
 
   if (state.phase === "playing") {
     return (
-      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-5xl">
           {header(t.doomlings.tag, t.doomlings.overview)}
 
-          <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
-            <p className="text-[#d8d3bd]">{t.doomlings.playingHint}</p>
+          <section className="bg-(--sf-surface-2)/90 p-5 border border-(--accent)/20 rounded-lg">
+            <p className="text-(--sf-text-muted)">{t.doomlings.playingHint}</p>
 
             <div className="gap-2 grid sm:grid-cols-2 mt-4">
               {state.players.map((player) => (
                 <div
                   key={player.id}
-                  className="bg-[#18262f] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                  className="bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg"
                   style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
                 >
                   <p className="font-bold">{player.name}</p>
@@ -446,7 +449,7 @@ export default function DoomlingsGame({
                 {t.doomlings.startScoring}
               </button>
             ) : (
-              <p className="mt-5 text-[#9fc9d5] text-sm text-center">
+              <p className="mt-5 text-(--sf-text-subtle) text-sm text-center">
                 {t.common.hostOnlyBanner}
               </p>
             )}
@@ -473,12 +476,12 @@ export default function DoomlingsGame({
         state.players.length > 0 && readyCount === state.players.length;
 
       return (
-        <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+        <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
           <div className="mx-auto max-w-3xl">
             {header(t.doomlings.scoringTag, t.doomlings.overview)}
 
             {state.scoringStartPlayerChosen ? (
-              <p className="mb-4 text-[#9fc9d5] text-sm">
+              <p className="mb-4 text-(--sf-text-subtle) text-sm">
                 {format(t.doomlings.countingOrderHint, {
                   name:
                     state.players[state.scoringStartPlayerIndex ?? 0]?.name ??
@@ -488,14 +491,14 @@ export default function DoomlingsGame({
             ) : null}
 
             {isHost ? (
-              <p className="bg-(--accent-2)/10 mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
+              <p className="bg-(--accent-2)/10 mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-sm">
                 {t.doomlings.hostEditHint}
               </p>
             ) : null}
 
-            <section className="bg-[#14222b]/90 mb-4 p-4 border border-(--accent)/20 rounded-lg">
+            <section className="bg-(--sf-surface-2)/90 mb-4 p-4 border border-(--accent)/20 rounded-lg">
               <div className="flex justify-between items-center">
-                <p className="font-bold text-[#f7e7ad]">
+                <p className="font-bold text-(--sf-text)">
                   {t.doomlings.readyCountLabel}
                 </p>
                 <p className="font-black text-xl">
@@ -505,7 +508,7 @@ export default function DoomlingsGame({
                   })}
                 </p>
               </div>
-              <div className="bg-[#101820] mt-3 rounded-full h-2 overflow-hidden">
+              <div className="bg-(--sf-bg) mt-3 rounded-full h-2 overflow-hidden">
                 <div
                   className="bg-(--accent) h-full transition-all"
                   style={{
@@ -531,14 +534,14 @@ export default function DoomlingsGame({
                     className={`rounded-lg border p-4 ${
                       ready
                         ? "border-(--accent)/50 bg-(--accent)/5"
-                        : "border-[#f7e7ad]/10 bg-[#18262f]"
+                        : "border-(--sf-text)/10 bg-(--sf-surface)"
                     }`}
                     style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
                   >
                     <div className="flex justify-between items-center gap-3">
                       <div>
                         <p className="font-bold">{player.name}</p>
-                        <p className="text-[#9fc9d5] text-xs">
+                        <p className="text-(--sf-text-subtle) text-xs">
                           {t.doomlings.subtotal}: {getTotal(player.id)}
                         </p>
                       </div>
@@ -552,8 +555,8 @@ export default function DoomlingsGame({
                     <div className="gap-2 grid grid-cols-2 mt-3">
                       {scoreKeys.map((key) => (
                         <label key={key} className="block">
-                          <span className="text-[#9fc9d5] text-xs">
-                            {stepLabelMap[key].title}
+                          <span className="text-(--sf-text-subtle) text-xs">
+                            {SCORE_KEY_ICONS[key]} {stepLabelMap[key].title}
                           </span>
                           {editable ? (
                             <input
@@ -570,7 +573,7 @@ export default function DoomlingsGame({
                                   setScore(player.id, key, parsed);
                                 }
                               }}
-                              className="bg-[#101820] mt-1 px-2 py-2 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-center"
+                              className="bg-(--sf-bg) mt-1 px-2 py-2 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-center"
                             />
                           ) : (
                             <p className="mt-1 font-black text-center">
@@ -616,7 +619,7 @@ export default function DoomlingsGame({
                     })}
               </button>
             ) : (
-              <p className="mt-5 text-[#9fc9d5] text-sm text-center">
+              <p className="mt-5 text-(--sf-text-subtle) text-sm text-center">
                 {allReady
                   ? t.doomlings.waitingForHostReveal
                   : t.doomlings.waitingForOthers}
@@ -642,20 +645,23 @@ export default function DoomlingsGame({
     const stepLabel = stepLabelMap[scoreKey];
 
     return (
-      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-3xl">
-          {header(t.doomlings.scoringTag, stepLabel.title)}
+          {header(
+            t.doomlings.scoringTag,
+            `${SCORE_KEY_ICONS[scoreKey]} ${stepLabel.title}`,
+          )}
 
-          <section className="bg-[#14222b]/90 p-5 border border-(--accent)/20 rounded-lg">
+          <section className="bg-(--sf-surface-2)/90 p-5 border border-(--accent)/20 rounded-lg">
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
               {format(t.doomlings.stepOf, {
                 current: step + 1,
                 total: scoreKeys.length,
               })}
             </p>
-            <p className="mt-2 text-[#d8d3bd]">{stepLabel.hint}</p>
+            <p className="mt-2 text-(--sf-text-muted)">{stepLabel.hint}</p>
             {state.scoringStartPlayerChosen ? (
-              <p className="mt-1 text-[#9fc9d5] text-xs">
+              <p className="mt-1 text-(--sf-text-subtle) text-xs">
                 {format(t.doomlings.countingOrderHint, {
                   name:
                     state.players[state.scoringStartPlayerIndex ?? 0]?.name ??
@@ -671,12 +677,12 @@ export default function DoomlingsGame({
                 return (
                   <div
                     key={player.id}
-                    className="flex items-center gap-3 bg-[#18262f] p-3 border border-[#f7e7ad]/10 rounded-lg"
+                    className="flex items-center gap-3 bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg"
                     style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-bold truncate">{player.name}</p>
-                      <p className="text-[#9fc9d5] text-xs">
+                      <p className="text-(--sf-text-subtle) text-xs">
                         {t.doomlings.subtotal}: {getTotal(player.id)}
                       </p>
                     </div>
@@ -693,7 +699,7 @@ export default function DoomlingsGame({
                             setScore(player.id, scoreKey, parsed);
                           }
                         }}
-                        className="bg-[#101820] px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
+                        className="bg-(--sf-bg) px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-24 font-black text-lg text-center"
                       />
                     ) : (
                       <p className="w-24 font-black text-lg text-center">
@@ -711,7 +717,7 @@ export default function DoomlingsGame({
                   onClick={() =>
                     step === 0 ? setPhase("playing") : setStep(step - 1)
                   }
-                  className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd]"
+                  className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-black text-(--sf-text-muted)"
                   type="button"
                 >
                   {t.common.previous}
@@ -761,12 +767,12 @@ export default function DoomlingsGame({
     );
 
     return (
-      <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+      <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
         <div className="mx-auto max-w-2xl">
           {header(t.doomlings.revealTag, t.doomlings.revealTitle)}
 
           {revealed.length === 0 ? (
-            <p className="py-10 text-[#9fc9d5] text-sm text-center">
+            <p className="py-10 text-(--sf-text-subtle) text-sm text-center">
               {t.doomlings.revealWaiting}
             </p>
           ) : (
@@ -775,21 +781,21 @@ export default function DoomlingsGame({
                 const rank = revealRankMap[player.id];
                 const scores = getScores(player.id);
                 const detail = scoreKeys
-                  .map((key) => scores[key] ?? 0)
+                  .map((key) => `${SCORE_KEY_ICONS[key]} ${scores[key] ?? 0}`)
                   .join(" · ");
 
                 return (
                   <div
                     key={player.id}
-                    className="sf-reveal-pop flex items-center gap-3 bg-[#14222b]/90 p-4 border border-[#f7e7ad]/10 rounded-lg"
+                    className="sf-reveal-pop flex items-center gap-3 bg-(--sf-surface-2)/90 p-4 border border-(--sf-text)/10 rounded-lg"
                     style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
                   >
-                    <p className="w-8 font-black text-[#9fc9d5] text-xl">
+                    <p className="w-8 font-black text-(--sf-text-subtle) text-xl">
                       {rank}.
                     </p>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold truncate">{player.name}</p>
-                      <p className="text-[#9fc9d5] text-xs">{detail}</p>
+                      <p className="text-(--sf-text-subtle) text-xs">{detail}</p>
                     </div>
                     <p className="font-black text-2xl">
                       {getScoreTotal(scores, scoreKeys)}
@@ -815,7 +821,7 @@ export default function DoomlingsGame({
                   })}
             </button>
           ) : (
-            <p className="mt-6 text-[#9fc9d5] text-sm text-center">
+            <p className="mt-6 text-(--sf-text-subtle) text-sm text-center">
               {isDone
                 ? t.doomlings.revealWaitingResults
                 : t.doomlings.revealWaiting}
@@ -840,12 +846,14 @@ export default function DoomlingsGame({
       name: player.name,
       color: player.color,
       score: getTotal(player.id),
-      detail: scoreKeys.map((key) => scores[key] ?? 0).join(" · "),
+      detail: scoreKeys
+        .map((key) => `${SCORE_KEY_ICONS[key]} ${scores[key] ?? 0}`)
+        .join(" · "),
     };
   });
 
   return (
-    <main style={gameThemes.doomlings.style} className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]">
+    <main style={gameThemes.doomlings.style} className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-3xl">
         {header(t.doomlings.tag, t.doomlings.results)}
 
@@ -857,7 +865,7 @@ export default function DoomlingsGame({
           >
             {"\u{1F3C6} "}
             {format(t.doomlings.winner, { name: winner.name })}
-            <span className="block mt-0.5 font-semibold text-[#9fc9d5] text-xs">
+            <span className="block mt-0.5 font-semibold text-(--sf-text-subtle) text-xs">
               {t.celebration.showResult}
             </span>
           </button>
@@ -870,16 +878,18 @@ export default function DoomlingsGame({
             return (
               <div
                 key={player.id}
-                className="flex items-center gap-3 bg-[#14222b]/90 p-4 border border-[#f7e7ad]/10 rounded-lg"
+                className="flex items-center gap-3 bg-(--sf-surface-2)/90 p-4 border border-(--sf-text)/10 rounded-lg"
                 style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
               >
-                <p className="w-8 font-black text-[#9fc9d5] text-xl">
+                <p className="w-8 font-black text-(--sf-text-subtle) text-xl">
                   {finishedRanks[index]}.
                 </p>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold truncate">{player.name}</p>
-                  <p className="text-[#9fc9d5] text-xs">
-                    {scoreKeys.map((key) => scores[key] ?? 0).join(" · ")}
+                  <p className="text-(--sf-text-subtle) text-xs">
+                    {scoreKeys
+                      .map((key) => `${SCORE_KEY_ICONS[key]} ${scores[key] ?? 0}`)
+                      .join(" · ")}
                   </p>
                 </div>
                 <p className="font-black text-2xl">{getTotal(player.id)}</p>
@@ -891,7 +901,7 @@ export default function DoomlingsGame({
         {canWrite ? (
           <button
             onClick={backToScoring}
-            className="mt-5 px-4 py-3 border border-[#f7e7ad]/15 rounded-md w-full font-black text-[#d8d3bd]"
+            className="mt-5 px-4 py-3 border border-(--sf-text)/15 rounded-md w-full font-black text-(--sf-text-muted)"
             type="button"
           >
             {t.doomlings.backToScoring}

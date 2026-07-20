@@ -27,10 +27,10 @@ export function ScoreSummary({
         return (
           <div
             key={player.id}
-            className="bg-[#14222b]/90 p-2 sm:p-3 border border-[#f7e7ad]/10 rounded-lg w-full min-w-0"
+            className="bg-(--sf-surface-2)/90 p-2 sm:p-3 border border-(--sf-text)/10 rounded-lg w-full min-w-0"
             style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
           >
-            <p className="text-[#d8d3bd] text-sm truncate">{player.name}</p>
+            <p className="text-(--sf-text-muted) text-sm truncate">{player.name}</p>
             <div className="flex items-center gap-2 mt-1">
               <p className="font-black text-2xl">{score}</p>
               {isFirst ? (

@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="bg-[#101820] px-4 py-5 min-h-screen text-[#fff4c7]">
+    <main className="bg-(--sf-bg) px-4 py-5 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-md">
         <header className="flex items-center gap-4 mb-6">
           <Image
@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
           </h1>
         </header>
 
-        <section className="bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 p-5 border border-[#f59e22]/20 rounded-lg">
           {done ? (
             <>
               <p className="text-[#2aa6c8] text-sm">
@@ -86,7 +86,7 @@ export default function ResetPasswordPage() {
           ) : (
             <form onSubmit={submit} className="space-y-3">
               <div>
-                <label className="font-bold text-[#f7e7ad] text-sm">
+                <label className="font-bold text-(--sf-text) text-sm">
                   {t.auth.newPassword}
                 </label>
                 <input
@@ -96,12 +96,12 @@ export default function ResetPasswordPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                  className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-[#f7e7ad] text-sm">
+                <label className="font-bold text-(--sf-text) text-sm">
                   {t.auth.confirmPassword}
                 </label>
                 <input
@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
                   autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-[#f59e22] rounded-md outline-none w-full"
+                  className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-[#f59e22] rounded-md outline-none w-full"
                 />
               </div>
 

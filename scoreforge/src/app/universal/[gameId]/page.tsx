@@ -10,60 +10,19 @@ import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { RoundModal } from "./RoundModal";
+import { getTotals, isGameOver } from "@/features/universal/utils";
 import type {
   DeviceMode,
   UniversalRound,
   UniversalState,
   WriteMode,
 } from "@/types/gameTypes";
-
-function getTotals(
-  rounds: UniversalRound[],
-  playerIds: string[],
-  adjustments?: Record<string, number>,
-): Record<string, number> {
-  const totals = Object.fromEntries(
-    playerIds.map((id) => [id, adjustments?.[id] ?? 0]),
-  );
-
-  for (const round of rounds) {
-    for (const id of playerIds) {
-      totals[id] += round[id] ?? 0;
-    }
-  }
-
-  return totals;
-}
-
-// Spielende je nach eingestellter Bedingung (manuell zählt immer)
-function isGameOver(state: UniversalState): boolean {
-  if (state.phase === "finished") {
-    return true;
-  }
-
-  if (state.endCondition === "target") {
-    const totals = getTotals(
-      state.rounds ?? [],
-      state.players.map((player) => player.id),
-      state.scoreAdjustments,
-    );
-
-    return state.players.some(
-      (player) => totals[player.id] >= (state.targetScore ?? Infinity),
-    );
-  }
-
-  if (state.endCondition === "rounds") {
-    return (state.rounds ?? []).length >= (state.maxRounds ?? Infinity);
-  }
-
-  return false;
-}
 
 export default function UniversalGame({
   params,
@@ -286,7 +245,7 @@ export default function UniversalGame({
     return (
       <main
         style={gameThemes.universal.style}
-        className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]"
+        className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)"
       >
         <div className="text-center">
           <Image
@@ -298,7 +257,7 @@ export default function UniversalGame({
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
           <h1 className="font-black text-2xl">{t.common.gameNotFound}</h1>
-          <p className="mt-2 text-[#d8d3bd]">{t.common.invalidLink}</p>
+          <p className="mt-2 text-(--sf-text-muted)">{t.common.invalidLink}</p>
           <div className="flex justify-center gap-2 mt-5">
             <button
               onClick={() => router.push("/join")}
@@ -309,7 +268,7 @@ export default function UniversalGame({
             </button>
             <button
               onClick={() => router.push("/")}
-              className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd]"
+              className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted)"
               type="button"
             >
               {t.common.toHome}
@@ -324,7 +283,7 @@ export default function UniversalGame({
     return (
       <main
         style={gameThemes.universal.style}
-        className="place-items-center grid bg-[#101820] px-4 min-h-screen text-[#fff4c7]"
+        className="place-items-center grid bg-(--sf-bg) px-4 min-h-screen text-(--sf-text-strong)"
       >
         <div className="text-center">
           <Image
@@ -335,7 +294,7 @@ export default function UniversalGame({
             loading="eager"
             className="mx-auto mb-4 rounded-lg w-20 h-20 object-cover"
           />
-          <p className="text-[#d8d3bd]">{t.universal.loadingGame}</p>
+          <p className="text-(--sf-text-muted)">{t.universal.loadingGame}</p>
         </div>
       </main>
     );
@@ -359,7 +318,7 @@ export default function UniversalGame({
       <div className="flex justify-between items-center mb-3">
         <button
           onClick={() => router.push("/")}
-          className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+          className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
           type="button"
         >
           {t.common.back}
@@ -368,7 +327,7 @@ export default function UniversalGame({
           {isHost ? (
             <button
               onClick={() => setShowSettings(true)}
-              className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+              className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
               title={t.settings.openButton}
               aria-label={t.settings.openButton}
               type="button"
@@ -378,6 +337,7 @@ export default function UniversalGame({
           ) : null}
           {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
       </div>
       {showSettings && isHost ? (
@@ -417,12 +377,12 @@ export default function UniversalGame({
         </div>
         <div className="gap-2 grid grid-cols-3 text-sm text-center">
           <CodeBadge code={game.code} />
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{endLabel}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{endLabel}</p>
             <p className="font-black">{endValue}</p>
           </div>
-          <div className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/10 rounded-md">
-            <p className="text-[#9fc9d5]">{t.common.mode}</p>
+          <div className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/10 rounded-md">
+            <p className="text-(--sf-text-subtle)">{t.common.mode}</p>
             <p className="font-black">
               {state.writeMode === "host" ? t.common.modeHost : t.common.modeAll}
             </p>
@@ -436,7 +396,7 @@ export default function UniversalGame({
     return (
       <main
         style={gameThemes.universal.style}
-        className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]"
+        className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)"
       >
         <div className="mx-auto max-w-5xl">
           {header(t.universal.lobbyTag, t.lobby.header)}
@@ -457,13 +417,13 @@ export default function UniversalGame({
   return (
     <main
       style={gameThemes.universal.style}
-      className="bg-[#101820] px-3 sm:px-6 py-4 min-h-screen text-[#fff4c7]"
+      className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)"
     >
       <div className="mx-auto max-w-5xl">
         {header(t.universal.tag, t.wizard.scoreTable)}
 
         {!canWrite ? (
-          <p className="bg-[#18262f] mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-[#9fc9d5] text-sm">
+          <p className="bg-(--sf-surface) mb-4 px-4 py-3 border border-(--accent-2)/25 rounded-md text-(--sf-text-subtle) text-sm">
             {t.common.hostOnlyBanner}
           </p>
         ) : null}
@@ -480,7 +440,7 @@ export default function UniversalGame({
               : state.endCondition === "rounds" && state.phase !== "finished"
                 ? t.universal.allRoundsPlayed
                 : format(t.celebration.winsTitle, { name: leader.name })}
-            <span className="block mt-0.5 font-semibold text-[#9fc9d5] text-xs">
+            <span className="block mt-0.5 font-semibold text-(--sf-text-subtle) text-xs">
               {t.celebration.showResult}
             </span>
           </button>
@@ -491,10 +451,10 @@ export default function UniversalGame({
           {rankedPlayers.map((player) => (
             <div
               key={player.id}
-              className="bg-[#14222b]/90 p-3 border border-[#f7e7ad]/10 rounded-lg min-w-0"
+              className="bg-(--sf-surface-2)/90 p-3 border border-(--sf-text)/10 rounded-lg min-w-0"
               style={{ boxShadow: `inset 4px 0 0 ${player.color}` }}
             >
-              <p className="text-[#d8d3bd] text-sm truncate">{player.name}</p>
+              <p className="text-(--sf-text-muted) text-sm truncate">{player.name}</p>
               <p className="mt-1 font-black text-2xl">
                 {totals[player.id] ?? 0}
               </p>
@@ -503,12 +463,12 @@ export default function UniversalGame({
         </section>
 
         {/* ROUNDS */}
-        <section className="bg-[#14222b]/90 p-4 border border-(--accent)/20 rounded-lg">
+        <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-black text-xl">
               {t.universal.roundsHeader}
               {state.endCondition === "rounds" ? (
-                <span className="ml-2 font-semibold text-[#9fc9d5] text-sm">
+                <span className="ml-2 font-semibold text-(--sf-text-subtle) text-sm">
                   {format(t.universal.roundOfTotal, {
                     n: rounds.length,
                     total: state.maxRounds ?? 0,
@@ -528,14 +488,14 @@ export default function UniversalGame({
           </div>
 
           {rounds.length === 0 ? (
-            <p className="py-6 text-[#9fc9d5] text-sm text-center">
+            <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
               {t.universal.noRounds}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="text-[#9fc9d5] text-left">
+                  <tr className="text-(--sf-text-subtle) text-left">
                     <th className="py-2 pr-3 font-semibold">#</th>
                     {state.players.map((player) => (
                       <th
@@ -556,8 +516,8 @@ export default function UniversalGame({
                     <tr
                       key={index}
                       onClick={() => openExistingRound(index)}
-                      className={`border-t border-[#f7e7ad]/10 ${
-                        canWrite ? "cursor-pointer hover:bg-[#18262f]" : ""
+                      className={`border-t border-(--sf-text)/10 ${
+                        canWrite ? "cursor-pointer hover:bg-(--sf-surface)" : ""
                       }`}
                     >
                       <td className="py-3 pr-3 font-black">{index + 1}</td>
@@ -591,7 +551,7 @@ export default function UniversalGame({
           state.phase === "finished" ? (
             <button
               onClick={() => setFinished(false)}
-              className="mt-4 px-4 py-3 border border-[#f7e7ad]/15 rounded-md w-full font-black text-[#d8d3bd]"
+              className="mt-4 px-4 py-3 border border-(--sf-text)/15 rounded-md w-full font-black text-(--sf-text-muted)"
               type="button"
             >
               {t.universal.resumeGameButton}
@@ -599,7 +559,7 @@ export default function UniversalGame({
           ) : (
             <button
               onClick={() => setFinished(true)}
-              className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-[#9fc9d5] text-sm"
+              className="mt-4 px-4 py-3 border border-(--accent-2)/40 rounded-md w-full font-bold text-(--sf-text-subtle) text-sm"
               type="button"
             >
               {t.universal.endGameButton}

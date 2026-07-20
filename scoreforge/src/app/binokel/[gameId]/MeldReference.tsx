@@ -11,12 +11,12 @@ export function MeldReference({ onClose }: MeldReferenceProps) {
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/75 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-lg max-h-[85vh] overflow-y-auto">
+      <div className="bg-(--sf-surface) shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-3 mb-4">
           <h2 className="font-black text-2xl">{t.binokel.meldReferenceTitle}</h2>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
@@ -25,7 +25,7 @@ export function MeldReference({ onClose }: MeldReferenceProps) {
 
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="text-[#9fc9d5] text-left">
+            <tr className="text-(--sf-text-subtle) text-left">
               <th className="py-2 pr-2 font-semibold">
                 {t.binokel.meldReferenceTitle}
               </th>
@@ -39,7 +39,7 @@ export function MeldReference({ onClose }: MeldReferenceProps) {
           </thead>
           <tbody>
             {t.binokel.melds.map((meld) => (
-              <tr key={meld.name} className="border-[#f7e7ad]/10 border-t">
+              <tr key={meld.name} className="border-(--sf-text)/10 border-t">
                 <td className="py-2 pr-2">{meld.name}</td>
                 <td className="py-2 pr-2 font-black text-right">
                   {meld.value}
@@ -52,24 +52,24 @@ export function MeldReference({ onClose }: MeldReferenceProps) {
           </tbody>
         </table>
 
-        <p className="mt-3 text-[#9fc9d5] text-xs">
+        <p className="mt-3 text-(--sf-text-subtle) text-xs">
           {t.binokel.meldNoTensNote}
         </p>
 
-        <div className="bg-[#101820] mt-5 p-4 rounded-lg">
+        <div className="bg-(--sf-bg) mt-5 p-4 rounded-lg">
           <h3 className="font-black">{t.binokel.cardValuesTitle}</h3>
-          <p className="mt-2 text-[#d8d3bd] text-sm">{t.binokel.cardValues}</p>
+          <p className="mt-2 text-(--sf-text-muted) text-sm">{t.binokel.cardValues}</p>
           <p className="mt-1 text-(--accent-2) text-sm">
             {t.binokel.lastTrickValue}
           </p>
-          <p className="mt-1 text-[#9fc9d5] text-sm">
+          <p className="mt-1 text-(--sf-text-subtle) text-sm">
             {t.binokel.tricksTotalNote}
           </p>
         </div>
 
-        <div className="bg-[#101820] mt-3 p-4 rounded-lg">
+        <div className="bg-(--sf-bg) mt-3 p-4 rounded-lg">
           <h3 className="font-black">{t.binokel.trumpRulesTitle}</h3>
-          <ul className="space-y-2 mt-2 text-[#d8d3bd] text-sm list-disc list-inside">
+          <ul className="space-y-2 mt-2 text-(--sf-text-muted) text-sm list-disc list-inside">
             {t.binokel.trumpRules.map((rule) => (
               <li key={rule}>{rule}</li>
             ))}

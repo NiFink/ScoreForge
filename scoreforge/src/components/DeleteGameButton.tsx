@@ -46,14 +46,14 @@ export function DeleteGameButton({ onDelete }: DeleteGameButtonProps) {
 
       {open ? (
         <div className="z-50 fixed inset-0 place-items-center grid bg-black/75 p-3">
-          <div className="bg-[#18262f] shadow-2xl p-5 border border-[#ef5b2a]/40 rounded-lg w-full max-w-sm text-center">
+          <div className="bg-(--sf-surface) shadow-2xl p-5 border border-[#ef5b2a]/40 rounded-lg w-full max-w-sm text-center">
             <p className="font-semibold text-[#ef5b2a] text-sm uppercase tracking-[0.16em]">
               {t.common.deleteGame}
             </p>
             <h2 className="mt-1 font-black text-2xl">
               {t.common.deleteConfirmTitle}
             </h2>
-            <p className="mt-2 text-[#d8d3bd] text-sm">
+            <p className="mt-2 text-(--sf-text-muted) text-sm">
               {t.common.deleteConfirmBody}
             </p>
 
@@ -67,7 +67,7 @@ export function DeleteGameButton({ onDelete }: DeleteGameButtonProps) {
               <button
                 onClick={() => setOpen(false)}
                 disabled={busy}
-                className="disabled:opacity-50 px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-black text-[#d8d3bd] disabled:cursor-not-allowed"
+                className="disabled:opacity-50 px-4 py-3 border border-(--sf-text)/15 rounded-md font-black text-(--sf-text-muted) disabled:cursor-not-allowed"
                 type="button"
               >
                 {t.common.cancel}

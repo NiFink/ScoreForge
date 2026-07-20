@@ -40,7 +40,7 @@ export function AccountButton() {
     return (
       <Link
         href="/login"
-        className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+        className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
       >
         {t.auth.login}
       </Link>

@@ -20,21 +20,21 @@ export function StartCounterModal({
 
   return (
     <div className="z-50 fixed inset-0 place-items-center grid bg-black/75 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-md">
+      <div className="bg-(--sf-surface) shadow-2xl p-5 border border-(--accent)/25 rounded-lg w-full max-w-md">
         <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
           {t.doomlings.beforeScoring}
         </p>
         <h2 className="mt-1 font-black text-2xl">{t.doomlings.whoCounts}</h2>
-        <p className="mt-2 text-[#d8d3bd] text-sm">
+        <p className="mt-2 text-(--sf-text-muted) text-sm">
           {t.doomlings.chooseCounter}
         </p>
 
         <label className="block mt-5">
-          <span className="font-bold text-[#f7e7ad] text-sm">
+          <span className="font-bold text-(--sf-text) text-sm">
             {t.doomlings.counterPlayer}
           </span>
           <select
-            className="bg-[#101820] mt-2 px-3 py-3 border border-[#f7e7ad]/10 focus:border-(--accent) rounded-md outline-none w-full font-bold text-[#fff4c7]"
+            className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-bold text-(--sf-text-strong)"
             value={selectedPlayerIndex}
             onChange={(event) => onChange(Number(event.target.value))}
           >

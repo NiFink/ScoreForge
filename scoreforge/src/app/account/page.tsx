@@ -1,15 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { format, useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase/client";
 import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { GameTypeGrid } from "@/components/GameTypeGrid";
-import type { AccountGameSummary } from "@/types/gameTypes";
+import type { AccountGameSummary, GameType } from "@/types/gameTypes";
+
+type GameTypeStats = {
+  gameType: GameType;
+  count: number;
+  avgScore: number;
+  bestScore: number;
+};
 
 export default function AccountPage() {
   const router = useRouter();
@@ -65,23 +73,49 @@ export default function AccountPage() {
     };
   }, [email]);
 
+  const gameTypeStats = useMemo<GameTypeStats[]>(() => {
+    const byType = new Map<GameType, number[]>();
+
+    for (const game of games ?? []) {
+      if (!game.finished || game.topScore === null) {
+        continue;
+      }
+
+      const scores = byType.get(game.gameType) ?? [];
+      scores.push(game.topScore);
+      byType.set(game.gameType, scores);
+    }
+
+    return Array.from(byType.entries())
+      .map(([gameType, scores]) => ({
+        gameType,
+        count: scores.length,
+        avgScore: Math.round(
+          scores.reduce((sum, score) => sum + score, 0) / scores.length,
+        ),
+        bestScore: Math.max(...scores),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [games]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     router.push("/");
   };
 
   return (
-    <main className="bg-[#101820] px-4 py-5 min-h-screen text-[#fff4c7]">
+    <main className="bg-(--sf-bg) px-4 py-5 min-h-screen text-(--sf-text-strong)">
       <div className="mx-auto max-w-5xl">
         <div className="flex justify-between items-center mb-5">
           <button
             onClick={() => router.push("/")}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-[#d8d3bd] text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.common.back}
           </button>
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         <header className="flex items-center gap-4 mb-6">
@@ -96,13 +130,13 @@ export default function AccountPage() {
         </header>
 
         {email === undefined ? (
-          <p className="py-10 text-[#9fc9d5] text-sm text-center">
+          <p className="py-10 text-(--sf-text-subtle) text-sm text-center">
             {t.common.loading}
           </p>
         ) : !email ? (
-          <section className="bg-[#14222b]/90 p-6 border border-[#f59e22]/20 rounded-lg text-center">
+          <section className="bg-(--sf-surface-2)/90 p-6 border border-[#f59e22]/20 rounded-lg text-center">
             <h2 className="font-black text-xl">{t.account.notLoggedInTitle}</h2>
-            <p className="mt-2 text-[#d8d3bd] text-sm">
+            <p className="mt-2 text-(--sf-text-muted) text-sm">
               {t.account.notLoggedInHint}
             </p>
             <button
@@ -115,26 +149,26 @@ export default function AccountPage() {
           </section>
         ) : (
           <>
-            <section className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3 bg-[#14222b]/90 p-5 border border-[#f59e22]/20 rounded-lg">
+            <section className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3 bg-(--sf-surface-2)/90 p-5 border border-[#f59e22]/20 rounded-lg">
               <p className="font-bold">{format(t.account.loggedInAs, { email })}</p>
               <button
                 onClick={signOut}
-                className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd] text-sm"
+                className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted) text-sm"
                 type="button"
               >
                 {t.account.signOut}
               </button>
             </section>
 
-            <section className="bg-[#14222b]/90 mt-4 p-5 border border-[#f59e22]/20 rounded-lg">
+            <section className="bg-(--sf-surface-2)/90 mt-4 p-5 border border-[#f59e22]/20 rounded-lg">
               <h2 className="font-black text-xl">{t.account.yourGames}</h2>
 
               {games === null ? (
-                <p className="py-6 text-[#9fc9d5] text-sm text-center">
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
                   {t.account.loadingGames}
                 </p>
               ) : games.length === 0 ? (
-                <p className="py-6 text-[#9fc9d5] text-sm text-center">
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
                   {t.account.noGames}
                 </p>
               ) : (
@@ -148,7 +182,7 @@ export default function AccountPage() {
                         onClick={() =>
                           router.push(`/${game.gameType}/${game.id}`)
                         }
-                        className="flex justify-between items-center gap-3 bg-[#18262f] p-3 border border-[#f7e7ad]/10 rounded-lg w-full text-left"
+                        className="flex justify-between items-center gap-3 bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg w-full text-left"
                         style={{ boxShadow: `inset 4px 0 0 ${theme.hex}` }}
                         type="button"
                       >
@@ -156,7 +190,7 @@ export default function AccountPage() {
                           <p className="font-bold truncate">
                             {game.lobbyName ?? theme.label}
                           </p>
-                          <p className="mt-0.5 text-[#9fc9d5] text-xs">
+                          <p className="mt-0.5 text-(--sf-text-subtle) text-xs">
                             <span
                               className="inline-block mr-1 rounded-full w-2 h-2 align-middle"
                               style={{ backgroundColor: theme.hex }}
@@ -180,7 +214,60 @@ export default function AccountPage() {
               )}
             </section>
 
-            <h2 className="mt-8 font-black text-[#f7e7ad] text-xl sm:text-2xl">
+            <section className="bg-(--sf-surface-2)/90 mt-4 p-5 border border-[#f59e22]/20 rounded-lg">
+              <h2 className="font-black text-xl">{t.account.statsTitle}</h2>
+
+              {games === null ? (
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
+                  {t.account.loadingGames}
+                </p>
+              ) : gameTypeStats.length === 0 ? (
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
+                  {t.account.statsNone}
+                </p>
+              ) : (
+                <div className="gap-3 grid sm:grid-cols-2 mt-4">
+                  {gameTypeStats.map((stat) => {
+                    const theme = themeForGameType(stat.gameType);
+
+                    return (
+                      <div
+                        key={stat.gameType}
+                        className="bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg"
+                        style={{ boxShadow: `inset 4px 0 0 ${theme.hex}` }}
+                      >
+                        <p className="font-bold truncate">
+                          <span
+                            className="inline-block mr-1 rounded-full w-2 h-2 align-middle"
+                            style={{ backgroundColor: theme.hex }}
+                          />
+                          {theme.label}
+                        </p>
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 mt-1.5 text-(--sf-text-subtle) text-xs">
+                          <span>
+                            {format(t.account.statsGamesPlayed, {
+                              n: String(stat.count),
+                            })}
+                          </span>
+                          <span>
+                            {format(t.account.statsAvgScore, {
+                              score: String(stat.avgScore),
+                            })}
+                          </span>
+                          <span>
+                            {format(t.account.statsBestScore, {
+                              score: String(stat.bestScore),
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <h2 className="mt-8 font-black text-(--sf-text) text-xl sm:text-2xl">
               {t.account.createNew}
             </h2>
             <GameTypeGrid />

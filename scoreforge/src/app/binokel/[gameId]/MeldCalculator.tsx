@@ -68,7 +68,7 @@ export function MeldCalculator({
 
   return (
     <div className="z-50 fixed inset-0 place-items-end sm:place-items-center grid bg-black/75 p-3">
-      <div className="bg-[#18262f] shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[85vh] overflow-y-auto">
+      <div className="bg-(--sf-surface) shadow-2xl p-4 border border-(--accent)/25 rounded-lg w-full max-w-md max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-3 mb-2">
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.16em]">
@@ -80,14 +80,14 @@ export function MeldCalculator({
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-2 border border-[#f7e7ad]/15 rounded-md text-sm"
+            className="px-3 py-2 border border-(--sf-text)/15 rounded-md text-sm"
             type="button"
           >
             X
           </button>
         </div>
 
-        <p className="mb-3 text-[#9fc9d5] text-xs">{t.binokel.calculatorHint}</p>
+        <p className="mb-3 text-(--sf-text-subtle) text-xs">{t.binokel.calculatorHint}</p>
 
         <div className="space-y-2">
           {rows.map((row) => {
@@ -99,7 +99,7 @@ export function MeldCalculator({
                 className={`flex items-center gap-2 rounded-lg border p-2 ${
                   count > 0
                     ? "border-(--accent)/50 bg-(--accent)/10"
-                    : "border-[#f7e7ad]/10 bg-[#101820]"
+                    : "border-(--sf-text)/10 bg-(--sf-bg)"
                 }`}
               >
                 <div className="flex-1 min-w-0">
@@ -111,7 +111,7 @@ export function MeldCalculator({
                 <button
                   onClick={() => changeCount(row.id, -1)}
                   disabled={count === 0}
-                  className="disabled:opacity-30 bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/15 rounded-md font-black"
+                  className="disabled:opacity-30 bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/15 rounded-md font-black"
                   type="button"
                 >
                   -
@@ -119,7 +119,7 @@ export function MeldCalculator({
                 <p className="w-6 font-black text-center">{count}</p>
                 <button
                   onClick={() => changeCount(row.id, 1)}
-                  className="bg-[#18262f] px-3 py-2 border border-[#f7e7ad]/15 rounded-md font-black"
+                  className="bg-(--sf-surface) px-3 py-2 border border-(--sf-text)/15 rounded-md font-black"
                   type="button"
                 >
                   +
@@ -132,7 +132,7 @@ export function MeldCalculator({
         <div className="gap-2 grid grid-cols-[auto_1fr] mt-4">
           <button
             onClick={() => setCounts({})}
-            className="px-4 py-3 border border-[#f7e7ad]/15 rounded-md font-bold text-[#d8d3bd] text-sm"
+            className="px-4 py-3 border border-(--sf-text)/15 rounded-md font-bold text-(--sf-text-muted) text-sm"
             type="button"
           >
             {t.binokel.calculatorReset}

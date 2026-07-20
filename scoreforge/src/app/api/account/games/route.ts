@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAuthedUser } from "@/lib/supabase/server";
+import { computeGameStats } from "@/lib/stats/gameStats";
 import type { AccountGameSummary, BaseGameState } from "@/types/gameTypes";
 
 // Liste der Spiele des eingeloggten Nutzers (geräteübergreifend, per
@@ -33,6 +34,15 @@ export async function GET() {
 
   const games: AccountGameSummary[] = (data ?? []).map((row) => {
     const state = row.state as BaseGameState;
+    // Defensiv: ältere/unvollständige Spielstände sollen die ganze Liste
+    // nicht zum Absturz bringen, wenn die Stats-Berechnung damit stolpert.
+    let stats: { finished: boolean; topScore: number | null };
+
+    try {
+      stats = computeGameStats(state.gameType, state);
+    } catch {
+      stats = { finished: false, topScore: null };
+    }
 
     return {
       id: row.id as string,
@@ -41,6 +51,8 @@ export async function GET() {
       lobbyName: state.lobbyName?.trim() || null,
       playerCount: state.playerCount ?? state.players?.length ?? 0,
       createdAt: row.created_at as string,
+      finished: stats.finished,
+      topScore: stats.topScore,
     };
   });
 
