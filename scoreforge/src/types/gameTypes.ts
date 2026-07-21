@@ -12,7 +12,10 @@ export type GameType =
   | "doomlings"
   | "binokel"
   | "universal"
-  | "kniffel";
+  | "kniffel"
+  | "maexle"
+  | "imposter"
+  | "whoAmI";
 
 export type BaseGameState = {
   gameType?: GameType;
@@ -187,4 +190,95 @@ export type KniffelState = BaseGameState & {
   startPlayerIndex?: number;
   startPlayerChosen?: boolean;
   currentPlayerIndex?: number;
+};
+
+// --- Mäxle (Meiern/Mexicali - Bluff-Würfelspiel mit 2 Würfeln) ---
+//
+// ScoreForge simuliert das Würfeln/Bluffen nicht - das passiert am Tisch.
+// Die App ist hier nur der Lebenszähler: wer eine Runde verliert, verliert
+// ein Leben; wessen Leben aufgebraucht sind, scheidet aus.
+
+// "lastStanding" = spielt bis nur noch einer übrig ist, "firstElimination" =
+// endet, sobald der erste Spieler ausscheidet.
+export type MaexleEndCondition = "lastStanding" | "firstElimination";
+
+export type MaexleState = BaseGameState & {
+  gameType: "maexle";
+  phase: "lobby" | "playing" | "finished";
+  // Startleben pro Spieler, bei der Einrichtung festgelegt (max. 11).
+  livesTotal: number;
+  // playerId -> verbleibende Leben (0 = ausgeschieden).
+  lives: Record<string, number>;
+  endCondition: MaexleEndCondition;
+};
+
+// --- Party-Wortlisten (gemeinsam für Imposter & Wer bin ich) ---
+
+export type PartyWordCategoryKey =
+  | "animals"
+  | "jobs"
+  | "food"
+  | "places"
+  | "famous";
+
+export type PartyCategorySelection = PartyWordCategoryKey | "random";
+
+// --- Imposter (Spyfall-artiges Bluffspiel) ---
+//
+// Alle außer dem/den Imposter(n) sehen dasselbe Geheimwort und beschreiben
+// es am Tisch, ohne es zu verraten - der Imposter kennt es nicht und muss
+// mitraten/bluffen. Reihum wird das Handy herumgereicht: jeder deckt privat
+// seine eigene Rolle auf (siehe ImposterRevealModal).
+
+export type ImposterState = BaseGameState & {
+  gameType: "imposter";
+  phase: "lobby" | "playing";
+  categoryKey: PartyCategorySelection;
+  imposterCount: number;
+  round: number;
+  word: string;
+  imposterIds: string[];
+  // playerId -> hat seine Rolle für die aktuelle Runde schon privat gesehen.
+  revealedIds: string[];
+  crewWins: number;
+  imposterWins: number;
+};
+
+// --- Wer bin ich? ---
+//
+// Jeder Spieler bekommt eine geheime Identität zugewiesen, die nur die
+// ANDEREN sehen dürfen (nicht die eigene) - erraten wird per Ja/Nein-Fragen
+// am Tisch. Reihum wird das Handy herumgereicht, siehe WhoAmIRevealModal.
+
+// "category" = Wörter kommen aus der eingebauten Liste, "custom" = Spieler
+// schreiben sich reihum gegenseitig eine Identität (siehe authoredIds unten).
+export type WhoAmIWordMode = "category" | "custom";
+
+export type WhoAmIState = BaseGameState & {
+  gameType: "whoAmI";
+  // "authoring" nur bei wordMode "custom": Phase, in der die Identitäten
+  // erst reihum geschrieben werden, bevor geraten werden kann.
+  phase: "lobby" | "authoring" | "playing";
+  categoryKey: PartyCategorySelection;
+  wordMode: WhoAmIWordMode;
+  round: number;
+  // playerId -> zugewiesenes Wort/Identität. Bei wordMode "custom" von den
+  // Mitspielern geschrieben statt zufällig gezogen.
+  words: Record<string, string>;
+  // playerId -> hat das Brett für die aktuelle Runde schon privat gesehen.
+  revealedIds: string[];
+  // Nur wordMode "custom": playerId des Schreibers -> hat seinen Eintrag
+  // schon abgegeben (Spieler i schreibt für Spieler i+1 in der players-Liste).
+  authoredIds?: string[];
+  // Mehrgeräte-Modus: erzwingt für alle den manuellen Bestätigen-Ablauf,
+  // auch auf dem eigenen (verbundenen) Gerät - z.B. wenn das Handy nicht als
+  // wirklich privat gilt. Ohne diese Option sieht jeder mit eigenem Gerät
+  // sein Brett automatisch, ohne extra zu bestätigen.
+  everyoneActsAsHost?: boolean;
+  // Reihenfolge, in der Spieler ihre Identität richtig erraten haben
+  // (Basis für die Rangliste am Rundenende).
+  guessedOrder: string[];
+  // Host hat die Runde manuell beendet, auch wenn noch nicht alle erraten
+  // haben (siehe "Runde beenden"-Button).
+  roundEnded?: boolean;
 };

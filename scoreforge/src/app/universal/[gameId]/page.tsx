@@ -9,10 +9,8 @@ import { useRouter } from "next/navigation";
 import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
-import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { RoundModal } from "./RoundModal";
@@ -335,8 +333,6 @@ export default function UniversalGame({
               {"⚙️"}
             </button>
           ) : null}
-          {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>
@@ -355,6 +351,7 @@ export default function UniversalGame({
           onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
+          onDelete={deleteGame}
           onClose={() => setShowSettings(false)}
         />
       ) : null}

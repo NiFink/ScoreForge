@@ -8,29 +8,24 @@ import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
 import { createGame } from "@/lib/games/createGame";
-import { baseColorOptions as colorOptions } from "@/lib/colors";
+import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
+import { CATEGORY_KEYS, pickRandomWords } from "@/features/partyWords/utils";
 import type {
   DeviceMode,
-  DoomlingsScores,
-  DoomlingsState,
+  PartyCategorySelection,
   Player,
+  WhoAmIState,
+  WhoAmIWordMode,
   WriteMode,
 } from "@/types/gameTypes";
 
-const availableAddons = ["The Meaning of Life"];
-
-const emptyScores = (): DoomlingsScores => ({
-  numbers: 0,
-  cross: 0,
-  sickle: 0,
-  worldsEnd: 0,
-});
+const PLAYER_COUNT_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -39,15 +34,18 @@ const createPlayers = (count: number): Player[] =>
     color: colorOptions[i % colorOptions.length].value,
   }));
 
-export default function DoomlingsSetup() {
+export default function WhoAmISetup() {
   const router = useRouter();
   const { t } = useI18n();
 
-  const [playerCount, setPlayerCount] = useState(3);
+  const [playerCount, setPlayerCount] = useState(4);
+  const [wordMode, setWordMode] = useState<WhoAmIWordMode>("category");
+  const [categoryKey, setCategoryKey] =
+    useState<PartyCategorySelection>("random");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
-  const [addons, setAddons] = useState<string[]>([]);
-  const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
+  const [everyoneActsAsHost, setEveryoneActsAsHost] = useState(false);
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(4));
   const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -63,11 +61,18 @@ export default function DoomlingsSetup() {
     );
   };
 
-  const toggleAddon = (addon: string) => {
-    setAddons((current) =>
-      current.includes(addon)
-        ? current.filter((item) => item !== addon)
-        : [...current, addon],
+  const updatePlayerCount = (count: number) => {
+    setPlayerCount(count);
+    setPlayers((current) =>
+      Array.from({ length: count }, (_, index) => {
+        return (
+          current[index] ?? {
+            id: `player-${index + 1}`,
+            name: "",
+            color: colorOptions[index % colorOptions.length].value,
+          }
+        );
+      }),
     );
   };
 
@@ -86,24 +91,43 @@ export default function DoomlingsSetup() {
         claimedBy: null,
       }));
 
-      const state: DoomlingsState = {
-        gameType: "doomlings",
+      // Mehrere Geräte + private Pro-Spieler-Infos: jeder verwaltet sein
+      // eigenes Gerät selbst, die Host/Alle-Frage ergibt hier keinen Sinn.
+      const effectiveWriteMode: WriteMode =
+        deviceMode === "multi" ? "all" : writeMode;
+
+      const words =
+        wordMode === "category"
+          ? pickRandomWords(t.partyWords.categories, categoryKey, cleanPlayers.length)
+          : [];
+
+      const state: WhoAmIState = {
+        gameType: "whoAmI",
         playerCount,
         deviceMode,
-        writeMode,
-        addons,
+        writeMode: effectiveWriteMode,
         players: cleanPlayers,
-        phase: deviceMode === "multi" ? "lobby" : "playing",
+        phase:
+          deviceMode === "multi"
+            ? "lobby"
+            : wordMode === "custom"
+              ? "authoring"
+              : "playing",
         lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
-        scoringStep: 0,
-        scoringStartPlayerIndex: 0,
-        scoringStartPlayerChosen: false,
-        readyPlayers: {},
-        revealIndex: 0,
-        scores: Object.fromEntries(
-          cleanPlayers.map((player) => [player.id, emptyScores()]),
-        ),
+        categoryKey,
+        wordMode,
+        round: 1,
+        words:
+          wordMode === "category"
+            ? Object.fromEntries(
+                cleanPlayers.map((player, index) => [player.id, words[index]]),
+              )
+            : {},
+        authoredIds: wordMode === "custom" ? [] : undefined,
+        everyoneActsAsHost,
+        revealedIds: [],
+        guessedOrder: [],
       };
 
       const game = await createGame(state);
@@ -112,7 +136,7 @@ export default function DoomlingsSetup() {
         return;
       }
 
-      router.push(`/doomlings/${game.id}`);
+      router.push(`/whoAmI/${game.id}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -122,7 +146,7 @@ export default function DoomlingsSetup() {
 
   return (
     <main
-      style={gameThemes.doomlings.style}
+      style={gameThemes.whoAmI.style}
       className="bg-(--sf-bg) px-4 sm:px-6 py-5 min-h-screen text-(--sf-text-strong)"
     >
       <div className="mx-auto max-w-5xl">
@@ -149,7 +173,7 @@ export default function DoomlingsSetup() {
 
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
-              {t.doomlings.setupTag}
+              {t.whoAmI.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
               {t.common.prepareGame}
@@ -163,26 +187,11 @@ export default function DoomlingsSetup() {
             <label className="font-bold text-(--sf-text) text-sm">
               {t.common.playerCount}
             </label>
-
-            <div className="gap-2 grid grid-cols-5 mt-3">
-              {[2, 3, 4, 5, 6].map((count) => (
+            <div className="gap-2 grid grid-cols-4 mt-3">
+              {PLAYER_COUNT_OPTIONS.map((count) => (
                 <button
                   key={count}
-                  onClick={() => {
-                    setPlayerCount(count);
-                    setPlayers((current) =>
-                      Array.from({ length: count }, (_, index) => {
-                        return (
-                          current[index] ?? {
-                            id: `player-${index + 1}`,
-                            name: "",
-                            color:
-                              colorOptions[index % colorOptions.length].value,
-                          }
-                        );
-                      }),
-                    );
-                  }}
+                  onClick={() => updatePlayerCount(count)}
                   className={`rounded-md px-3 py-3 font-black ${
                     playerCount === count
                       ? "bg-(--accent) text-(--on-accent)"
@@ -195,35 +204,66 @@ export default function DoomlingsSetup() {
               ))}
             </div>
 
-            {/* ADD-ONS */}
-            <div className="mt-5">
-              <p className="font-bold text-(--sf-text) text-sm">
-                {t.doomlings.addons}
-              </p>
-              <p className="mt-1 text-(--sf-text-subtle) text-xs">
-                {t.doomlings.addonsHint}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {availableAddons.map((addon) => {
-                  const active = addons.includes(addon);
+            <label className="block mt-5 font-bold text-(--sf-text) text-sm">
+              {t.whoAmI.wordModeLabel}
+            </label>
+            <div className="gap-2 grid grid-cols-2 mt-2">
+              {(
+                [
+                  ["category", t.whoAmI.wordModeCategory],
+                  ["custom", t.whoAmI.wordModeCustom],
+                ] as [WhoAmIWordMode, string][]
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => setWordMode(value)}
+                  className={`rounded-md px-3 py-2.5 text-sm font-bold ${
+                    wordMode === value
+                      ? "bg-(--accent) text-(--on-accent)"
+                      : "bg-(--sf-surface) text-(--sf-text-muted)"
+                  }`}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-                  return (
+            {wordMode === "custom" ? (
+              <p className="mt-1.5 text-(--sf-text-subtle) text-xs">
+                {t.whoAmI.wordModeCustomHint}
+              </p>
+            ) : (
+              <>
+                <label className="block mt-4 font-bold text-(--sf-text) text-sm">
+                  {t.whoAmI.categoryLabel}
+                </label>
+                <div className="gap-2 grid grid-cols-2 mt-2">
+                  {(
+                    [
+                      ...CATEGORY_KEYS.map(
+                        (key) =>
+                          [key, t.partyWords.categories[key].label] as const,
+                      ),
+                      ["random", t.partyWords.categoryRandomLabel] as const,
+                    ] as [PartyCategorySelection, string][]
+                  ).map(([value, label]) => (
                     <button
-                      key={addon}
-                      onClick={() => toggleAddon(addon)}
-                      className={`rounded-md px-3 py-2 text-sm font-bold ${
-                        active
-                          ? "bg-(--accent-2) text-(--on-accent)"
+                      key={value}
+                      onClick={() => setCategoryKey(value)}
+                      className={`rounded-md px-3 py-2.5 text-sm font-bold ${
+                        categoryKey === value
+                          ? "bg-(--accent) text-(--on-accent)"
                           : "bg-(--sf-surface) text-(--sf-text-muted)"
                       }`}
                       type="button"
                     >
-                      {addon}
+                      {label}
                     </button>
-                  );
-                })}
-              </div>
-            </div>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* MODES */}
             <div className="mt-5">
@@ -232,8 +272,32 @@ export default function DoomlingsSetup() {
                 writeMode={writeMode}
                 onDeviceModeChange={setDeviceMode}
                 onWriteModeChange={setWriteMode}
+                hideWriteMode
               />
             </div>
+
+            {deviceMode === "multi" ? (
+              <div className="mt-4">
+                <label className="flex items-start gap-2.5 bg-(--sf-surface) p-3 rounded-md cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={everyoneActsAsHost}
+                    onChange={(event) =>
+                      setEveryoneActsAsHost(event.target.checked)
+                    }
+                    className="mt-0.5 accent-(--accent)"
+                  />
+                  <span>
+                    <span className="block font-bold text-sm">
+                      {t.whoAmI.everyoneActsAsHostLabel}
+                    </span>
+                    <span className="block mt-0.5 text-(--sf-text-subtle) text-xs">
+                      {t.whoAmI.everyoneActsAsHostHint}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            ) : null}
 
             {deviceMode === "multi" ? (
               <div className="mt-5">
@@ -260,11 +324,7 @@ export default function DoomlingsSetup() {
               </span>
             </div>
 
-            <PlayerEditor
-              players={players}
-              onUpdate={updatePlayer}
-              colorOptions={colorOptions}
-            />
+            <PlayerEditor players={players} onUpdate={updatePlayer} />
 
             <button
               onClick={startGame}

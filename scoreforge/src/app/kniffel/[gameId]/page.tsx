@@ -10,10 +10,8 @@ import { useGame } from "@/lib/useGame";
 import { useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
-import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import {
   WinnerCelebration,
@@ -352,8 +350,6 @@ export default function KniffelGame({
               {"⚙️"}
             </button>
           ) : null}
-          {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>
@@ -372,6 +368,7 @@ export default function KniffelGame({
           onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
+          onDelete={deleteGame}
           onClose={() => setShowSettings(false)}
         />
       ) : null}

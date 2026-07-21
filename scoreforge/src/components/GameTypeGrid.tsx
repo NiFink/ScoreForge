@@ -40,6 +40,24 @@ export function GameTypeGrid() {
       theme: gameThemes.kniffel,
       description: t.home.kniffelDescription,
     },
+    {
+      title: "Mäxle",
+      href: "/maexle/setup",
+      theme: gameThemes.maexle,
+      description: t.home.maexleDescription,
+    },
+    {
+      title: "Imposter",
+      href: "/imposter/setup",
+      theme: gameThemes.imposter,
+      description: t.home.imposterDescription,
+    },
+    {
+      title: t.whoAmI.tag,
+      href: "/whoAmI/setup",
+      theme: gameThemes.whoAmI,
+      description: t.home.whoAmIDescription,
+    },
   ];
 
   return (

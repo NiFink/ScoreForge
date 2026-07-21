@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { format, useI18n } from "@/lib/i18n";
 import { themeForGameType } from "@/lib/gameThemes";
@@ -45,6 +46,7 @@ export function WinnerCelebration({
   onClose,
 }: WinnerCelebrationProps) {
   const { t } = useI18n();
+  const router = useRouter();
   const theme = themeForGameType(gameType);
   const [busy, setBusy] = useState(false);
 
@@ -230,6 +232,13 @@ export function WinnerCelebration({
             type="button"
           >
             {t.celebration.close}
+          </button>
+          <button
+            onClick={() => router.push("/")}
+            className="px-4 py-3 border border-(--sf-text)/15 rounded-lg font-bold text-(--sf-text-subtle) text-sm"
+            type="button"
+          >
+            {t.common.toHome}
           </button>
         </div>
       </div>

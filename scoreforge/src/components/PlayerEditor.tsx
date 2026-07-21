@@ -1,6 +1,6 @@
 "use client";
 
-import { colorOptions } from "@/lib/colors";
+import { colorOptions as allColorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { findDuplicateNamePlayerIds } from "@/lib/playerValidation";
 import { PlayerAvatar } from "./PlayerAvatar";
@@ -9,9 +9,16 @@ import type { Player } from "@/types/gameTypes";
 type PlayerEditorProps = {
   players: Player[];
   onUpdate: (index: number, key: "name" | "color", value: string) => void;
+  // Eingeschränkte Palette für Spiele mit wenigen Spielern (siehe lib/colors);
+  // Standard ist die volle Palette.
+  colorOptions?: typeof allColorOptions;
 };
 
-export function PlayerEditor({ players, onUpdate }: PlayerEditorProps) {
+export function PlayerEditor({
+  players,
+  onUpdate,
+  colorOptions = allColorOptions,
+}: PlayerEditorProps) {
   const { t } = useI18n();
   const duplicateIds = findDuplicateNamePlayerIds(players);
 

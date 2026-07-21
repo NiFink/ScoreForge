@@ -73,6 +73,30 @@ export const gameThemes: Record<GameThemeKey, GameTheme> = {
     hex2: "#fbbf24",
     gradient: "bg-linear-to-r from-[#be123c] to-[#fde68a]",
   },
+  // Mäxle: Galgenholz-Braun/Wiesengrün — passend zur Galgenmännchen-Grafik
+  maexle: {
+    label: "Mäxle",
+    style: makeStyle("#c2793a", "#4ade80"),
+    hex: "#c2793a",
+    hex2: "#4ade80",
+    gradient: "bg-linear-to-r from-[#92400e] to-[#86efac]",
+  },
+  // Imposter: Alarmrot/Verdächtig-Cyan — Among-Us-artige Bluff-Stimmung
+  imposter: {
+    label: "Imposter",
+    style: makeStyle("#ef4444", "#22d3ee"),
+    hex: "#ef4444",
+    hex2: "#22d3ee",
+    gradient: "bg-linear-to-r from-[#b91c1c] to-[#67e8f9]",
+  },
+  // Wer bin ich: Violett/Gold — Rätsel- und Detektiv-Stimmung
+  whoAmI: {
+    label: "Wer bin ich?",
+    style: makeStyle("#8b5cf6", "#fbbf24"),
+    hex: "#8b5cf6",
+    hex2: "#fbbf24",
+    gradient: "bg-linear-to-r from-[#6d28d9] to-[#fde68a]",
+  },
 };
 
 export function themeForGameType(gameType: string | undefined): GameTheme {

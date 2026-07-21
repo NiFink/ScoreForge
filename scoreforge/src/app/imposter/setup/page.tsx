@@ -8,29 +8,27 @@ import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
 import { createGame } from "@/lib/games/createGame";
-import { baseColorOptions as colorOptions } from "@/lib/colors";
+import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
+import {
+  CATEGORY_KEYS,
+  pickRandomImposters,
+  pickRandomWord,
+} from "@/features/partyWords/utils";
 import type {
   DeviceMode,
-  DoomlingsScores,
-  DoomlingsState,
+  ImposterState,
+  PartyCategorySelection,
   Player,
   WriteMode,
 } from "@/types/gameTypes";
 
-const availableAddons = ["The Meaning of Life"];
-
-const emptyScores = (): DoomlingsScores => ({
-  numbers: 0,
-  cross: 0,
-  sickle: 0,
-  worldsEnd: 0,
-});
+const PLAYER_COUNT_OPTIONS = [3, 4, 5, 6, 7, 8, 9, 10];
 
 const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -39,21 +37,24 @@ const createPlayers = (count: number): Player[] =>
     color: colorOptions[i % colorOptions.length].value,
   }));
 
-export default function DoomlingsSetup() {
+export default function ImposterSetup() {
   const router = useRouter();
   const { t } = useI18n();
 
-  const [playerCount, setPlayerCount] = useState(3);
+  const [playerCount, setPlayerCount] = useState(4);
+  const [categoryKey, setCategoryKey] =
+    useState<PartyCategorySelection>("random");
+  const [imposterCount, setImposterCount] = useState(1);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
-  const [addons, setAddons] = useState<string[]>([]);
-  const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(4));
   const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const allNamesFilled = players.every((player) => player.name.trim());
   const duplicateNames = hasDuplicateNames(players);
   const canStart = allNamesFilled && !duplicateNames;
+  const maxImposters = playerCount >= 6 ? 2 : 1;
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
@@ -63,11 +64,23 @@ export default function DoomlingsSetup() {
     );
   };
 
-  const toggleAddon = (addon: string) => {
-    setAddons((current) =>
-      current.includes(addon)
-        ? current.filter((item) => item !== addon)
-        : [...current, addon],
+  const updatePlayerCount = (count: number) => {
+    setPlayerCount(count);
+
+    if (count < 6 && imposterCount > 1) {
+      setImposterCount(1);
+    }
+
+    setPlayers((current) =>
+      Array.from({ length: count }, (_, index) => {
+        return (
+          current[index] ?? {
+            id: `player-${index + 1}`,
+            name: "",
+            color: colorOptions[index % colorOptions.length].value,
+          }
+        );
+      }),
     );
   };
 
@@ -86,24 +99,26 @@ export default function DoomlingsSetup() {
         claimedBy: null,
       }));
 
-      const state: DoomlingsState = {
-        gameType: "doomlings",
+      const state: ImposterState = {
+        gameType: "imposter",
         playerCount,
         deviceMode,
         writeMode,
-        addons,
         players: cleanPlayers,
         phase: deviceMode === "multi" ? "lobby" : "playing",
         lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
-        scoringStep: 0,
-        scoringStartPlayerIndex: 0,
-        scoringStartPlayerChosen: false,
-        readyPlayers: {},
-        revealIndex: 0,
-        scores: Object.fromEntries(
-          cleanPlayers.map((player) => [player.id, emptyScores()]),
+        categoryKey,
+        imposterCount,
+        round: 1,
+        word: pickRandomWord(t.partyWords.categories, categoryKey),
+        imposterIds: pickRandomImposters(
+          cleanPlayers.map((player) => player.id),
+          imposterCount,
         ),
+        revealedIds: [],
+        crewWins: 0,
+        imposterWins: 0,
       };
 
       const game = await createGame(state);
@@ -112,7 +127,7 @@ export default function DoomlingsSetup() {
         return;
       }
 
-      router.push(`/doomlings/${game.id}`);
+      router.push(`/imposter/${game.id}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -122,7 +137,7 @@ export default function DoomlingsSetup() {
 
   return (
     <main
-      style={gameThemes.doomlings.style}
+      style={gameThemes.imposter.style}
       className="bg-(--sf-bg) px-4 sm:px-6 py-5 min-h-screen text-(--sf-text-strong)"
     >
       <div className="mx-auto max-w-5xl">
@@ -149,7 +164,7 @@ export default function DoomlingsSetup() {
 
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
-              {t.doomlings.setupTag}
+              {t.imposter.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
               {t.common.prepareGame}
@@ -163,26 +178,11 @@ export default function DoomlingsSetup() {
             <label className="font-bold text-(--sf-text) text-sm">
               {t.common.playerCount}
             </label>
-
-            <div className="gap-2 grid grid-cols-5 mt-3">
-              {[2, 3, 4, 5, 6].map((count) => (
+            <div className="gap-2 grid grid-cols-4 mt-3">
+              {PLAYER_COUNT_OPTIONS.map((count) => (
                 <button
                   key={count}
-                  onClick={() => {
-                    setPlayerCount(count);
-                    setPlayers((current) =>
-                      Array.from({ length: count }, (_, index) => {
-                        return (
-                          current[index] ?? {
-                            id: `player-${index + 1}`,
-                            name: "",
-                            color:
-                              colorOptions[index % colorOptions.length].value,
-                          }
-                        );
-                      }),
-                    );
-                  }}
+                  onClick={() => updatePlayerCount(count)}
                   className={`rounded-md px-3 py-3 font-black ${
                     playerCount === count
                       ? "bg-(--accent) text-(--on-accent)"
@@ -195,34 +195,52 @@ export default function DoomlingsSetup() {
               ))}
             </div>
 
-            {/* ADD-ONS */}
-            <div className="mt-5">
-              <p className="font-bold text-(--sf-text) text-sm">
-                {t.doomlings.addons}
-              </p>
-              <p className="mt-1 text-(--sf-text-subtle) text-xs">
-                {t.doomlings.addonsHint}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {availableAddons.map((addon) => {
-                  const active = addons.includes(addon);
+            <label className="block mt-5 font-bold text-(--sf-text) text-sm">
+              {t.imposter.categoryLabel}
+            </label>
+            <div className="gap-2 grid grid-cols-2 mt-2">
+              {(
+                [
+                  ...CATEGORY_KEYS.map(
+                    (key) => [key, t.partyWords.categories[key].label] as const,
+                  ),
+                  ["random", t.partyWords.categoryRandomLabel] as const,
+                ] as [PartyCategorySelection, string][]
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => setCategoryKey(value)}
+                  className={`rounded-md px-3 py-2.5 text-sm font-bold ${
+                    categoryKey === value
+                      ? "bg-(--accent) text-(--on-accent)"
+                      : "bg-(--sf-surface) text-(--sf-text-muted)"
+                  }`}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
-                  return (
-                    <button
-                      key={addon}
-                      onClick={() => toggleAddon(addon)}
-                      className={`rounded-md px-3 py-2 text-sm font-bold ${
-                        active
-                          ? "bg-(--accent-2) text-(--on-accent)"
-                          : "bg-(--sf-surface) text-(--sf-text-muted)"
-                      }`}
-                      type="button"
-                    >
-                      {addon}
-                    </button>
-                  );
-                })}
-              </div>
+            <label className="block mt-5 font-bold text-(--sf-text) text-sm">
+              {t.imposter.imposterCountLabel}
+            </label>
+            <div className="gap-2 grid grid-cols-2 mt-2">
+              {[1, 2].map((count) => (
+                <button
+                  key={count}
+                  onClick={() => setImposterCount(count)}
+                  disabled={count > maxImposters}
+                  className={`rounded-md px-3 py-3 font-black disabled:opacity-30 disabled:cursor-not-allowed ${
+                    imposterCount === count
+                      ? "bg-(--accent) text-(--on-accent)"
+                      : "bg-(--sf-surface) text-(--sf-text-muted)"
+                  }`}
+                  type="button"
+                >
+                  {count}
+                </button>
+              ))}
             </div>
 
             {/* MODES */}
@@ -260,11 +278,7 @@ export default function DoomlingsSetup() {
               </span>
             </div>
 
-            <PlayerEditor
-              players={players}
-              onUpdate={updatePlayer}
-              colorOptions={colorOptions}
-            />
+            <PlayerEditor players={players} onUpdate={updatePlayer} />
 
             <button
               onClick={startGame}

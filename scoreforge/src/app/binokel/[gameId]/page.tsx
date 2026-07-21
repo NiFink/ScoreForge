@@ -9,10 +9,8 @@ import { useRouter } from "next/navigation";
 import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
 import { Lobby } from "@/components/Lobby";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
-import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { MeldReference } from "./MeldReference";
@@ -276,8 +274,6 @@ export default function BinokelGame({
               {"⚙️"}
             </button>
           ) : null}
-          {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>
@@ -296,6 +292,7 @@ export default function BinokelGame({
           onResume={resumeGame}
           onAddPlayer={() => {}}
           onRemovePlayer={() => {}}
+          onDelete={deleteGame}
           onClose={() => setShowSettings(false)}
         />
       ) : null}

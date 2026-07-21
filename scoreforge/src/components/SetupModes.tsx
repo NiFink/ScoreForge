@@ -8,6 +8,9 @@ type SetupModesProps = {
   writeMode: WriteMode;
   onDeviceModeChange: (mode: DeviceMode) => void;
   onWriteModeChange: (mode: WriteMode) => void;
+  // Spiele mit privaten Pro-Spieler-Infos (z.B. Wer bin ich) regeln bei
+  // mehreren Geräten selbst, wer was darf - die Frage ergibt dort keinen Sinn.
+  hideWriteMode?: boolean;
 };
 
 export function SetupModes({
@@ -15,6 +18,7 @@ export function SetupModes({
   writeMode,
   onDeviceModeChange,
   onWriteModeChange,
+  hideWriteMode = false,
 }: SetupModesProps) {
   const { t } = useI18n();
 
@@ -48,7 +52,7 @@ export function SetupModes({
         </div>
       </fieldset>
 
-      {deviceMode === "multi" && (
+      {deviceMode === "multi" && !hideWriteMode && (
         <fieldset>
           <legend className="font-bold text-(--sf-text) text-sm">
             {t.common.writeQuestion}

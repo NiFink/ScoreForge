@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
 import { createGame } from "@/lib/games/createGame";
-import { baseColorOptions as colorOptions } from "@/lib/colors";
+import { colorOptions } from "@/lib/colors";
 import { useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -17,20 +17,18 @@ import { PlayerEditor } from "@/components/PlayerEditor";
 import { SetupModes } from "@/components/SetupModes";
 import type {
   DeviceMode,
-  DoomlingsScores,
-  DoomlingsState,
+  MaexleEndCondition,
+  MaexleState,
   Player,
   WriteMode,
 } from "@/types/gameTypes";
 
-const availableAddons = ["The Meaning of Life"];
-
-const emptyScores = (): DoomlingsScores => ({
-  numbers: 0,
-  cross: 0,
-  sickle: 0,
-  worldsEnd: 0,
-});
+// Mäxle wird typischerweise in größerer Runde gespielt - eine Zahlen-Button-
+// Reihe wie bei den anderen Spielen würde hier schnell unhandlich, deshalb
+// ein Dropdown für die Spieleranzahl.
+const PLAYER_COUNT_OPTIONS = Array.from({ length: 19 }, (_, i) => i + 2); // 2..20
+const LIVES_OPTIONS = Array.from({ length: 11 }, (_, i) => i + 1); // 1..11 (Maximum)
+const DEFAULT_LIVES = 3;
 
 const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -39,15 +37,17 @@ const createPlayers = (count: number): Player[] =>
     color: colorOptions[i % colorOptions.length].value,
   }));
 
-export default function DoomlingsSetup() {
+export default function MaexleSetup() {
   const router = useRouter();
   const { t } = useI18n();
 
-  const [playerCount, setPlayerCount] = useState(3);
+  const [playerCount, setPlayerCount] = useState(4);
+  const [livesTotal, setLivesTotal] = useState(DEFAULT_LIVES);
+  const [endCondition, setEndCondition] =
+    useState<MaexleEndCondition>("lastStanding");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("single");
   const [writeMode, setWriteMode] = useState<WriteMode>("host");
-  const [addons, setAddons] = useState<string[]>([]);
-  const [players, setPlayers] = useState<Player[]>(() => createPlayers(3));
+  const [players, setPlayers] = useState<Player[]>(() => createPlayers(4));
   const [lobbyName, setLobbyName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -63,11 +63,18 @@ export default function DoomlingsSetup() {
     );
   };
 
-  const toggleAddon = (addon: string) => {
-    setAddons((current) =>
-      current.includes(addon)
-        ? current.filter((item) => item !== addon)
-        : [...current, addon],
+  const updatePlayerCount = (count: number) => {
+    setPlayerCount(count);
+    setPlayers((current) =>
+      Array.from({ length: count }, (_, index) => {
+        return (
+          current[index] ?? {
+            id: `player-${index + 1}`,
+            name: "",
+            color: colorOptions[index % colorOptions.length].value,
+          }
+        );
+      }),
     );
   };
 
@@ -86,24 +93,20 @@ export default function DoomlingsSetup() {
         claimedBy: null,
       }));
 
-      const state: DoomlingsState = {
-        gameType: "doomlings",
+      const state: MaexleState = {
+        gameType: "maexle",
         playerCount,
         deviceMode,
         writeMode,
-        addons,
         players: cleanPlayers,
         phase: deviceMode === "multi" ? "lobby" : "playing",
         lobbyName: lobbyName.trim() || undefined,
         hostId: getClientId(),
-        scoringStep: 0,
-        scoringStartPlayerIndex: 0,
-        scoringStartPlayerChosen: false,
-        readyPlayers: {},
-        revealIndex: 0,
-        scores: Object.fromEntries(
-          cleanPlayers.map((player) => [player.id, emptyScores()]),
+        livesTotal,
+        lives: Object.fromEntries(
+          cleanPlayers.map((player) => [player.id, livesTotal]),
         ),
+        endCondition,
       };
 
       const game = await createGame(state);
@@ -112,7 +115,7 @@ export default function DoomlingsSetup() {
         return;
       }
 
-      router.push(`/doomlings/${game.id}`);
+      router.push(`/maexle/${game.id}`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -122,7 +125,7 @@ export default function DoomlingsSetup() {
 
   return (
     <main
-      style={gameThemes.doomlings.style}
+      style={gameThemes.maexle.style}
       className="bg-(--sf-bg) px-4 sm:px-6 py-5 min-h-screen text-(--sf-text-strong)"
     >
       <div className="mx-auto max-w-5xl">
@@ -149,7 +152,7 @@ export default function DoomlingsSetup() {
 
           <div>
             <p className="font-semibold text-(--accent) text-sm uppercase tracking-[0.18em]">
-              {t.doomlings.setupTag}
+              {t.maexle.setupTag}
             </p>
             <h1 className="mt-1 font-black text-3xl sm:text-5xl">
               {t.common.prepareGame}
@@ -163,67 +166,62 @@ export default function DoomlingsSetup() {
             <label className="font-bold text-(--sf-text) text-sm">
               {t.common.playerCount}
             </label>
+            <select
+              className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-(--sf-text-strong)"
+              value={playerCount}
+              onChange={(event) => updatePlayerCount(Number(event.target.value))}
+            >
+              {PLAYER_COUNT_OPTIONS.map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
 
-            <div className="gap-2 grid grid-cols-5 mt-3">
-              {[2, 3, 4, 5, 6].map((count) => (
+            <label className="block mt-4 font-bold text-(--sf-text) text-sm">
+              {t.maexle.livesPerPlayer}
+            </label>
+            <select
+              className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-(--sf-text-strong)"
+              value={livesTotal}
+              onChange={(event) => setLivesTotal(Number(event.target.value))}
+            >
+              {LIVES_OPTIONS.map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+
+            <label className="block mt-4 font-bold text-(--sf-text) text-sm">
+              {t.maexle.endConditionLabel}
+            </label>
+            <div className="gap-2 grid grid-cols-2 mt-2">
+              {(
+                [
+                  ["lastStanding", t.maexle.endConditionLastStanding],
+                  ["firstElimination", t.maexle.endConditionFirstElimination],
+                ] as [MaexleEndCondition, string][]
+              ).map(([value, label]) => (
                 <button
-                  key={count}
-                  onClick={() => {
-                    setPlayerCount(count);
-                    setPlayers((current) =>
-                      Array.from({ length: count }, (_, index) => {
-                        return (
-                          current[index] ?? {
-                            id: `player-${index + 1}`,
-                            name: "",
-                            color:
-                              colorOptions[index % colorOptions.length].value,
-                          }
-                        );
-                      }),
-                    );
-                  }}
-                  className={`rounded-md px-3 py-3 font-black ${
-                    playerCount === count
+                  key={value}
+                  onClick={() => setEndCondition(value)}
+                  className={`rounded-md px-3 py-3 text-sm font-bold ${
+                    endCondition === value
                       ? "bg-(--accent) text-(--on-accent)"
                       : "bg-(--sf-surface) text-(--sf-text-muted)"
                   }`}
                   type="button"
                 >
-                  {count}
+                  {label}
                 </button>
               ))}
             </div>
-
-            {/* ADD-ONS */}
-            <div className="mt-5">
-              <p className="font-bold text-(--sf-text) text-sm">
-                {t.doomlings.addons}
-              </p>
-              <p className="mt-1 text-(--sf-text-subtle) text-xs">
-                {t.doomlings.addonsHint}
-              </p>
-              <div className="flex flex-wrap gap-2 mt-3">
-                {availableAddons.map((addon) => {
-                  const active = addons.includes(addon);
-
-                  return (
-                    <button
-                      key={addon}
-                      onClick={() => toggleAddon(addon)}
-                      className={`rounded-md px-3 py-2 text-sm font-bold ${
-                        active
-                          ? "bg-(--accent-2) text-(--on-accent)"
-                          : "bg-(--sf-surface) text-(--sf-text-muted)"
-                      }`}
-                      type="button"
-                    >
-                      {addon}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <p className="mt-1.5 text-(--sf-text-subtle) text-xs">
+              {endCondition === "lastStanding"
+                ? t.maexle.endConditionLastStandingHint
+                : t.maexle.endConditionFirstEliminationHint}
+            </p>
 
             {/* MODES */}
             <div className="mt-5">
@@ -260,11 +258,7 @@ export default function DoomlingsSetup() {
               </span>
             </div>
 
-            <PlayerEditor
-              players={players}
-              onUpdate={updatePlayer}
-              colorOptions={colorOptions}
-            />
+            <PlayerEditor players={players} onUpdate={updatePlayer} />
 
             <button
               onClick={startGame}

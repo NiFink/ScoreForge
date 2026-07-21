@@ -8,11 +8,10 @@ import { useRouter } from "next/navigation";
 
 import { useGame } from "@/lib/useGame";
 import { useI18n } from "@/lib/i18n";
+import { baseColorOptions } from "@/lib/colors";
 import { Lobby } from "@/components/Lobby";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
-import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { CurrentRoundCard } from "./CurrentRoundCard";
@@ -550,8 +549,6 @@ export default function WizardGame({
                     {"⚙️"}
                   </button>
                 ) : null}
-                {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
-                <LanguageSwitcher />
                 <ThemeToggle />
               </div>
             </div>
@@ -615,6 +612,8 @@ export default function WizardGame({
             onResume={resumeGame}
             onAddPlayer={addPlayer}
             onRemovePlayer={removePlayer}
+            onDelete={deleteGame}
+            colorOptions={baseColorOptions}
             onClose={() => setShowSettings(false)}
           />
         ) : null}
@@ -647,9 +646,7 @@ export default function WizardGame({
                     {"⚙️"}
                   </button>
                 ) : null}
-                {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
                 <span className="sm:hidden">
-                  <LanguageSwitcher />
                   <ThemeToggle />
                 </span>
               </div>
@@ -675,7 +672,6 @@ export default function WizardGame({
           </div>
           <div className="flex flex-col items-end gap-2">
             <span className="hidden sm:block">
-              <LanguageSwitcher />
               <ThemeToggle />
             </span>
             <div className="gap-2 grid grid-cols-4 text-sm text-center">
@@ -855,6 +851,8 @@ export default function WizardGame({
           onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
+          onDelete={deleteGame}
+          colorOptions={baseColorOptions}
           onClose={() => setShowSettings(false)}
         />
       ) : null}

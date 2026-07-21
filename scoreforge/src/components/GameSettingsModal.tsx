@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 
-import { colorOptions } from "@/lib/colors";
+import { colorOptions as allColorOptions } from "@/lib/colors";
 import { format, useI18n } from "@/lib/i18n";
 import { isNameTaken } from "@/lib/playerValidation";
+import { DeleteGameButton } from "./DeleteGameButton";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { PlayerAvatar } from "./PlayerAvatar";
 import type {
   BaseGameState,
@@ -31,7 +33,14 @@ type GameSettingsModalProps = {
   onResume: () => void;
   onAddPlayer: (name: string, color: string, startingPoints: number) => void;
   onRemovePlayer: (playerId: string) => void;
+  onDelete: () => Promise<boolean>;
   onClose: () => void;
+  // Eingeschränkte Palette für Spiele mit wenigen Spielern (siehe lib/colors);
+  // Standard ist die volle Palette.
+  colorOptions?: typeof allColorOptions;
+  // Spiele mit privaten Pro-Spieler-Infos (z.B. Wer bin ich) regeln bei
+  // mehreren Geräten selbst, wer was darf - die Frage ergibt dort keinen Sinn.
+  hideWriteMode?: boolean;
 };
 
 function median(values: number[]): number {
@@ -71,7 +80,10 @@ export function GameSettingsModal({
   onResume,
   onAddPlayer,
   onRemovePlayer,
+  onDelete,
   onClose,
+  colorOptions = allColorOptions,
+  hideWriteMode = false,
 }: GameSettingsModalProps) {
   const { t, lang } = useI18n();
   const [nameDraft, setNameDraft] = useState("");
@@ -132,8 +144,18 @@ export function GameSettingsModal({
           </button>
         </div>
 
-        {/* WRITE MODE */}
+        {/* SPRACHE */}
         <p className="font-bold text-(--sf-text) text-sm">
+          {t.settings.languageSection}
+        </p>
+        <div className="mt-2">
+          <LanguageSwitcher />
+        </div>
+
+        {/* WRITE MODE */}
+        {hideWriteMode ? null : (
+          <>
+        <p className="mt-5 font-bold text-(--sf-text) text-sm">
           {t.common.writeQuestion}
         </p>
         <div className="gap-2 grid grid-cols-2 mt-2">
@@ -157,6 +179,8 @@ export function GameSettingsModal({
             </button>
           ))}
         </div>
+          </>
+        )}
 
         {/* DEVICE MODE / LOBBY */}
         <p className="mt-5 font-bold text-(--sf-text) text-sm">
@@ -401,6 +425,14 @@ export function GameSettingsModal({
             )}
           </>
         )}
+
+        {/* GEFAHRENZONE */}
+        <p className="mt-5 font-bold text-(--sf-text) text-sm">
+          {t.settings.dangerZoneSection}
+        </p>
+        <div className="mt-2">
+          <DeleteGameButton onDelete={onDelete} />
+        </div>
       </div>
     </div>
   );

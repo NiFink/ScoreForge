@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 
 import { getClientId } from "@/lib/clientId";
 import { createGame } from "@/lib/games/createGame";
-import { colorOptions } from "@/lib/colors";
+import { baseColorOptions as colorOptions } from "@/lib/colors";
 import { format, useI18n } from "@/lib/i18n";
 import { hasDuplicateNames } from "@/lib/playerValidation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -274,7 +274,11 @@ export default function BinokelSetup() {
               </span>
             </div>
 
-            <PlayerEditor players={players} onUpdate={updatePlayer} />
+            <PlayerEditor
+              players={players}
+              onUpdate={updatePlayer}
+              colorOptions={colorOptions}
+            />
 
             <button
               onClick={startGame}

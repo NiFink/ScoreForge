@@ -8,11 +8,10 @@ import { useRouter } from "next/navigation";
 
 import { useGame } from "@/lib/useGame";
 import { format, useI18n } from "@/lib/i18n";
+import { baseColorOptions } from "@/lib/colors";
 import { Lobby } from "@/components/Lobby";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CodeBadge } from "@/components/CodeBadge";
-import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { GameSettingsModal } from "@/components/GameSettingsModal";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 import { computeRankMap, computeRanks } from "@/lib/ranking";
@@ -331,8 +330,6 @@ export default function DoomlingsGame({
               {"⚙️"}
             </button>
           ) : null}
-          {isHost ? <DeleteGameButton onDelete={deleteGame} /> : null}
-          <LanguageSwitcher />
           <ThemeToggle />
         </div>
       </div>
@@ -353,6 +350,8 @@ export default function DoomlingsGame({
           onResume={resumeGame}
           onAddPlayer={addPlayer}
           onRemovePlayer={removePlayer}
+          onDelete={deleteGame}
+          colorOptions={baseColorOptions}
           onClose={() => setShowSettings(false)}
         />
       ) : null}
