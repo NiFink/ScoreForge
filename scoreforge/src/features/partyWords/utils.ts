@@ -57,6 +57,20 @@ export function pickRandomWords(
   return result.slice(0, count);
 }
 
+// Zwei Beispielwörter für Infotexte (z.B. im Aufdeck-Popup von "Wer bin ich").
+// Bei "random" kommen die Beispiele aus zwei verschiedenen Kategorien, damit
+// die Vielfalt sichtbar wird.
+export function categoryExamples(
+  categories: Categories,
+  selection: PartyCategorySelection,
+): string[] {
+  if (selection === "random") {
+    return [categories.animals.words[0], categories.famous.words[0]];
+  }
+
+  return categories[selection].words.slice(0, 2);
+}
+
 // `count` zufällige Spieler-IDs als Imposter (mindestens 1, höchstens
 // Spieleranzahl - 1, damit immer noch echte Crew übrig bleibt).
 export function pickRandomImposters(playerIds: string[], count: number): string[] {

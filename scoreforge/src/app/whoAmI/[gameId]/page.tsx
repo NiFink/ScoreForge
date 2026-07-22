@@ -68,6 +68,10 @@ export default function WhoAmIGame({
     null,
   );
   const [celebrationDismissed, setCelebrationDismissed] = useState(false);
+  // Host-lokaler Aufdeck-Modus: für Mitspieler ohne eigenes Handy. Der Host
+  // gibt seine Gesamtübersicht (eigenes Auto-Brett) auf und deckt stattdessen
+  // jedes Brett einzeln per Identitäts-Bestätigung auf (wie Pass-and-play).
+  const [hostRevealMode, setHostRevealMode] = useState(false);
 
   const gameOver = !!state && isGameOver(state);
 
@@ -137,9 +141,10 @@ export default function WhoAmIGame({
     mutateState((current) => ({
       ...current,
       deviceMode,
-      // Mehrgeräte: jeder verwaltet sein eigenes Gerät -> "Alle" statt der
-      // (dann ausgeblendeten) Host/Alle-Einstellung.
-      writeMode: deviceMode === "multi" ? "all" : current.writeMode,
+      // Mehrgeräte: jeder verwaltet sein eigenes Gerät -> "Alle". Ein
+      // gemeinsames Gerät -> nur der Host, damit vorher erteilte Rechte
+      // automatisch wieder wegfallen.
+      writeMode: deviceMode === "multi" ? "all" : "host",
     }));
   };
 
@@ -519,6 +524,26 @@ export default function WhoAmIGame({
     (player) => player.id === revealingPlayerId,
   );
 
+  // Wer selbst einen Platz belegt hat, sieht ausschließlich sein eigenes
+  // Brett (wird oben automatisch angezeigt). Fremde Bretter darf nur der Host
+  // per Weiterreichen aufdecken - sonst würde man beim Aufdecken eines anderen
+  // Spielers sein eigenes geheimes Wort sehen.
+  const canRevealOthers = isHost || !myPlayer;
+
+  // Aktiver Host-Aufdeck-Modus: der Host verzichtet auf sein Auto-Brett und
+  // deckt jedes Brett einzeln auf (auch belegte Plätze) - für Runden, in denen
+  // nicht jeder ein eigenes Handy hat.
+  const hostRevealing = isHost && hostRevealMode;
+  // Gibt es überhaupt etwas zu übernehmen (eigene Übersicht oder Plätze mit
+  // eigenem Gerät)? Nur dann ist der Umschalter sinnvoll.
+  const someoneHasOwnDevice =
+    state.deviceMode === "multi" &&
+    !state.everyoneActsAsHost &&
+    state.players.some(
+      (player) => !!player.claimedBy && player.claimedBy !== clientId,
+    );
+  const showHostRevealToggle = isHost && (!!myPlayer || someoneHasOwnDevice);
+
   return (
     <main
       style={gameThemes.whoAmI.style}
@@ -548,8 +573,30 @@ export default function WhoAmIGame({
           </p>
         )}
 
+        {/* HOST-AUFDECK-MODUS (für Mitspieler ohne eigenes Handy) */}
+        {showHostRevealToggle ? (
+          <div className="bg-(--sf-surface-2)/90 mb-4 p-3 border border-(--accent-2)/30 rounded-lg">
+            <button
+              onClick={() => setHostRevealMode((active) => !active)}
+              className={`px-4 py-2.5 rounded-md w-full font-black text-sm ${
+                hostRevealMode
+                  ? "bg-(--accent) text-(--on-accent)"
+                  : "bg-(--sf-bg) text-(--sf-text-muted) border border-(--sf-text)/15"
+              }`}
+              type="button"
+            >
+              {hostRevealMode
+                ? t.whoAmI.hostRevealModeActive
+                : t.whoAmI.hostRevealMode}
+            </button>
+            <p className="mt-1.5 text-(--sf-text-subtle) text-xs">
+              {t.whoAmI.hostRevealModeHint}
+            </p>
+          </div>
+        ) : null}
+
         {/* AUTO-BRETT (eigenes verbundenes Gerät) */}
-        {myPlayer ? (
+        {myPlayer && !hostRevealing ? (
           <section className="bg-(--sf-surface-2)/90 mb-4 p-4 border border-(--accent)/30 rounded-lg">
             <p className="font-black text-(--sf-text) text-sm uppercase tracking-[0.14em]">
               {t.whoAmI.boardTitle}
@@ -597,11 +644,11 @@ export default function WhoAmIGame({
                         ✓
                       </span>
                     ) : null}
-                    {isMine || hasOwnDevice ? (
+                    {(isMine || hasOwnDevice) && !hostRevealing ? (
                       <span className="bg-(--sf-bg) px-2 py-1 rounded-md text-(--sf-text-subtle) text-xs whitespace-nowrap">
                         {"📱"}
                       </span>
-                    ) : canWrite ? (
+                    ) : canRevealOthers ? (
                       <button
                         onClick={() => setRevealingPlayerId(player.id)}
                         className="bg-(--accent) px-3 py-2 rounded-md font-black text-(--on-accent) text-sm whitespace-nowrap"
@@ -669,6 +716,8 @@ export default function WhoAmIGame({
           player={revealingPlayer}
           players={state.players}
           words={state.words}
+          categoryKey={state.categoryKey}
+          wordMode={state.wordMode}
           onDone={() => {
             markRevealed(revealingPlayer.id);
             setRevealingPlayerId(null);

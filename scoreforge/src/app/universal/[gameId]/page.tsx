@@ -173,7 +173,13 @@ export default function UniversalGame({
   };
 
   const changeDeviceMode = (deviceMode: DeviceMode) => {
-    mutateState((current) => ({ ...current, deviceMode }));
+    mutateState((current) => ({
+      ...current,
+      deviceMode,
+      // Ein gemeinsames Gerät -> nur der Host (wer es in der Hand hält) editiert;
+      // vergibt evtl. vorher erteilte "Alle"-Rechte automatisch wieder.
+      writeMode: deviceMode === "single" ? "host" : current.writeMode,
+    }));
   };
 
   const backToLobby = () => {

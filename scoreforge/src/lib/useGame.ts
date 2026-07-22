@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase/client";
 import { getClientId } from "@/lib/clientId";
@@ -11,12 +12,20 @@ const subscribeToNothing = () => () => {};
 const getServerClientId = () => "";
 
 export function useGame<S extends BaseGameState>(gameId: string) {
+  const router = useRouter();
   const [game, setGame] = useState<GameRecord<S> | null>(null);
   const [notFound, setNotFound] = useState(false);
   // Kommt vom Server (siehe GET /api/games/[gameId]): true, wenn das
   // eingeloggte Konto dieses Spiel erstellt hat - geräteunabhängig.
   const [isOwner, setIsOwner] = useState(false);
   const gameRef = useRef<GameRecord<S> | null>(null);
+  // Anzahl eigener PATCHes, die gerade unterwegs sind (noch nicht bestätigt).
+  // Solange > 0 lassen wir eingehende Realtime-Updates den lokalen Spielstand
+  // NICHT überschreiben - sonst würde ein gleichzeitiges Update eines anderen
+  // Geräts die eigene, noch nicht gespeicherte Eingabe wegblenden, selbst wenn
+  // es ein ganz anderes Feld betraf. Der eigene PATCH bringt uns gleich danach
+  // wieder in sync. (last-write-wins bleibt fürs Speichern bestehen.)
+  const pendingWritesRef = useRef(0);
 
   // Auf dem Server "" liefern, im Browser die stabile Geräte-ID
   const clientId = useSyncExternalStore(
@@ -101,8 +110,30 @@ export function useGame<S extends BaseGameState>(gameId: string) {
             code: previous?.code ?? (incoming.code as string) ?? "",
           } as GameRecord<S>;
 
+          // Läuft gerade eine eigene, noch nicht bestätigte Änderung, behalten
+          // wir den lokalen Spielstand, damit die eigene Eingabe nicht durch
+          // ein gleichzeitiges Fremd-Update wegblendet wird.
+          if (pendingWritesRef.current > 0 && previous?.state) {
+            next.state = previous.state;
+          }
+
           gameRef.current = next;
           setGame(next);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "games",
+          filter: `id=eq.${gameId}`,
+        },
+        () => {
+          // Host hat das Spiel gelöscht/beendet -> jedes andere Gerät zurück
+          // auf die Startseite, damit niemand auf einem toten Spielstand
+          // weiterspielt (sonst bliebe die Runde bis zum manuellen Reload offen).
+          router.replace("/");
         },
       )
       .subscribe();
@@ -110,7 +141,7 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [gameId]);
+  }, [gameId, router]);
 
   const state = game?.state ?? null;
   // Legacy-Brücke: Spiele, die vor der host_secret-Migration erstellt wurden,
@@ -148,6 +179,14 @@ export function useGame<S extends BaseGameState>(gameId: string) {
     gameRef.current = next;
     setGame(next);
 
+    // Eigene Änderung als "unterwegs" markieren, bis der PATCH beantwortet ist
+    // (siehe pendingWritesRef im Realtime-Handler).
+    pendingWritesRef.current += 1;
+
+    const clearPending = () => {
+      pendingWritesRef.current = Math.max(0, pendingWritesRef.current - 1);
+    };
+
     void fetch(`/api/games/${current.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -160,7 +199,7 @@ export function useGame<S extends BaseGameState>(gameId: string) {
         finished: isFinished ? isFinished(nextState) : false,
         paused: isPaused ? isPaused(nextState) : false,
       }),
-    });
+    }).finally(clearPending);
   };
 
   // Rückgabe: HTTP-Status bei Fehler (409 = Platz vergeben), null bei Erfolg

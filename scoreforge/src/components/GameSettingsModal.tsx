@@ -106,6 +106,11 @@ export function GameSettingsModal({
   const selectedColor =
     colorDraft ?? freeColors[0]?.value ?? colorOptions[0].value;
 
+  // "Wer darf editieren" ergibt nur bei mehreren Geräten Sinn - bei einem
+  // gemeinsamen Gerät editiert ohnehin nur, wer es gerade in der Hand hält.
+  // Gleiche Logik wie im Setup (siehe SetupModes).
+  const showWriteMode = !hideWriteMode && state.deviceMode === "multi";
+
   const nameDraftTaken = isNameTaken(nameDraft, state.players);
   const canAdd =
     allowPlayerChanges &&
@@ -152,36 +157,6 @@ export function GameSettingsModal({
           <LanguageSwitcher />
         </div>
 
-        {/* WRITE MODE */}
-        {hideWriteMode ? null : (
-          <>
-        <p className="mt-5 font-bold text-(--sf-text) text-sm">
-          {t.common.writeQuestion}
-        </p>
-        <div className="gap-2 grid grid-cols-2 mt-2">
-          {(
-            [
-              ["host", t.common.hostOnly],
-              ["all", t.common.everyone],
-            ] as [WriteMode, string][]
-          ).map(([mode, label]) => (
-            <button
-              key={mode}
-              onClick={() => onChangeWriteMode(mode)}
-              className={`rounded-md px-3 py-3 font-black ${
-                state.writeMode === mode
-                  ? "bg-(--accent) text-(--on-accent)"
-                  : "bg-(--sf-bg) text-(--sf-text-muted)"
-              }`}
-              type="button"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-          </>
-        )}
-
         {/* DEVICE MODE / LOBBY */}
         <p className="mt-5 font-bold text-(--sf-text) text-sm">
           {t.settings.lobbySection}
@@ -222,6 +197,36 @@ export function GameSettingsModal({
             </p>
           </div>
         ) : null}
+
+        {/* WRITE MODE - nur relevant bei mehreren Geräten (siehe showWriteMode) */}
+        {!showWriteMode ? null : (
+          <>
+            <p className="mt-5 font-bold text-(--sf-text) text-sm">
+              {t.common.writeQuestion}
+            </p>
+            <div className="gap-2 grid grid-cols-2 mt-2">
+              {(
+                [
+                  ["host", t.common.hostOnly],
+                  ["all", t.common.everyone],
+                ] as [WriteMode, string][]
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  onClick={() => onChangeWriteMode(mode)}
+                  className={`rounded-md px-3 py-3 font-black ${
+                    state.writeMode === mode
+                      ? "bg-(--accent) text-(--on-accent)"
+                      : "bg-(--sf-bg) text-(--sf-text-muted)"
+                  }`}
+                  type="button"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* PAUSE / RESUME */}
         <p className="mt-5 font-bold text-(--sf-text) text-sm">

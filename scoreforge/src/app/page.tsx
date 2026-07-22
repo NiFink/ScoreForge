@@ -48,12 +48,19 @@ export default function Home() {
           {t.home.description}
         </p>
 
-        {/* GAMES */}
+        {/* SCOREBOARDS */}
         <h2 className="mt-8 font-black text-(--sf-text) text-xl sm:text-2xl">
-          {t.home.gamesTitle}
+          {t.home.scoreboardsTitle}
         </h2>
 
-        <GameTypeGrid />
+        <GameTypeGrid category="scoreboard" />
+
+        {/* SPIELE */}
+        <h2 className="mt-10 font-black text-(--sf-text) text-xl sm:text-2xl">
+          {t.home.partyGamesTitle}
+        </h2>
+
+        <GameTypeGrid category="party" />
 
         {/* JOIN */}
         <div className="bg-(--sf-surface-2)/90 mt-6 p-5 border border-[#2aa6c8]/30 rounded-xl">

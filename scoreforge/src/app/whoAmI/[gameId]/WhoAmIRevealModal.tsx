@@ -3,13 +3,20 @@
 import { useState } from "react";
 
 import { format, useI18n } from "@/lib/i18n";
+import { categoryExamples } from "@/features/partyWords/utils";
 import { WhoAmIBoardList } from "./WhoAmIBoardList";
-import type { Player } from "@/types/gameTypes";
+import type {
+  PartyCategorySelection,
+  Player,
+  WhoAmIWordMode,
+} from "@/types/gameTypes";
 
 type WhoAmIRevealModalProps = {
   player: Player;
   players: Player[];
   words: Record<string, string>;
+  categoryKey: PartyCategorySelection;
+  wordMode: WhoAmIWordMode;
   onDone: () => void;
   onCancel: () => void;
 };
@@ -20,11 +27,29 @@ export function WhoAmIRevealModal({
   player,
   players,
   words,
+  categoryKey,
+  wordMode,
   onDone,
   onCancel,
 }: WhoAmIRevealModalProps) {
   const { t } = useI18n();
   const [confirmed, setConfirmed] = useState(false);
+
+  // Nur bei Kategorie-Modus gibt es eine feste Kategorie mit Beispielen -
+  // beim "Selbst schreiben"-Modus haben sich die Spieler die Identitäten
+  // gegenseitig ausgedacht.
+  const categoryInfo =
+    wordMode === "category"
+      ? format(t.whoAmI.categoryInfoHint, {
+          category:
+            categoryKey === "random"
+              ? t.partyWords.categoryRandomLabel
+              : t.partyWords.categories[categoryKey].label,
+          examples: categoryExamples(t.partyWords.categories, categoryKey).join(
+            ", ",
+          ),
+        })
+      : null;
 
   return (
     <div className="z-50 fixed inset-0 place-items-center grid bg-black/80 p-3">
@@ -57,6 +82,11 @@ export function WhoAmIRevealModal({
         ) : (
           <>
             <h2 className="font-black text-xl">{t.whoAmI.boardTitle}</h2>
+            {categoryInfo ? (
+              <p className="mt-2 text-(--sf-text-muted) text-sm">
+                {categoryInfo}
+              </p>
+            ) : null}
             <div className="mt-4">
               <WhoAmIBoardList players={players} words={words} selfId={player.id} />
             </div>
