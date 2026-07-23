@@ -128,7 +128,8 @@ body {
   }
 }
 
-/* Mäxle: Figur fällt vom Strick, sobald alle Leben aufgebraucht sind.
+/* Mäxle: Figur fällt vom Strick, sobald alle Leben aufgebraucht sind, und
+   löst sich dabei auf - übrig bleiben nur Galgen und Grabstein.
    transform-box: fill-box + %-Werte statt fester px-Koordinaten, damit der
    Dreh-/Bewegungspunkt unabhängig von der tatsächlichen Render-Größe des
    SVG relativ zur Figur selbst bleibt (SVG-Viewbox- vs. CSS-Pixel-Räume
@@ -136,17 +137,24 @@ body {
 .sf-maexle-fallen {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  animation: sf-maexle-fall 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+  animation: sf-maexle-fall 1s cubic-bezier(0.34, 1.2, 0.64, 1) both;
 }
 
 @keyframes sf-maexle-fall {
   0% {
     transform: rotate(0deg);
+    opacity: 1;
   }
-  100% {
+  55% {
     /* Negativ = zur Stamm-/Hügelseite hin, sonst dreht der Kopf über den
        rechten Rand der (schmalen) Viewbox hinaus und wird abgeschnitten. */
     transform: rotate(-80deg);
+    opacity: 1;
+  }
+  100% {
+    /* Ausgeblendet: nur Galgen + Grabstein bleiben stehen. */
+    transform: rotate(-80deg);
+    opacity: 0;
   }
 }
 
@@ -162,6 +170,7 @@ body {
   }
   .sf-maexle-fallen {
     animation: none;
-    transform: rotate(-80deg);
+    /* Ohne Bewegung direkt ausblenden - Galgen + Grabstein bleiben sichtbar. */
+    opacity: 0;
   }
 }

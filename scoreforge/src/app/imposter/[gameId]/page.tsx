@@ -105,6 +105,17 @@ export default function ImposterGame({
     });
   };
 
+  const endGame = () => {
+    mutateState(
+      (current) => ({ ...current, phase: "finished" }),
+      () => true,
+    );
+  };
+
+  const continuePlaying = () => {
+    mutateState((current) => ({ ...current, phase: "playing" }));
+  };
+
   if (notFound) {
     return (
       <main
@@ -260,6 +271,63 @@ export default function ImposterGame({
     );
   }
 
+  if (state.phase === "finished") {
+    const resultText =
+      state.crewWins > state.imposterWins
+        ? t.imposter.resultCrewWins
+        : state.imposterWins > state.crewWins
+          ? t.imposter.resultImposterWins
+          : t.imposter.resultTie;
+
+    return (
+      <main
+        style={gameThemes.imposter.style}
+        className="bg-(--sf-bg) px-3 sm:px-6 py-4 min-h-screen text-(--sf-text-strong)"
+      >
+        <div className="mx-auto max-w-5xl">
+          {header(t.imposter.finishedTag, t.imposter.finishedTitle)}
+
+          <section className="bg-(--sf-surface-2)/90 mx-auto p-6 border border-(--accent)/20 rounded-lg max-w-md text-center">
+            <p className="font-black text-2xl">{resultText}</p>
+
+            <div className="gap-3 grid grid-cols-2 mt-5">
+              <div className="bg-(--sf-surface) p-3 rounded-lg">
+                <p className="text-(--sf-text-subtle) text-xs">
+                  {t.imposter.crewLabel}
+                </p>
+                <p className="font-black text-3xl">{state.crewWins}</p>
+              </div>
+              <div className="bg-(--sf-surface) p-3 rounded-lg">
+                <p className="text-(--sf-text-subtle) text-xs">
+                  {t.imposter.imposterLabel}
+                </p>
+                <p className="font-black text-3xl">{state.imposterWins}</p>
+              </div>
+            </div>
+
+            {canWrite ? (
+              <button
+                onClick={continuePlaying}
+                className="bg-(--accent) mt-5 px-5 py-3 rounded-lg w-full font-black text-(--on-accent)"
+                type="button"
+              >
+                {t.imposter.continuePlaying}
+              </button>
+            ) : null}
+
+            <button
+              onClick={() => router.push("/")}
+              className="mt-2 px-5 py-3 border border-(--sf-text)/15 rounded-lg w-full font-bold text-(--sf-text-muted)"
+              type="button"
+            >
+              {t.common.toHome}
+            </button>
+          </section>
+        </div>
+      </main>
+    );
+  }
+
   const allRevealed = state.revealedIds.length >= state.players.length;
   const revealingPlayer = state.players.find(
     (player) => player.id === revealingPlayerId,
@@ -363,6 +431,16 @@ export default function ImposterGame({
               type="button"
             >
               {t.imposter.newRoundButton}
+            </button>
+          ) : null}
+
+          {canWrite ? (
+            <button
+              onClick={endGame}
+              className="mt-2 px-4 py-3 border border-[#ef4444]/40 rounded-md w-full font-bold text-[#ef4444] text-sm"
+              type="button"
+            >
+              {t.imposter.endGameButton}
             </button>
           ) : null}
         </section>

@@ -10,7 +10,11 @@ import { themeForGameType } from "@/lib/gameThemes";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GameTypeGrid } from "@/components/GameTypeGrid";
-import type { AccountGameSummary, GameType } from "@/types/gameTypes";
+import type {
+  AccountGameSummary,
+  GameHistoryEntry,
+  GameType,
+} from "@/types/gameTypes";
 
 type GameTypeStats = {
   gameType: GameType;
@@ -19,13 +23,29 @@ type GameTypeStats = {
   bestScore: number;
 };
 
+// Erstellzeitpunkt als Datum + Uhrzeit in der aktuellen Sprache darstellen.
+function formatCreatedAt(iso: string, lang: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleString(lang === "de" ? "de-DE" : "en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function AccountPage() {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   // undefined = noch am Laden, null = ausgeloggt, string = E-Mail
   const [email, setEmail] = useState<string | null | undefined>(undefined);
   const [games, setGames] = useState<AccountGameSummary[] | null>(null);
+  const [history, setHistory] = useState<GameHistoryEntry[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +85,19 @@ export default function AccountPage() {
       .catch(() => {
         if (!cancelled) {
           setGames([]);
+        }
+      });
+
+    fetch("/api/account/history", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data: { history?: GameHistoryEntry[] }) => {
+        if (!cancelled) {
+          setHistory(data.history ?? []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setHistory([]);
         }
       });
 
@@ -197,6 +230,9 @@ export default function AccountPage() {
                             />
                             {theme.label} · {game.playerCount} {t.common.players}
                           </p>
+                          <p className="mt-0.5 text-(--sf-text-subtle) text-xs">
+                            {formatCreatedAt(game.createdAt, lang)}
+                          </p>
                         </div>
                         <span
                           className="px-2 py-1 rounded-md font-bold text-xs whitespace-nowrap"
@@ -260,6 +296,67 @@ export default function AccountPage() {
                             })}
                           </span>
                         </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="bg-(--sf-surface-2)/90 mt-4 p-5 border border-[#f59e22]/20 rounded-lg">
+              <h2 className="font-black text-xl">{t.account.historyTitle}</h2>
+
+              {history === null ? (
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
+                  {t.account.loadingGames}
+                </p>
+              ) : history.length === 0 ? (
+                <p className="py-6 text-(--sf-text-subtle) text-sm text-center">
+                  {t.account.historyNone}
+                </p>
+              ) : (
+                <div className="space-y-3 mt-4">
+                  {history.map((entry) => {
+                    const theme = themeForGameType(entry.gameType);
+
+                    return (
+                      <div
+                        key={entry.id}
+                        className="bg-(--sf-surface) p-3 border border-(--sf-text)/10 rounded-lg"
+                        style={{ boxShadow: `inset 4px 0 0 ${theme.hex}` }}
+                      >
+                        <div className="flex justify-between items-baseline gap-3">
+                          <p className="font-bold truncate">
+                            {entry.lobbyName ?? theme.label}
+                          </p>
+                          <span className="flex-none text-(--sf-text-subtle) text-xs">
+                            {formatCreatedAt(entry.finishedAt, lang)}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-(--sf-text-subtle) text-xs">
+                          <span
+                            className="inline-block mr-1 rounded-full w-2 h-2 align-middle"
+                            style={{ backgroundColor: theme.hex }}
+                          />
+                          {theme.label}
+                        </p>
+                        <p
+                          className="mt-1 font-bold text-sm"
+                          style={{ color: theme.hex }}
+                        >
+                          {entry.winner
+                            ? format(t.account.historyWinner, {
+                                name: entry.winner,
+                              })
+                            : t.account.historyTie}
+                        </p>
+                        {entry.players.length > 0 ? (
+                          <p className="mt-0.5 text-(--sf-text-subtle) text-xs">
+                            {format(t.account.historyPlayers, {
+                              names: entry.players.join(", "),
+                            })}
+                          </p>
+                        ) : null}
                       </div>
                     );
                   })}

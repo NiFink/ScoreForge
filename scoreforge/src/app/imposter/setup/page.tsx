@@ -54,7 +54,13 @@ export default function ImposterSetup() {
   const allNamesFilled = players.every((player) => player.name.trim());
   const duplicateNames = hasDuplicateNames(players);
   const canStart = allNamesFilled && !duplicateNames;
-  const maxImposters = playerCount >= 6 ? 2 : 1;
+  // Frei wählbar: mindestens 1 Imposter, aber mindestens eine Person muss
+  // Crew bleiben - also höchstens (Personen - 1) Imposter.
+  const maxImposters = Math.max(1, playerCount - 1);
+  const imposterOptions = Array.from(
+    { length: maxImposters },
+    (_, i) => i + 1,
+  );
 
   const updatePlayer = (i: number, key: "name" | "color", value: string) => {
     setPlayers((current) =>
@@ -67,8 +73,9 @@ export default function ImposterSetup() {
   const updatePlayerCount = (count: number) => {
     setPlayerCount(count);
 
-    if (count < 6 && imposterCount > 1) {
-      setImposterCount(1);
+    // Imposter-Anzahl auf das neue Maximum (Personen - 1) begrenzen.
+    if (imposterCount > count - 1) {
+      setImposterCount(Math.max(1, count - 1));
     }
 
     setPlayers((current) =>
@@ -176,24 +183,19 @@ export default function ImposterSetup() {
           {/* LEFT */}
           <section className="bg-(--sf-surface-2)/90 p-4 border border-(--accent)/20 rounded-lg">
             <label className="font-bold text-(--sf-text) text-sm">
-              {t.common.playerCount}
+              {t.imposter.playerCountLabel}
             </label>
-            <div className="gap-2 grid grid-cols-4 mt-3">
+            <select
+              className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-(--sf-text-strong)"
+              value={playerCount}
+              onChange={(event) => updatePlayerCount(Number(event.target.value))}
+            >
               {PLAYER_COUNT_OPTIONS.map((count) => (
-                <button
-                  key={count}
-                  onClick={() => updatePlayerCount(count)}
-                  className={`rounded-md px-3 py-3 font-black ${
-                    playerCount === count
-                      ? "bg-(--accent) text-(--on-accent)"
-                      : "bg-(--sf-surface) text-(--sf-text-muted)"
-                  }`}
-                  type="button"
-                >
+                <option key={count} value={count}>
                   {count}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
 
             <label className="block mt-5 font-bold text-(--sf-text) text-sm">
               {t.imposter.categoryLabel}
@@ -225,23 +227,17 @@ export default function ImposterSetup() {
             <label className="block mt-5 font-bold text-(--sf-text) text-sm">
               {t.imposter.imposterCountLabel}
             </label>
-            <div className="gap-2 grid grid-cols-2 mt-2">
-              {[1, 2].map((count) => (
-                <button
-                  key={count}
-                  onClick={() => setImposterCount(count)}
-                  disabled={count > maxImposters}
-                  className={`rounded-md px-3 py-3 font-black disabled:opacity-30 disabled:cursor-not-allowed ${
-                    imposterCount === count
-                      ? "bg-(--accent) text-(--on-accent)"
-                      : "bg-(--sf-surface) text-(--sf-text-muted)"
-                  }`}
-                  type="button"
-                >
+            <select
+              className="bg-(--sf-bg) mt-2 px-3 py-3 border border-(--sf-text)/10 focus:border-(--accent) rounded-md outline-none w-full font-black text-(--sf-text-strong)"
+              value={imposterCount}
+              onChange={(event) => setImposterCount(Number(event.target.value))}
+            >
+              {imposterOptions.map((count) => (
+                <option key={count} value={count}>
                   {count}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
 
             {/* MODES */}
             <div className="mt-5">

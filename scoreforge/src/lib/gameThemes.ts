@@ -97,6 +97,14 @@ export const gameThemes: Record<GameThemeKey, GameTheme> = {
     hex2: "#fbbf24",
     gradient: "bg-linear-to-r from-[#6d28d9] to-[#fde68a]",
   },
+  // Wördle: Wordle-Grün/Gelb — die klassischen Kachelfarben
+  wordle: {
+    label: "Wördle",
+    style: makeStyle("#6aaa64", "#c9b458", "#ffffff"),
+    hex: "#6aaa64",
+    hex2: "#c9b458",
+    gradient: "bg-linear-to-r from-[#538d4e] to-[#c9b458]",
+  },
 };
 
 export function themeForGameType(gameType: string | undefined): GameTheme {

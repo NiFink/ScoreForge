@@ -15,7 +15,8 @@ export type GameType =
   | "kniffel"
   | "maexle"
   | "imposter"
-  | "whoAmI";
+  | "whoAmI"
+  | "wordle";
 
 export type BaseGameState = {
   gameType?: GameType;
@@ -73,6 +74,18 @@ export type AccountGameSummary = {
   finished: boolean;
   // Höchste erreichte Punktzahl, nur gesetzt wenn finished true ist.
   topScore: number | null;
+};
+
+// Dauerhafter Historien-Eintrag eines beendeten Spiels (nur für Konten).
+// Überlebt den Ablauf des eigentlichen Spiels (siehe game_results-Tabelle).
+export type GameHistoryEntry = {
+  id: string;
+  gameType: GameType;
+  lobbyName: string | null;
+  // Anzeigename des Gewinners (bei Gleichstand verbunden); null = unentschieden.
+  winner: string | null;
+  players: string[];
+  finishedAt: string;
 };
 
 // --- Doomlings ---
@@ -205,7 +218,7 @@ export type MaexleEndCondition = "lastStanding" | "firstElimination";
 export type MaexleState = BaseGameState & {
   gameType: "maexle";
   phase: "lobby" | "playing" | "finished";
-  // Startleben pro Spieler, bei der Einrichtung festgelegt (max. 11).
+  // Startleben pro Spieler, bei der Einrichtung festgelegt (max. 12).
   livesTotal: number;
   // playerId -> verbleibende Leben (0 = ausgeschieden).
   lives: Record<string, number>;
@@ -232,7 +245,7 @@ export type PartyCategorySelection = PartyWordCategoryKey | "random";
 
 export type ImposterState = BaseGameState & {
   gameType: "imposter";
-  phase: "lobby" | "playing";
+  phase: "lobby" | "playing" | "finished";
   categoryKey: PartyCategorySelection;
   imposterCount: number;
   round: number;
@@ -281,4 +294,46 @@ export type WhoAmIState = BaseGameState & {
   // Host hat die Runde manuell beendet, auch wenn noch nicht alle erraten
   // haben (siehe "Runde beenden"-Button).
   roundEnded?: boolean;
+};
+
+// --- Wördle (Wortraten à la Wordle) ---
+//
+// Ein zufällig gezogenes Wort wird Zeile für Zeile erraten. Nach jedem Versuch
+// gibt es Rückmeldung pro Buchstabe: richtige Position / im Wort enthalten /
+// nicht enthalten. Im Mehrgeräte-Modus teilen sich alle dasselbe Rätselbrett
+// (Koop) und sehen die Versuche live.
+
+// Sprache der zu erratenden Wörter (bestimmt die Wortliste + Tastaturlayout).
+export type WordleLanguage = "de" | "en";
+
+// "classic" = Farben (grün = richtig, gelb = enthalten, grau = fehlt).
+// "symbols" = Symbole statt Farben, mit sichtbarer Legende (barrierefrei).
+// "cryptic" = Symbole statt Farben, aber OHNE Legende - man muss selbst
+//             herausfinden, welches Zeichen "richtig am Platz" und welches
+//             "im Wort enthalten" bedeutet (die Zuordnung ist verdeckt/gemischt).
+export type WordleVariant = "classic" | "symbols" | "cryptic";
+
+// Bewertung eines einzelnen Buchstabens.
+export type WordleMark = "correct" | "present" | "absent";
+
+export type WordleState = BaseGameState & {
+  gameType: "wordle";
+  phase: "playing" | "finished";
+  language: WordleLanguage;
+  variant: WordleVariant;
+  // Länge des zu erratenden Wortes und maximale Anzahl Versuche.
+  wordLength: number;
+  maxGuesses: number;
+  // Das aktuell zu erratende Wort (Großbuchstaben, A-Z).
+  solution: string;
+  // Bereits abgegebene Rateversuche (Großbuchstaben), einer pro Zeile.
+  guesses: string[];
+  // Zuordnung Bewertung -> angezeigtes Symbol. Bei "cryptic" zufällig gemischt
+  // und ohne Legende, sodass die Bedeutung erst erraten werden muss.
+  symbolMap: Record<WordleMark, string>;
+  // Zähler über die gesamte Sitzung (mehrere Wörter nacheinander).
+  solvedCount: number;
+  lostCount: number;
+  // Ergebnis des aktuellen Wortes (nur in Phase "finished" gesetzt).
+  won?: boolean;
 };

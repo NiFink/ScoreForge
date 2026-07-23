@@ -1,10 +1,11 @@
 // Baut sich Stück für Stück auf, je mehr Leben verloren gehen: Hügel, Stamm,
-// Querbalken, Strebe, Strick, Kopf, Körper, Arm 1, Arm 2, Bein 1, Bein 2 -
-// exakt 11 Teile, weil es maximal 11 Leben gibt (siehe maexle/setup). Bei
-// weniger Startleben werden mehrere Teile pro verlorenem Leben auf einmal
+// Querbalken, Strebe, Sockel, Strick, Kopf, Körper, Arm 1, Arm 2, Bein 1,
+// Bein 2 - exakt 12 Teile, weil es maximal 12 Leben gibt (siehe maexle/setup).
+// Bei weniger Startleben werden mehrere Teile pro verlorenem Leben auf einmal
 // enthüllt, sodass bei 0 Leben immer die komplette Figur zu sehen ist. Beim
-// letzten Leben fällt die Figur vom Strick und ein Grabstein erscheint.
-const TOTAL_PARTS = 11;
+// letzten Leben fällt die Figur vom Strick, löst sich auf und ein Grabstein
+// bleibt zurück - übrig bleiben nur Galgen und Grabstein.
+const TOTAL_PARTS = 12;
 
 type MaexleGallowsProps = {
   livesTotal: number;
@@ -92,8 +93,21 @@ export function MaexleGallows({
         />
       ) : null}
 
-      {/* 5: Strick */}
+      {/* 5: Sockel (Fundament am Fuß des Stamms) */}
       {show(5) ? (
+        <rect
+          x="27"
+          y="126"
+          width="26"
+          height="7"
+          rx="2"
+          fill="#a1662f"
+          className="sf-reveal-pop"
+        />
+      ) : null}
+
+      {/* 6: Strick */}
+      {show(6) ? (
         <line
           x1="86"
           y1="18"
@@ -105,10 +119,10 @@ export function MaexleGallows({
         />
       ) : null}
 
-      {/* 6-11: die Figur (Kopf, Körper, Arme, Beine) - fällt als Ganzes vom
-          Strick, sobald alle Leben aufgebraucht sind. */}
+      {/* 7-12: die Figur (Kopf, Körper, Arme, Beine) - fällt als Ganzes vom
+          Strick, sobald alle Leben aufgebraucht sind, und blendet dabei aus. */}
       <g className={isDead ? "sf-maexle-fallen" : undefined}>
-        {show(6) ? (
+        {show(7) ? (
           <circle
             cx="86"
             cy="45"
@@ -119,7 +133,7 @@ export function MaexleGallows({
             className={isDead ? undefined : "sf-reveal-pop"}
           />
         ) : null}
-        {show(7) ? (
+        {show(8) ? (
           <line
             x1="86"
             y1="56"
@@ -131,7 +145,7 @@ export function MaexleGallows({
             className={isDead ? undefined : "sf-reveal-pop"}
           />
         ) : null}
-        {show(8) ? (
+        {show(9) ? (
           <line
             x1="86"
             y1="66"
@@ -143,7 +157,7 @@ export function MaexleGallows({
             className={isDead ? undefined : "sf-reveal-pop"}
           />
         ) : null}
-        {show(9) ? (
+        {show(10) ? (
           <line
             x1="86"
             y1="66"
@@ -155,7 +169,7 @@ export function MaexleGallows({
             className={isDead ? undefined : "sf-reveal-pop"}
           />
         ) : null}
-        {show(10) ? (
+        {show(11) ? (
           <line
             x1="86"
             y1="92"
@@ -167,7 +181,7 @@ export function MaexleGallows({
             className={isDead ? undefined : "sf-reveal-pop"}
           />
         ) : null}
-        {show(11) ? (
+        {show(12) ? (
           <line
             x1="86"
             y1="92"

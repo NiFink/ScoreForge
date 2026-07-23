@@ -70,6 +70,13 @@ export function GameTypeGrid({ category }: { category?: GameCategory } = {}) {
       description: t.home.whoAmIDescription,
       category: "party" as GameCategory,
     },
+    {
+      title: "Wördle",
+      href: "/wordle/setup",
+      theme: gameThemes.wordle,
+      description: t.home.wordleDescription,
+      category: "party" as GameCategory,
+    },
   ];
 
   const shownGames = category

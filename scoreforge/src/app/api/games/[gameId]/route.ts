@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAuthedUser } from "@/lib/supabase/server";
 import { GAME_CLIENT_COLUMNS, isStateWithinLimit } from "@/lib/games/records";
 import { isHostAuthorized } from "@/lib/games/hostAuth";
+import { resolveGameResult } from "@/lib/stats/gameStats";
 import type { BaseGameState } from "@/types/gameTypes";
 
 type RouteParams = { params: Promise<{ gameId: string }> };
@@ -139,6 +140,34 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Dauerhafte Historie NUR für Spiele eines eingeloggten Kontos (user_id
+  // gesetzt). Beim ersten Mal, wenn das Spiel beendet ist, wird ein kleiner
+  // Ergebnis-Eintrag abgelegt; `ignoreDuplicates` verhindert dank
+  // unique(user_id, game_id) Mehrfacheinträge bei weiteren "fertig"-Patches.
+  // Best-effort: ein Fehler hier darf den erfolgreichen Spielstand-Save nicht
+  // umwerfen.
+  if (existing.user_id) {
+    try {
+      const result = resolveGameResult(state.gameType, state);
+      if (result.finished) {
+        await supabase.from("game_results").upsert(
+          {
+            user_id: existing.user_id,
+            game_id: gameId,
+            game_type: state.gameType ?? "unknown",
+            lobby_name: state.lobbyName?.trim() || null,
+            winner: result.winner,
+            players: result.players,
+            finished_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,game_id", ignoreDuplicates: true },
+        );
+      }
+    } catch (err) {
+      console.error("Failed to record game result", err);
+    }
   }
 
   return NextResponse.json({ game: data });

@@ -82,6 +82,8 @@ const de = {
       "Alle außer dem Imposter kennen das Geheimwort. Handy reihum geben, privat aufdecken, am Tisch rätseln.",
     whoAmIDescription:
       "Jeder bekommt eine geheime Identität, die nur die anderen sehen. Reihum aufdecken und erraten.",
+    wordleDescription:
+      "Wortraten auf Deutsch oder Englisch — inklusive kryptischer Variante, bei der du selbst knacken musst, welches Symbol was bedeutet.",
     startWizard: "Wizard starten",
     joinLobby: "Lobby beitreten",
     gamesTitle: "Welches Spiel spielt ihr?",
@@ -600,6 +602,14 @@ const de = {
     crewWinsButton: "Crew hat gewonnen",
     imposterWinsButton: "Imposter hat gewonnen",
     newRoundButton: "Neue Runde",
+    playerCountLabel: "Anzahl Personen",
+    endGameButton: "Spiel beenden",
+    finishedTag: "Spiel beendet",
+    finishedTitle: "Endstand",
+    resultCrewWins: "Die Crew gewinnt insgesamt!",
+    resultImposterWins: "Die Imposter gewinnen insgesamt!",
+    resultTie: "Unentschieden!",
+    continuePlaying: "Weiterspielen",
   },
   whoAmI: {
     setupTag: "Wer bin ich Setup",
@@ -648,6 +658,40 @@ const de = {
     authoringDoneBanner: "Alle haben geschrieben - los geht's mit dem Erraten!",
     reassignWordButton: "Neues Wort zuweisen",
     viewAgain: "Nochmal ansehen",
+  },
+  wordle: {
+    setupTag: "Wördle Setup",
+    tag: "Wördle",
+    loadingGame: "Wördle wird geladen...",
+    languageLabel: "Sprache der Wörter",
+    languageDe: "Deutsch",
+    languageEn: "Englisch",
+    variantLabel: "Wördle-Art",
+    variantClassic: "Klassisch",
+    variantSymbols: "Symbole",
+    variantCryptic: "Kryptisch",
+    variantClassicHint:
+      "Farben zeigen dir sofort: grün = richtig am Platz, gelb = im Wort enthalten, grau = nicht enthalten.",
+    variantSymbolsHint:
+      "Statt Farben zeigen Symbole die Bewertung - mit Legende. Ideal bei Farbschwäche.",
+    variantCrypticHint:
+      "Nur Symbole, ohne Erklärung: Du musst selbst herausfinden, welches Zeichen \"richtig am Platz\" und welches \"im Wort enthalten\" bedeutet.",
+    instructions: "Errate das Wort aus {length} Buchstaben in {guesses} Versuchen.",
+    crypticBanner:
+      "Kryptisch: Finde selbst heraus, welches Symbol \"richtig am Platz\" und welches \"im Wort enthalten\" bedeutet.",
+    tooShort: "Zu wenige Buchstaben.",
+    notAllowed: "Bitte nur Buchstaben von A bis Z.",
+    alreadyGuessed: "Dieses Wort wurde schon geraten.",
+    wonBanner: "Erraten! 🎉",
+    lostBanner: "Leider verloren.",
+    solutionWas: "Das Wort war {word}.",
+    newWordButton: "Neues Wort",
+    statsLine: "Gelöst: {solved} · Verloren: {lost}",
+    legendTitle: "Legende",
+    legendCorrect: "Richtig am Platz",
+    legendPresent: "Im Wort enthalten",
+    legendAbsent: "Nicht im Wort",
+    keyEnter: "Enter",
   },
   settings: {
     title: "Spieleinstellungen",
@@ -746,6 +790,11 @@ const de = {
     statsGamesPlayed: "{n} gespielt",
     statsAvgScore: "Ø {score} Punkte",
     statsBestScore: "Beste: {score} Punkte",
+    historyTitle: "Letzte Spiele",
+    historyNone: "Noch keine beendeten Spiele.",
+    historyWinner: "Sieger: {name}",
+    historyTie: "Unentschieden",
+    historyPlayers: "Mitspieler: {names}",
   },
 };
 
@@ -829,6 +878,8 @@ const en: typeof de = {
       "Everyone but the impostor knows the secret word. Pass the phone, reveal privately, then discuss at the table.",
     whoAmIDescription:
       "Everyone gets a secret identity only the others can see. Reveal in turn and guess who you are.",
+    wordleDescription:
+      "Guess the word in German or English — including a cryptic mode where you have to figure out yourself which symbol means what.",
     startWizard: "Start Wizard",
     joinLobby: "Join lobby",
     gamesTitle: "Which game are you playing?",
@@ -1346,6 +1397,14 @@ const en: typeof de = {
     crewWinsButton: "Crew won",
     imposterWinsButton: "Impostor won",
     newRoundButton: "New round",
+    playerCountLabel: "Number of people",
+    endGameButton: "End game",
+    finishedTag: "Game over",
+    finishedTitle: "Final score",
+    resultCrewWins: "The crew wins overall!",
+    resultImposterWins: "The impostors win overall!",
+    resultTie: "It's a tie!",
+    continuePlaying: "Keep playing",
   },
   whoAmI: {
     setupTag: "Who Am I setup",
@@ -1394,6 +1453,40 @@ const en: typeof de = {
     authoringDoneBanner: "Everyone has written theirs - time to guess!",
     reassignWordButton: "Assign a new word",
     viewAgain: "View again",
+  },
+  wordle: {
+    setupTag: "Wördle setup",
+    tag: "Wördle",
+    loadingGame: "Loading Wördle...",
+    languageLabel: "Language of the words",
+    languageDe: "German",
+    languageEn: "English",
+    variantLabel: "Wördle type",
+    variantClassic: "Classic",
+    variantSymbols: "Symbols",
+    variantCryptic: "Cryptic",
+    variantClassicHint:
+      "Colors tell you instantly: green = right spot, yellow = in the word, grey = not in the word.",
+    variantSymbolsHint:
+      "Symbols instead of colors show the result - with a legend. Great for color blindness.",
+    variantCrypticHint:
+      "Just symbols, no explanation: you have to figure out yourself which sign means \"right spot\" and which means \"in the word\".",
+    instructions: "Guess the {length}-letter word within {guesses} tries.",
+    crypticBanner:
+      "Cryptic: figure out yourself which symbol means \"right spot\" and which means \"in the word\".",
+    tooShort: "Not enough letters.",
+    notAllowed: "Letters A to Z only, please.",
+    alreadyGuessed: "You already guessed that word.",
+    wonBanner: "Solved! 🎉",
+    lostBanner: "Out of tries.",
+    solutionWas: "The word was {word}.",
+    newWordButton: "New word",
+    statsLine: "Solved: {solved} · Lost: {lost}",
+    legendTitle: "Legend",
+    legendCorrect: "Right spot",
+    legendPresent: "In the word",
+    legendAbsent: "Not in the word",
+    keyEnter: "Enter",
   },
   settings: {
     title: "Game settings",
@@ -1492,6 +1585,11 @@ const en: typeof de = {
     statsGamesPlayed: "{n} played",
     statsAvgScore: "Avg. {score} points",
     statsBestScore: "Best: {score} points",
+    historyTitle: "Recent games",
+    historyNone: "No finished games yet.",
+    historyWinner: "Winner: {name}",
+    historyTie: "Tie",
+    historyPlayers: "Players: {names}",
   },
 };
 

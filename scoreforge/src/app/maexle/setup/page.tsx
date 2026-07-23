@@ -27,8 +27,8 @@ import type {
 // Reihe wie bei den anderen Spielen würde hier schnell unhandlich, deshalb
 // ein Dropdown für die Spieleranzahl.
 const PLAYER_COUNT_OPTIONS = Array.from({ length: 19 }, (_, i) => i + 2); // 2..20
-const LIVES_OPTIONS = Array.from({ length: 11 }, (_, i) => i + 1); // 1..11 (Maximum)
-const DEFAULT_LIVES = 3;
+const LIVES_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12 (Maximum)
+const DEFAULT_LIVES = 12;
 
 const createPlayers = (count: number): Player[] =>
   Array.from({ length: count }, (_, i) => ({

@@ -86,3 +86,29 @@ revoke select (host_secret_hash) on public.games from anon, authenticated;
 --    games-Tabelle nur für Realtime-Updates des Spielstands - er braucht dort
 --    keinen Code (useGame hält den bekannten Code über Updates hinweg stabil).
 revoke select (code) on public.games from anon, authenticated;
+
+-- 9. Dauerhafte Spiel-Historie NUR für eingeloggte Konten. Anders als `games`
+--    (vergänglich, 2-Tage-Ablauf + stündliches Löschen) überlebt hier ein
+--    kleiner Ergebnis-Eintrag pro beendetem Spiel. Wird ausschließlich über die
+--    API (Service-Role) geschrieben/gelesen, immer nach verifiziertem Nutzer
+--    gefiltert. `unique (user_id, game_id)` verhindert Doppeleinträge, wenn ein
+--    Spiel mehrfach als "fertig" gemeldet wird.
+create table if not exists public.game_results (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  game_id text not null,
+  game_type text not null,
+  lobby_name text,
+  winner text,
+  players jsonb not null default '[]'::jsonb,
+  finished_at timestamptz not null default now(),
+  unique (user_id, game_id)
+);
+
+create index if not exists game_results_user_idx
+  on public.game_results (user_id, finished_at desc);
+
+-- RLS an, aber BEWUSST keine Policies für anon/authenticated: der öffentliche
+-- Browser-Client darf gar nicht direkt zugreifen. Nur der Service-Role-Key der
+-- API-Routes umgeht RLS und liest/schreibt streng nach verifiziertem Nutzer.
+alter table public.game_results enable row level security;
